@@ -85,6 +85,7 @@ export class MainScene extends Phaser.Scene {
 
     preload() {
         this.load.image('floor', 'assets/textures/floor_scifi.png');
+        this.load.image('wall', 'assets/textures/wall_tech.png');
         this.load.image('hero_vanguard', 'assets/sprites/hero_vanguard.png');
         this.load.image('hero_spectre', 'assets/sprites/hero_spectre.png');
         this.load.image('hero_bastion', 'assets/sprites/hero_bastion.png');
@@ -137,6 +138,19 @@ export class MainScene extends Phaser.Scene {
         EventBus.on('NETWORK_PACKET', this.handleNetworkPacket, this);
         EventBus.on('APPLY_UPGRADE', this.applyUpgrade, this);
         EventBus.on('ENEMY_KILLED', (score: number) => this.awardScore(score));
+
+        // Input Events
+        EventBus.on('JOYSTICK_MOVE', (vec: { x: number, y: number }) => this.inputSystem.setVirtualAxis(vec.x, vec.y));
+        EventBus.on('JOYSTICK_AIM', (data: { x: number, y: number, isFiring: boolean }) => this.inputSystem.setVirtualAim(data.x, data.y, data.isFiring));
+        EventBus.on('JOYSTICK_SKILL', (skill: string) => this.inputSystem.triggerSkill(skill));
+
+        // Skill Trigger from InputSystem
+        this.events.on('TRIGGER_SKILL', (skill: string) => {
+            if (!this.myUnit) return;
+            if (skill === 'DASH') this.myUnit.dash();
+            if (skill === 'Q') this.myUnit.triggerSkill1();
+            if (skill === 'E') this.myUnit.triggerSkill2();
+        });
 
         this.scale.on('resize', this.handleResize, this);
         this.events.on('shutdown', () => this.cleanup());

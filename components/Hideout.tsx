@@ -25,11 +25,8 @@ export const Hideout: React.FC = () => {
     };
 
     const handleDecrypt = (item: InventoryItem) => {
-        // Gacha time!
         const result = inventoryService.decryptArtifact(item.id);
         if (result) {
-            // Show some animation or alert? For MVP, just refresh and show "NEW"
-            alert(`Decrypted! You got: ${result.defId}`); // Placeholder for juice
             refreshData();
         }
     };
@@ -42,114 +39,132 @@ export const Hideout: React.FC = () => {
     // --- Renders ---
 
     return (
-        <div className="ui-layer" style={{ pointerEvents: 'auto', background: '#1a1a2e' }}>
-            {/* Header */}
-            <div style={{
-                position: 'absolute', top: 0, left: 0, right: 0, height: '80px',
-                background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', padding: '0 40px',
-                justifyContent: 'space-between', borderBottom: '1px solid #333'
-            }}>
-                <div className="title-text" style={{ fontSize: '2rem', margin: 0, textAlign: 'left' }}>
-                    基地 <span style={{ fontSize: '1rem', color: '#666' }}>// HIDEOUT</span>
+        <div className="absolute inset-0 bg-[#0e0d16] font-['Press_Start_2P'] text-[#eddbda] selection:bg-[#ff0055] selection:text-white pointer-events-auto flex flex-col">
+
+            {/* Background Image Layer */}
+            <div className="absolute inset-0 z-0">
+                <img src="/assets/ui/bg_hld_ruins.png" className="w-full h-full object-cover opacity-60" />
+                <div className="absolute inset-0 bg-gradient-to-t from-[#0e0d16] via-[#0e0d16]/80 to-transparent"></div>
+            </div>
+
+            {/* Top Bar: Minimalist Header */}
+            <div className="relative z-10 h-16 flex items-center justify-between px-8 border-b border-[#272933]/50 backdrop-blur-sm">
+                <div className="flex items-center gap-4">
+                    <div className="w-4 h-4 bg-cyan-400 rotate-45"></div>
+                    <div className="text-xl tracking-widest text-cyan-400">DRIFTER CAMP</div>
                 </div>
-                <div style={{ color: '#00FFFF', fontSize: '1.5rem', fontFamily: 'monospace' }}>
-                    💎 {credits.toLocaleString()} CR
+                <div className="flex items-center gap-2">
+                    <div className="w-3 h-3 bg-yellow-400"></div>
+                    <span className="text-yellow-400 text-sm tracking-widest">{credits.toLocaleString()} SCRAP</span>
                 </div>
             </div>
 
-            {/* Main Content Grid */}
-            <div style={{
-                position: 'absolute', top: '80px', bottom: '80px', left: '40px', right: '40px',
-                display: 'flex', gap: '20px', paddingTop: '20px'
-            }}>
-                {/* LEFT: Hero Preview (Placeholder for now) */}
-                <div className="glass-card" style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
-                    <div style={{ fontSize: '5rem' }}>🤖</div>
-                    <h2>VANGUARD</h2>
-                    <p style={{ color: '#888' }}>Ready for deployment</p>
-                    <div className="stat-box" style={{ width: '80%', marginTop: '20px' }}>
-                        <div>Level 1</div>
-                        <div>XX XP</div>
+            {/* Main Layout: Split Columns */}
+            <div className="flex-1 flex p-8 gap-8 overflow-hidden">
+
+                {/* LEFT: Hero Visualization (Monolith Style) */}
+                <div className="w-1/3 border border-[#272933] bg-[#0e0d16] relative flex flex-col items-center justify-center group overflow-hidden">
+                    {/* Background Glitch Effect */}
+                    <div className="absolute inset-0 bg-[url('/assets/textures/floor_scifi.png')] opacity-10 mix-blend-overlay"></div>
+                    <div className="absolute top-0 w-full h-1 bg-gradient-to-r from-transparent via-cyan-500 to-transparent opacity-50"></div>
+
+                    {/* Character Placeholder (Would use Sprite) */}
+                    <img
+                        src="/assets/sprites/hero_vanguard.png"
+                        className="w-32 h-32 rendering-pixelated scale-150 drop-shadow-[0_0_15px_rgba(84,252,252,0.4)] transition-transform group-hover:scale-175 duration-500"
+                    />
+
+                    <div className="mt-8 text-center z-10">
+                        <h2 className="text-2xl text-cyan-400 tracking-[0.2em] mb-2 uppercase">Vanguard</h2>
+                        <div className="text-[10px] text-[#494d5e] tracking-widest uppercase">Class Details // Synced</div>
                     </div>
                 </div>
 
-                {/* RIGHT: Stash / Inventory */}
-                <div className="glass-card" style={{ flex: 2, display: 'flex', flexDirection: 'column' }}>
-                    <h3 style={{ margin: '0 0 10px 0', borderBottom: '1px solid #444', paddingBottom: '10px' }}>
-                        戰利品倉庫 (STASH)
-                    </h3>
+                {/* RIGHT: Inventory Grid (Grid System) */}
+                <div className="flex-1 flex flex-col gap-4">
+                    <div className="flex justify-between items-end border-b border-[#272933] pb-2">
+                        <h3 className="text-sm text-[#eddbda] tracking-widest">INVENTORY_MATRIX</h3>
+                        <span className="text-[10px] text-[#494d5e]">{stash.length} / 20 SLOTS</span>
+                    </div>
 
-                    <div style={{
-                        flex: 1, overflowY: 'auto',
-                        display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(80px, 1fr))',
-                        gap: '10px', alignContent: 'start'
-                    }}>
+                    <div className="flex-1 grid grid-cols-6 gap-2 content-start overflow-y-auto pr-2 custom-scrollbar">
                         {stash.map(item => (
                             <div
                                 key={item.id}
                                 onClick={() => setSelectedItem(item)}
-                                style={{
-                                    background: selectedItem?.id === item.id ? '#444' : 'rgba(0,0,0,0.3)',
-                                    border: `2px solid ${getRarityColor(item.rarity)}`,
-                                    borderRadius: '8px', aspectRatio: '1/1',
-                                    display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-                                    cursor: 'pointer', position: 'relative'
-                                }}
+                                className={`
+                                    relative aspect-square border-2 flex flex-col items-center justify-center cursor-pointer transition-all group
+                                    ${selectedItem?.id === item.id ? 'border-cyan-400 bg-[#272933]' : 'border-[#272933] hover:border-[#494d5e]'}
+                                `}
                             >
-                                <div style={{ fontSize: '2rem' }}>
+                                <div className="text-2xl relative z-10 group-hover:scale-110 transition-transform">
                                     {getIcon(item.type)}
                                 </div>
-                                {item.type === ItemType.ARTIFACT && (
-                                    <div style={{ position: 'absolute', top: 2, right: 2, fontSize: '0.6rem', background: 'red', borderRadius: '50%', width: 10, height: 10 }} />
-                                )}
+
+                                {/* Rarity Indicator (Corner Triangle) */}
+                                <div
+                                    className="absolute top-0 right-0 w-3 h-3"
+                                    style={{ background: `linear-gradient(225deg, ${getRarityColor(item.rarity)} 50%, transparent 50%)` }}
+                                />
                             </div>
                         ))}
-                        {stash.length === 0 && (
-                            <div style={{ gridColumn: '1/-1', textAlign: 'center', color: '#666', marginTop: '50px' }}>
-                                倉庫空空如也... 去戰鬥吧！
-                            </div>
-                        )}
+
+                        {/* Empty Slots Fill */}
+                        {Array.from({ length: Math.max(0, 24 - stash.length) }).map((_, i) => (
+                            <div key={`empty-${i}`} className="aspect-square border border-[#1a1c24] bg-[#0e0d16] opacity-30"></div>
+                        ))}
                     </div>
 
-                    {/* Action Bar for Selected Item */}
-                    <div style={{
-                        height: '60px', borderTop: '1px solid #444', marginTop: '10px',
-                        display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '10px'
-                    }}>
+                    {/* Item Details / Actions Panel */}
+                    <div className="h-32 border-t border-[#272933] pt-4 flex gap-4">
                         {selectedItem ? (
                             <>
-                                <div style={{ marginRight: 'auto', color: '#AAA' }}>
-                                    {selectedItem.defId} <span style={{ color: getRarityColor(selectedItem.rarity) }}>[{selectedItem.rarity}]</span>
+                                <div className="w-32 h-full border border-[#272933] flex items-center justify-center bg-[#0e0d16]">
+                                    {getIcon(selectedItem.type)}
                                 </div>
+                                <div className="flex-1 flex flex-col justify-between">
+                                    <div>
+                                        <div className="text-cyan-400 text-lg tracking-wider mb-1 uppercase">{selectedItem.defId}</div>
+                                        <div className="text-[10px] text-[#494d5e] uppercase tracking-[0.2em]" style={{ color: getRarityColor(selectedItem.rarity) }}>
+                                            [{selectedItem.rarity}] // {selectedItem.type}
+                                        </div>
+                                    </div>
 
-                                {selectedItem.type === ItemType.ARTIFACT && (
-                                    <button className="bubble-btn purple" style={{ width: 'auto', padding: '8px 20px', margin: 0 }} onClick={() => handleDecrypt(selectedItem)}>
-                                        鑑定 (DECRYPT)
-                                    </button>
-                                )}
-
-                                <button className="bubble-btn" style={{ width: 'auto', padding: '8px 20px', margin: 0, background: '#555', boxShadow: 'none' }} onClick={() => handleSell(selectedItem)}>
-                                    出售 (SELL)
-                                </button>
+                                    <div className="flex gap-4">
+                                        {selectedItem.type === ItemType.ARTIFACT && (
+                                            <button
+                                                onClick={() => handleDecrypt(selectedItem)}
+                                                className="px-6 py-3 bg-[#ff0055] hover:bg-[#ff0055]/80 text-white text-xs tracking-widest uppercase transition-colors"
+                                            >
+                                                Decrypt
+                                            </button>
+                                        )}
+                                        <button
+                                            onClick={() => handleSell(selectedItem)}
+                                            className="px-6 py-3 bg-[#272933] hover:bg-[#494d5e] text-white text-xs tracking-widest uppercase transition-colors"
+                                        >
+                                            Salvage
+                                        </button>
+                                    </div>
+                                </div>
                             </>
                         ) : (
-                            <div style={{ color: '#666' }}>選擇一個物品以操作</div>
+                            <div className="flex-1 flex items-center justify-center text-[#494d5e] text-xs tracking-widest uppercase italic">
+                                Select an item to analyze...
+                            </div>
                         )}
                     </div>
                 </div>
             </div>
 
-            {/* Bottom Bar: Deploy */}
-            <div style={{
-                position: 'absolute', bottom: 0, left: 0, right: 0, height: '80px',
-                background: 'rgba(0,0,0,0.8)', display: 'flex', alignItems: 'center', justifyContent: 'center'
-            }}>
+            {/* Footer / Deploy Button */}
+            <div className="h-20 border-t border-[#272933] flex items-center justify-center p-4 bg-[#0e0d16]/95">
                 <button
-                    className="bubble-btn green"
-                    style={{ width: '300px', fontSize: '1.5rem', letterSpacing: '2px' }}
                     onClick={handleDeploy}
+                    className="w-full max-w-sm h-full border-2 border-cyan-400 text-cyan-400 hover:bg-cyan-400 hover:text-black text-lg tracking-[0.5em] uppercase transition-all duration-300 relative overflow-hidden group"
                 >
-                    出擊 (DEPLOY)
+                    <span className="relative z-10">Initiate Warp</span>
+                    <div className="absolute inset-0 bg-cyan-400 translate-y-full group-hover:translate-y-0 transition-transform duration-300"></div>
                 </button>
             </div>
         </div>
@@ -158,14 +173,16 @@ export const Hideout: React.FC = () => {
 
 // Helpers
 function getRarityColor(r: string) {
-    if (r === 'LEGENDARY') return '#FFD700';
-    if (r === 'RARE') return '#0088FF';
-    if (r === 'UNCOMMON') return '#00FF00';
-    return '#888';
+    if (r === 'LEGENDARY') return '#ffe736'; // Electric Yellow
+    if (r === 'RARE') return '#54fcfc'; // Drifter Cyan
+    if (r === 'UNCOMMON') return '#ff0055'; // Signal Magenta
+    return '#494d5e'; // Grime Grey
 }
 
 function getIcon(t: string) {
-    if (t === 'WEAPON') return <img src="/assets/icons/weapon_rifle.png" width="48" height="48" alt="Weapon" />;
-    if (t === 'ARTIFACT') return <img src="/assets/icons/artifact_box.png" width="48" height="48" alt="Artifact" />;
-    return <img src="/assets/icons/material_scrap.png" width="48" height="48" alt="Material" />;
+    // Map types to simple unicode or reuse images if verified. 
+    // Using images for better HLD feel.
+    if (t === 'WEAPON') return <img src="/assets/icons/icon_pulse_rifle.png" className="w-8 h-8 filter invert" />;
+    if (t === 'ARTIFACT') return <img src="/assets/icons/icon_artifact_box.png" className="w-8 h-8 filter invert" />;
+    return <img src="/assets/icons/icon_scrap_metal.png" className="w-8 h-8 filter invert" />;
 }

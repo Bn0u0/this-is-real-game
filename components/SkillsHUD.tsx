@@ -41,53 +41,32 @@ export const SkillsHUD: React.FC = () => {
     }, []);
 
     return (
-        <div style={{
-            position: 'absolute',
-            bottom: '20px',
-            right: '20px',
-            display: 'flex',
-            gap: '15px',
-            zIndex: 100
-        }}>
+        <div className="absolute bottom-5 right-5 flex gap-4 z-50 font-['Press_Start_2P']">
             {skills.map(skill => {
                 const percent = (skill.cooldown / skill.maxCooldown) * 100;
                 const isReady = skill.cooldown <= 0;
 
                 return (
-                    <div key={skill.id} style={{
-                        width: '60px', height: '60px',
-                        background: 'rgba(0,0,0,0.6)',
-                        borderRadius: '12px',
-                        border: isReady ? '2px solid #00FF00' : '2px solid #555',
-                        position: 'relative',
-                        overflow: 'hidden',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        fontSize: '24px',
-                        boxShadow: isReady ? '0 0 10px #00FF00' : 'none',
-                        transition: 'all 0.1s'
-                    }}>
-                        {/* Cooldown Mask */}
-                        <div style={{
-                            position: 'absolute',
-                            bottom: 0, left: 0, right: 0,
-                            height: `${percent}%`,
-                            background: 'rgba(255, 255, 255, 0.3)',
-                            transition: 'height 0.1s linear'
-                        }} />
+                    <div key={skill.id} className="relative w-14 h-14 bg-slate-900 border-2 border-slate-600 flex items-center justify-center">
+                        {/* Cooldown Overlay (Top-down wipe) */}
+                        <div
+                            className="absolute bottom-0 left-0 w-full bg-slate-800/90 z-20 pointer-events-none"
+                            style={{ height: `${percent}%`, transition: 'height 0.1s linear' }}
+                        />
 
-                        {/* Icon */}
-                        <div style={{ zIndex: 2, opacity: isReady ? 1 : 0.5 }}>
+                        {/* Border Glow if Ready */}
+                        <div className={`absolute inset-0 border-2 z-30 transition-colors ${isReady ? 'border-cyan-400 drop-shadow-[0_0_5px_rgba(84,252,252,0.8)]' : 'border-transparent'}`} />
+
+                        {/* Icon (Text for now, should be Rune Image) */}
+                        <div className={`relative z-10 text-xl text-white ${isReady ? 'opacity-100' : 'opacity-40 grayscale'}`}>
                             {skill.icon}
                         </div>
 
-                        {/* Key bind hint */}
-                        <div style={{
-                            position: 'absolute', top: 2, left: 4,
-                            fontSize: '10px', color: '#AAA'
-                        }}>
-                            {skill.id === 'dash' ? 'SPC' : skill.id === 'skill1' ? 'Q' : 'E'}
+                        {/* Key Hint (Pixel Tag) */}
+                        <div className="absolute -top-3 -left-2 bg-black px-1 border border-slate-600">
+                            <span className="text-[8px] text-gray-400">
+                                {skill.id === 'dash' ? 'SPC' : skill.id === 'skill1' ? 'Q' : 'E'}
+                            </span>
                         </div>
                     </div>
                 );

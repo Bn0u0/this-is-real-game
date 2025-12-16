@@ -120,21 +120,17 @@ export class TerrainManager {
                 .setDisplaySize(this.tileSize, this.tileSize)
                 .setDepth(-1);
         }
+        // Wall
         else if (type === TileType.WALL) {
-            // 2.5D Block
-            // Top face
-            // We draw the block slightly offset up by 'height'
-            const topY = worldY - height;
-
-            // Side face (Front)
-            g.fillStyle(0x555555, 1);
-            g.fillRect(worldX, topY + this.tileSize, this.tileSize, height); // Fake front face
-
-            // Top Face
-            g.fillStyle(COLORS.primary, 1); // Neon edges
-            g.fillRect(worldX, topY, this.tileSize, this.tileSize);
-            g.fillStyle(0x111111, 1); // Inner top
-            g.fillRect(worldX + 2, topY + 2, this.tileSize - 4, this.tileSize - 4);
+            // 2.5D Block Sprite
+            // Draw slightly offset up by 'height'
+            // We'll use the texture. If it's isometric, we place it carefully.
+            // Our texture is a block. Let's just place it.
+            const wall = this.scene.add.image(worldX + this.tileSize / 2, worldY + this.tileSize / 2 - height / 2, 'wall'); // Shift up
+            wall.setDisplaySize(this.tileSize, this.tileSize + height); // Stretch height? Or maintain aspect ratio?
+            // If texture is 2.5D side view, we should just place it.
+            // Let's assume standard square for now but stretched.
+            // Better: use slicing if we had it. For now, simple scaling.
 
             // Physics Body -> needs to be at GROUND level (worldY)
             const zone = this.scene.add.zone(worldX + this.tileSize / 2, worldY + this.tileSize / 2, this.tileSize, this.tileSize);
@@ -142,7 +138,8 @@ export class TerrainManager {
             this.wallGroup.add(zone);
             tile.body = zone.body as Phaser.Physics.Arcade.Body;
 
-            g.setDepth(worldY + this.tileSize); // Y-sort
+            wall.setDepth(worldY + this.tileSize); // Y-sort
+            tile.instance = wall as any;
         }
 
         this.tiles.set(key, tile);

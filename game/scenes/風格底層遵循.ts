@@ -117,7 +117,6 @@ export class MainScene extends Phaser.Scene {
         this.combatManager = new CombatManager(this);
         this.terrainManager = new TerrainManager(this);
         this.playerFactory = new PlayerFactory(this);
-        this.playerFactory = new PlayerFactory(this);
 
         this.extractionManager.setTerrainManager(this.terrainManager); // Inject dependency
 

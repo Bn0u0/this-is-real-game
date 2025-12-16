@@ -8,9 +8,14 @@ export const Hideout: React.FC = () => {
     const [stash, setStash] = useState<InventoryItem[]>([]);
     const [credits, setCredits] = useState(0);
     const [selectedItem, setSelectedItem] = useState<InventoryItem | null>(null);
+    const [heroId, setHeroId] = useState(metaGame.getState().selectedHeroId);
+
+    const heroes = ['Vanguard', 'Spectre', 'Bastion', 'Catalyst', 'Weaver'];
 
     useEffect(() => {
         refreshData();
+        // Subscribe to metaGame purely for hero updates if needed, 
+        // but for now local state driving metaGame is fine.
     }, []);
 
     const refreshData = () => {
@@ -18,6 +23,14 @@ export const Hideout: React.FC = () => {
         setStash([...state.stash]); // Copy to trigger re-render
         setCredits(state.credits);
         setSelectedItem(null);
+    };
+
+    const handleHeroClick = () => {
+        const currentIndex = heroes.indexOf(heroId);
+        const nextIndex = (currentIndex + 1) % heroes.length;
+        const nextHero = heroes[nextIndex];
+        setHeroId(nextHero);
+        metaGame.selectHero(nextHero);
     };
 
     const handleDeploy = () => {
@@ -63,20 +76,24 @@ export const Hideout: React.FC = () => {
             <div className="flex-1 flex p-8 gap-8 overflow-hidden">
 
                 {/* LEFT: Hero Visualization (Monolith Style) */}
-                <div className="w-1/3 border border-[#272933] bg-[#0e0d16] relative flex flex-col items-center justify-center group overflow-hidden">
+                <div
+                    onClick={handleHeroClick}
+                    className="w-1/3 border border-[#272933] bg-[#0e0d16] relative flex flex-col items-center justify-center group overflow-hidden cursor-pointer hover:border-cyan-400 transition-colors"
+                >
                     {/* Background Glitch Effect */}
                     <div className="absolute inset-0 bg-[url('/assets/textures/floor_scifi.png')] opacity-10 mix-blend-overlay"></div>
                     <div className="absolute top-0 w-full h-1 bg-gradient-to-r from-transparent via-cyan-500 to-transparent opacity-50"></div>
 
                     {/* Character Placeholder (Would use Sprite) */}
                     <img
-                        src="/assets/sprites/hero_vanguard.png"
+                        src={`/assets/sprites/hero_${heroId.toLowerCase()}.png`}
                         className="w-32 h-32 rendering-pixelated scale-150 drop-shadow-[0_0_15px_rgba(84,252,252,0.4)] transition-transform group-hover:scale-175 duration-500"
                     />
 
                     <div className="mt-8 text-center z-10">
-                        <h2 className="text-2xl text-cyan-400 tracking-[0.2em] mb-2 uppercase">Vanguard</h2>
+                        <h2 className="text-2xl text-cyan-400 tracking-[0.2em] mb-2 uppercase">{heroId}</h2>
                         <div className="text-[10px] text-[#494d5e] tracking-widest uppercase">Class Details // Synced</div>
+                        <div className="text-[8px] text-yellow-400 mt-2 tracking-widest animate-pulse">CLICK TO SWITCH FRAME</div>
                     </div>
                 </div>
 

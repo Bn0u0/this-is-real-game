@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import Phaser from 'phaser';
-import { MainScene } from './scenes/MainScene';
+import { MainScene } from './scenes/風格底層遵循';
 import { COLORS } from '../constants';
 
 export const PhaserGame: React.FC = () => {
@@ -24,8 +24,9 @@ export const PhaserGame: React.FC = () => {
       transparent: false,
       render: {
         powerPreference: 'high-performance',
-        antialias: true,
-        pixelArt: false
+        antialias: false,
+        pixelArt: true,
+        roundPixels: true
       },
       physics: {
         default: 'arcade',
@@ -39,8 +40,8 @@ export const PhaserGame: React.FC = () => {
         autoCenter: Phaser.Scale.CENTER_BOTH,
         // Crucial: Set min dimensions to prevent 0x0 framebuffer errors during resize/init
         min: {
-            width: 320,
-            height: 240
+          width: 320,
+          height: 240
         }
       }
     };

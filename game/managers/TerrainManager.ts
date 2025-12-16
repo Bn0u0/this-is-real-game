@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { MainScene } from '../scenes/MainScene';
+import { MainScene } from '../scenes/風格底層遵循';
 import { COLORS } from '../../constants';
 
 // 2.5D Tiling System

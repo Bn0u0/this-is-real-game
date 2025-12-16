@@ -30,12 +30,12 @@ export class Player extends Phaser.GameObjects.Container {
     private emitter: Phaser.GameObjects.Particles.ParticleEmitter;
     private shadow: Phaser.GameObjects.Ellipse; // 2.5D Anchor
 
-    // 2.5D Coordinates
+    // 2.5D Coordinates (Simulated Height for Jumps/FX only - Pure 2D)
     public z: number = 0;
     public zVelocity: number = 0;
 
-    // Dash
-    private isDashing: boolean = false;
+    // Dash State
+    public isDashing: boolean = false;
     private dashTimer: number = 0;
     private dashCooldown: number = 0;
 
@@ -50,21 +50,11 @@ export class Player extends Phaser.GameObjects.Container {
         super(scene, x, y);
         this.id = id;
         this.isLocal = isLocal;
-        // Role-specific override point
-
 
         // 0. Shadow (Ground anchor)
         this.shadow = scene.add.ellipse(0, 0, 40, 15, 0x000000, 0.4);
-        this.shadow.setDepth(5); // Below players
-        this.add(this.shadow); // NOTE: We might want shadow DETACHED to stay on ground if jumping. 
-        // For simplicity, if z changes, we offset the CONTAINER content, not the container itself.
-        // Actually, distinct shadow object is better if we want container to represent hitbox.
-        // Let's keep physics body (hitbox) grounded. The SPRITE jumps.
-
-        // ... But Player extends Container. The Container IS the physics body.
-        // So: Container = Ground Position (Hitbox).
-        // Visual Elements (coreShape, emitter) = Offset by -z.
-        // Shadow = At Container (0,0).
+        this.shadow.setDepth(5);
+        this.add(this.shadow);
 
         // 1. Particle Trail (The Wake)
         if (!scene.textures.exists('flare')) {
@@ -158,22 +148,21 @@ export class Player extends Phaser.GameObjects.Container {
             }
         }
 
-        // 2.5D Height Physics (Simple Gravity)
+        // 2.5D Height Physics (Simple Gravity Simulation)
         if (this.z > 0 || this.zVelocity !== 0) {
             this.z += this.zVelocity;
             this.zVelocity -= 0.8; // Gravity
             if (this.z < 0) {
                 this.z = 0;
                 this.zVelocity = 0;
-                // Land visuals?
             }
         }
 
-        // Apply Z offset to visuals
+        // Apply Z offset to visuals (Pure 2D Y-offset)
         this.coreShape.y = -this.z;
         if (this.visualSprite) this.visualSprite.y = -this.z;
 
-        this.shadow.setScale(1 - (this.z / 200)); // Shadow shrinks
+        this.shadow.setScale(1 - (this.z / 200));
         this.shadow.setAlpha(0.4 - (this.z / 300));
 
         // Dash Logic
@@ -182,10 +171,10 @@ export class Player extends Phaser.GameObjects.Container {
             this.dashTimer -= dt;
             if (this.dashTimer <= 0) {
                 this.isDashing = false;
-                body.drag.set(PHYSICS.drag); // Restore drag
+                body.drag.set(PHYSICS.drag);
                 body.maxVelocity.set(PHYSICS.maxVelocity);
             }
-            return; // Skip normal movement updates during dash if we strictly lock it
+            return;
         }
 
         // Visual: Breathing Pulse based on speed
@@ -195,21 +184,12 @@ export class Player extends Phaser.GameObjects.Container {
 
         // Visual: Inner Rotate
         this.coreShape.rotation += 0.02 + (speedRatio * 0.1);
-        this.coreShape.y = -this.z; // Ensure it sticks
-
-        // Sprite might not want to rotate fully, maybe just bob?
-        // For top-down tank, rotation is handled by CONTAINER rotation (facing).
-        // So we don't need to rotate sprite internally unless it's an effect.
-        // But Vanguard is a tank, it faces direction. The Container rotates.
-        // We only need to ensure Y offset.
+        this.coreShape.y = -this.z;
 
         // Update Particles
         if (body.velocity.length() > 50) {
             this.emitter.active = true;
-            // Offset particles to rear
             const angle = this.rotation + Math.PI / 2;
-            const lift = -this.z; // Particles float with player? Or stay on ground? 
-            // Let's keep them on ground for wake effect.
             this.emitter.followOffset.set(
                 Math.cos(angle) * 15,
                 Math.sin(angle) * 15
@@ -235,8 +215,8 @@ export class Player extends Phaser.GameObjects.Container {
         body.maxVelocity.set(1000);
         body.setVelocity(Math.cos(angle) * speed, Math.sin(angle) * speed);
 
-        // Visual jump
-        this.zVelocity = 10; // Hop
+        // Visual jump (Height simulation)
+        this.zVelocity = 10;
 
         // Visual flash
         this.scene.tweens.add({

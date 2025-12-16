@@ -16,7 +16,7 @@ export class InputSystem {
     public setVirtualAxis(x: number, y: number) {
         this.virtualMove.x = x;
         this.virtualMove.y = y;
-        if (x !== 0 || y !== 0) this.targetMovePosition = null; // Cancel click movement on manual input
+        if (x !== 0 || y !== 0) this.targetMovePosition = null;
     }
 
     public setVirtualAim(x: number, y: number, firing: boolean) {
@@ -26,13 +26,6 @@ export class InputSystem {
     }
 
     public triggerSkill(skill: string) {
-        // We need player access properly, but processInput passes player.
-        // We'll store a 'pendingSkill' flag or direct emit if we had the player ref here.
-        // For now, let's rely on EventBus being handled in Scene updates or pass Player here.
-        // Actually, triggerSkill logic needs the player instance.
-        // Let's defer skill triggering to the update loop or require Player injection.
-        // Better: InputSystem holds the state, processInput applies it.
-        // But for skills (one/off), we might need an event or queue.
         this.scene.events.emit('TRIGGER_SKILL', skill);
     }
 
@@ -42,17 +35,18 @@ export class InputSystem {
         player: Player,
         modifiers: { playerSpeed: number }
     ): void {
+        // CRITICAL: Lock input during dash to preserve momentum
+        if (player.isDashing) return;
+
         const body = player.body as Phaser.Physics.Arcade.Body;
         const pointer = input.activePointer;
-        const accel = 1200 * modifiers.playerSpeed; // increased base acceleration
+        const accel = 1200 * modifiers.playerSpeed;
 
         let moveX = this.virtualMove.x;
         let moveY = this.virtualMove.y;
 
         // Mouse/Touch Click-to-Move Logic
         if (pointer.isDown && moveX === 0 && moveY === 0) {
-            // Check if not interacting with UI (rudimentary check, usually handled by stopping propagation)
-            // We'll assume if virtual joystick didn't catch it, it's a map click.
             const worldPoint = pointer.positionToCamera(cameras.main) as Phaser.Math.Vector2;
 
             // Set target
@@ -82,7 +76,7 @@ export class InputSystem {
             body.setAcceleration(0, 0);
         }
 
-        // Keyboard Skills (Legacy/Desktop)
+        // Keyboard Skills
         if (input.keyboard) {
             if (Phaser.Input.Keyboard.JustDown(input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE))) player.dash();
             if (Phaser.Input.Keyboard.JustDown(input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.Q))) player.triggerSkill1();

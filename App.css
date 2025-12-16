@@ -1,0 +1,201 @@
+/* App.css - The Cute Theme */
+
+@import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&family=Varela+Round&display=swap');
+
+body {
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  font-family: 'Varela Round', sans-serif;
+  background-color: #FFF0F5; /* Lavender Blush */
+  user-select: none;
+}
+
+/* Animations */
+@keyframes float {
+  0% { transform: translateY(0px); }
+  50% { transform: translateY(-10px); }
+  100% { transform: translateY(0px); }
+}
+
+@keyframes bounceIn {
+  0% { transform: scale(0.1); opacity: 0; }
+  60% { transform: scale(1.2); opacity: 1; }
+  100% { transform: scale(1); }
+}
+
+@keyframes pulse-glow {
+  0% { box-shadow: 0 0 0 0 rgba(255, 105, 180, 0.4); }
+  70% { box-shadow: 0 0 0 10px rgba(255, 105, 180, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(255, 105, 180, 0); }
+}
+
+/* UI Containers */
+.ui-layer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none; /* Let clicks pass through to game usually */
+  z-index: 10;
+}
+
+.ui-container {
+  pointer-events: auto;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 90%;
+  max-width: 480px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* Cards */
+.glass-card {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(12px);
+  border-radius: 30px;
+  padding: 2rem;
+  box-shadow: 
+    0 4px 6px rgba(0, 0, 0, 0.05),
+    0 10px 15px rgba(0, 0, 0, 0.1),
+    inset 0 0 0 2px rgba(255, 255, 255, 0.5);
+  width: 100%;
+  box-sizing: border-box;
+  animation: bounceIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+/* Typography */
+.title-text {
+  font-family: 'Fredoka', sans-serif;
+  font-size: 3.5rem;
+  font-weight: 700;
+  color: #FF69B4; /* Hot Pink */
+  text-shadow: 2px 2px 0px #FFF, 4px 4px 0px rgba(0,0,0,0.1);
+  margin-bottom: 0.5rem;
+  text-align: center;
+}
+
+.subtitle-text {
+  font-size: 0.9rem;
+  color: #9370DB; /* Medium Purple */
+  background: white;
+  padding: 4px 12px;
+  border-radius: 20px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  margin-bottom: 2rem;
+  font-weight: 700;
+}
+
+/* Buttons */
+.bubble-btn {
+  border: none;
+  outline: none;
+  cursor: pointer;
+  width: 100%;
+  padding: 16px 24px;
+  border-radius: 25px;
+  font-family: 'Fredoka', sans-serif;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: white;
+  margin-bottom: 12px;
+  position: relative;
+  transition: all 0.2s ease;
+  
+  /* Default Pink */
+  background: linear-gradient(to bottom, #FF85C1, #FF69B4);
+  box-shadow: 0 6px 0 #DB4B94, 0 12px 12px rgba(0,0,0,0.15);
+}
+
+.bubble-btn:active {
+  transform: translateY(6px);
+  box-shadow: 0 0 0 #DB4B94, 0 0px 0px rgba(0,0,0,0.15);
+}
+
+.bubble-btn.blue {
+  background: linear-gradient(to bottom, #87CEFA, #4682B4);
+  box-shadow: 0 6px 0 #315F85, 0 12px 12px rgba(0,0,0,0.15);
+}
+.bubble-btn.blue:active { box-shadow: 0 0 0 #315F85; }
+
+.bubble-btn.purple {
+  background: linear-gradient(to bottom, #DDA0DD, #BA55D3);
+  box-shadow: 0 6px 0 #9932CC, 0 12px 12px rgba(0,0,0,0.15);
+}
+.bubble-btn.purple:active { box-shadow: 0 0 0 #9932CC; }
+
+.bubble-btn.green {
+  background: linear-gradient(to bottom, #98FB98, #3CB371);
+  box-shadow: 0 6px 0 #2E8B57, 0 12px 12px rgba(0,0,0,0.15);
+}
+.bubble-btn.green:active { box-shadow: 0 0 0 #2E8B57; }
+
+/* Inputs */
+.cute-input {
+  width: 100%;
+  padding: 16px;
+  border: 4px solid #F0F4F8;
+  border-radius: 20px;
+  font-family: 'Varela Round', sans-serif;
+  font-size: 1.1rem;
+  text-align: center;
+  color: #555;
+  background: #FAFAFA;
+  box-sizing: border-box;
+  margin-bottom: 12px;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.cute-input:focus {
+  border-color: #FF69B4;
+}
+
+/* Stats Box */
+.stat-box {
+  background: #F0F8FF;
+  border: 2px solid #E6E6FA;
+  border-radius: 20px;
+  padding: 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+/* Mode Switcher */
+.mode-switch {
+  display: flex;
+  background: rgba(255,255,255,0.6);
+  padding: 6px;
+  border-radius: 50px;
+  margin-bottom: 24px;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+}
+
+.mode-btn {
+  padding: 8px 24px;
+  border-radius: 40px;
+  border: none;
+  background: transparent;
+  color: #AAA;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.mode-btn.active {
+  background: #FF69B4;
+  color: white;
+  box-shadow: 0 4px 8px rgba(255, 105, 180, 0.3);
+}
+
+.mode-btn.active.duo {
+  background: #BA55D3;
+  box-shadow: 0 4px 8px rgba(186, 85, 211, 0.3);
+}

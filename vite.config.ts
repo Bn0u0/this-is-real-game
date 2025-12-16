@@ -8,12 +8,13 @@ export default defineConfig({
     hmr: true
   },
   build: {
-    chunkSizeWarningLimit: 1600,
+    chunkSizeWarningLimit: 2500,
     rollupOptions: {
       output: {
         manualChunks: {
           phaser: ['phaser'],
-          vendor: ['react', 'react-dom', 'peerjs']
+          vendor: ['react', 'react-dom'],
+          networking: ['peerjs']
         }
       }
     }

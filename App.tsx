@@ -1,5 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
+import './App.css'; // Import the new styles
 import { PhaserGame } from './game/PhaserGame';
 import { GameOverlay } from './components/GameOverlay';
 import { UpgradeOption, UPGRADE_POOL_DATA } from './types';
@@ -7,50 +8,27 @@ import { EventBus } from './services/EventBus';
 import { network } from './services/NetworkService';
 import { persistence } from './services/PersistenceService';
 
-// --- Reusable Cute UI Components ---
-const BubbleButton = ({ onClick, children, color = "bg-blue-400", disabled = false, size = "md" }: any) => (
-    <button
-        onClick={onClick}
-        disabled={disabled}
-        className={`
-      relative group w-full rounded-3xl font-['Fredoka'] font-bold text-white tracking-wide shadow-[0_6px_0_rgba(0,0,0,0.1)] active:shadow-none active:translate-y-1 transition-all duration-150
-      ${size === 'sm' ? 'py-2 px-4 text-sm' : 'py-4 px-6 text-xl'}
-      ${disabled ? 'opacity-50 cursor-not-allowed grayscale' : `${color} hover:brightness-110`}
-    `}
-    >
-        {children}
-    </button>
-);
-
-const Card = ({ children, className = "" }: any) => (
-    <div className={`bg-white/80 backdrop-blur-md rounded-3xl p-6 shadow-xl border-4 border-white ${className}`}>
-        {children}
-    </div>
-);
-
 const App: React.FC = () => {
+    // Exact same state logic as before
     const [gameState, setGameState] = useState<'BOOT' | 'LOBBY' | 'PLAYING' | 'GAMEOVER'>('BOOT');
-    const [lobbyMode, setLobbyMode] = useState<'SOLO' | 'DUO'>('SOLO'); // Sub-state for Lobby
+    const [lobbyMode, setLobbyMode] = useState<'SOLO' | 'DUO'>('SOLO');
 
     const [showLevelUp, setShowLevelUp] = useState(false);
     const [randomUpgrades, setRandomUpgrades] = useState<UpgradeOption[]>([]);
 
-    // Persistence State
     const [highScore, setHighScore] = useState(0);
-    const [saveCode, setSaveCode] = useState<string>(''); // For export
-    const [importInput, setImportInput] = useState<string>(''); // For import
+    const [saveCode, setSaveCode] = useState<string>('');
+    const [importInput, setImportInput] = useState<string>('');
     const [showSaveUI, setShowSaveUI] = useState(false);
 
     const [bootProgress, setBootProgress] = useState(0);
 
-    // Network
     const [connectionStatus, setConnectionStatus] = useState<'IDLE' | 'CONNECTING' | 'CONNECTED'>('IDLE');
     const [hostId, setHostId] = useState<string>('');
     const [joinId, setJoinId] = useState<string>('');
     const [isHost, setIsHost] = useState(false);
 
     useEffect(() => {
-        // Load Data
         const data = persistence.load();
         setHighScore(data.highScore);
 
@@ -76,8 +54,6 @@ const App: React.FC = () => {
 
         const onGameOver = (data: { score: number, wave: number, level: number }) => {
             setGameState('GAMEOVER');
-
-            // Check High Score with Persistence
             const currentData = persistence.getData();
             if (data.score > currentData.highScore) {
                 setHighScore(data.score);
@@ -109,8 +85,6 @@ const App: React.FC = () => {
             EventBus.off('START_MATCH', onSTART_MATCH);
         };
     }, []);
-
-    // --- Actions ---
 
     const handleStartSolo = () => {
         EventBus.emit('START_MATCH', 'SINGLE');
@@ -161,177 +135,167 @@ const App: React.FC = () => {
     };
 
     return (
-        <div className="w-full h-full relative overflow-hidden select-none bg-gradient-to-br from-pink-100 via-purple-100 to-blue-100 font-['Varela_Round'] text-gray-700">
-
-            <div className={`transition-opacity duration-1000 ${gameState === 'LOBBY' ? 'opacity-50' : 'opacity-100'}`}>
+        <>
+            <div className={`ui-layer ${gameState === 'LOBBY' ? 'opacity-50' : 'opacity-100'}`} style={{ zIndex: 0 }}>
                 <PhaserGame />
             </div>
 
-            {/* HUD */}
             {gameState === 'PLAYING' && <GameOverlay />}
+
+            {/* BOOT SCREEN */}
+            {gameState === 'BOOT' && (
+                <div className="ui-layer" style={{ background: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100 }}>
+                    <div style={{ textAlign: 'center' }}>
+                        <div style={{ fontSize: '4rem', animation: 'float 2s infinite' }}>🐰</div>
+                        <div style={{ width: '200px', height: '10px', background: '#eee', borderRadius: '10px', margin: '20px auto', overflow: 'hidden' }}>
+                            <div style={{ width: `${bootProgress}%`, height: '100%', background: '#FF69B4', transition: 'width 0.2s' }}></div>
+                        </div>
+                        <div style={{ color: '#FF69B4', fontWeight: 'bold' }}>LOADING...</div>
+                    </div>
+                </div>
+            )}
 
             {/* LOBBY */}
             {gameState === 'LOBBY' && (
-                <div className="absolute inset-0 z-50 flex items-center justify-center p-4 overflow-y-auto">
-                    <div className="relative w-full max-w-md my-auto flex flex-col items-center">
+                <div className="ui-container">
 
-                        {/* Logo & Mode Switcher */}
-                        <div className="mb-6 text-center w-full">
-                            <h1 className="text-5xl font-['Fredoka'] font-bold text-transparent bg-clip-text bg-gradient-to-r from-pink-400 to-purple-400 drop-shadow-sm pb-2">
-                                SYNAPSE
-                            </h1>
+                    <div className="title-text">SYNAPSE</div>
+                    <div className="subtitle-text">Pocket Edition</div>
 
-                            {/* Mode Toggle */}
-                            <div className="flex bg-white/50 rounded-full p-1 mx-auto w-max mb-4 backdrop-blur-sm">
-                                <button
-                                    onClick={() => setLobbyMode('SOLO')}
-                                    className={`px-6 py-2 rounded-full font-bold transition-all ${lobbyMode === 'SOLO' ? 'bg-pink-400 text-white shadow-md' : 'text-gray-400 hover:text-pink-400'}`}
-                                >
-                                    🌸 Solo
-                                </button>
-                                <button
-                                    onClick={() => setLobbyMode('DUO')}
-                                    className={`px-6 py-2 rounded-full font-bold transition-all ${lobbyMode === 'DUO' ? 'bg-purple-400 text-white shadow-md' : 'text-gray-400 hover:text-purple-400'}`}
-                                >
-                                    ⚔️ Duo
-                                </button>
+                    <div className="mode-switch">
+                        <button
+                            className={`mode-btn ${lobbyMode === 'SOLO' ? 'active' : ''}`}
+                            onClick={() => setLobbyMode('SOLO')}
+                        >
+                            🌸 Solo
+                        </button>
+                        <button
+                            className={`mode-btn duo ${lobbyMode === 'DUO' ? 'active' : ''}`}
+                            onClick={() => setLobbyMode('DUO')}
+                        >
+                            ⚔️ Duo
+                        </button>
+                    </div>
+
+                    <div className="glass-card">
+                        {/* Connection Overlay for Duo */}
+                        {lobbyMode === 'DUO' && (
+                            <div style={{ marginBottom: '20px' }}>
+                                {connectionStatus === 'IDLE' && (
+                                    <>
+                                        <button className="bubble-btn purple" onClick={handleHostGame}>Create Room 🏠</button>
+                                        <div style={{ display: 'flex', gap: '8px', marginTop: '12px' }}>
+                                            <input
+                                                className="cute-input"
+                                                placeholder="Room ID"
+                                                value={joinId}
+                                                onChange={e => setJoinId(e.target.value)}
+                                                style={{ margin: 0 }}
+                                            />
+                                            <button className="bubble-btn blue" style={{ width: 'auto', margin: 0 }} onClick={handleJoinGame}>Join</button>
+                                        </div>
+                                    </>
+                                )}
+
+                                {connectionStatus === 'CONNECTING' && (
+                                    <div style={{ textAlign: 'center', padding: '20px', color: '#DAA520', fontWeight: 'bold' }}>
+                                        {isHost ? `Room ID: ${hostId}` : 'Joining...'}
+                                        <div style={{ fontSize: '2rem', marginTop: '10px' }} className="animate-spin">🍩</div>
+                                    </div>
+                                )}
+
+                                {connectionStatus === 'CONNECTED' && (
+                                    <div style={{ textAlign: 'center' }}>
+                                        <div style={{ fontSize: '2rem' }}>✨ Connected! ✨</div>
+                                        {isHost ? (
+                                            <button className="bubble-btn green" style={{ marginTop: '20px' }} onClick={handleStartDuo}>START GAME</button>
+                                        ) : (
+                                            <div style={{ marginTop: '20px', color: '#999' }}>Waiting for host...</div>
+                                        )}
+                                    </div>
+                                )}
                             </div>
-                        </div>
+                        )}
 
-                        <Card className="w-full space-y-6">
-                            {/* Stats with Save Settings Trigger */}
-                            <div className="flex justify-between items-center bg-blue-50 rounded-2xl p-4 border border-blue-100">
-                                <div className="flex flex-col">
-                                    <span className="text-[10px] text-blue-400 font-bold uppercase tracking-wider">High Score</span>
-                                    <span className="text-xl font-bold text-blue-600">{highScore.toLocaleString()}</span>
+                        {/* Main Solo Action */}
+                        {lobbyMode === 'SOLO' && (
+                            <div style={{ marginBottom: '20px' }}>
+                                <button className="bubble-btn" onClick={handleStartSolo}>PLAY SOLO ▶</button>
+                                <p style={{ textAlign: 'center', color: '#888', fontSize: '0.8rem', marginTop: '10px' }}>
+                                    Offline Mode • AI Assistant Active
+                                </p>
+                            </div>
+                        )}
+
+                        {/* Stats / Data */}
+                        <div style={{ borderTop: '2px solid #F0F0F0', paddingTop: '20px' }}>
+                            <div className="stat-box">
+                                <div>
+                                    <div style={{ fontSize: '0.7rem', textTransform: 'uppercase', color: '#AAA', fontWeight: 'bold' }}>High Score</div>
+                                    <div style={{ fontSize: '1.2rem', color: '#555', fontWeight: 'bold' }}>{highScore.toLocaleString()}</div>
                                 </div>
                                 <button
-                                    onClick={() => { setShowSaveUI(!showSaveUI); generateSaveCode(); }}
-                                    className="w-10 h-10 rounded-full bg-white border border-blue-100 flex items-center justify-center text-blue-400 hover:bg-blue-100 transition-colors"
+                                    onClick={() => setShowSaveUI(!showSaveUI)}
+                                    style={{ background: 'white', border: 'none', borderRadius: '50%', width: '30px', height: '30px', cursor: 'pointer', boxShadow: '0 2px 5px rgba(0,0,0,0.1)' }}
                                 >
                                     ⚙️
                                 </button>
                             </div>
 
-                            {/* SAVE UI DROPDOWN */}
                             {showSaveUI && (
-                                <div className="bg-gray-50 rounded-2xl p-4 border border-gray-200 animate-in fade-in slide-in-from-top-2">
-                                    <h3 className="text-xs font-bold text-gray-400 mb-2 uppercase tracking-wider">Data Management</h3>
-
-                                    {/* Export */}
-                                    <div className="mb-4">
-                                        <div className="text-xs text-gray-500 mb-1">Your ID Code (Copy to Backup)</div>
-                                        <div className="bg-white p-2 rounded-xl text-[10px] break-all border border-gray-200 font-mono select-all text-gray-600">
-                                            {saveCode || 'Generating...'}
-                                        </div>
+                                <div style={{ background: '#FAFAFA', padding: '10px', borderRadius: '15px' }}>
+                                    <div style={{ fontSize: '0.8rem', color: '#888', marginBottom: '5px' }}>Save Code (Copy Me):</div>
+                                    <div style={{ background: 'white', padding: '8px', borderRadius: '8px', fontSize: '0.7rem', wordBreak: 'break-all', border: '1px solid #EEE' }} onClick={generateSaveCode}>
+                                        {saveCode || '(Tap to Generate)'}
                                     </div>
-
-                                    {/* Import */}
-                                    <div className="flex gap-2">
+                                    <div style={{ display: 'flex', marginTop: '10px', gap: '5px' }}>
                                         <input
-                                            className="flex-1 bg-white border border-gray-200 rounded-xl px-2 py-1 text-xs"
-                                            placeholder="Paste ID Code here..."
+                                            className="cute-input"
+                                            style={{ padding: '8px', fontSize: '0.8rem', margin: 0 }}
+                                            placeholder="Paste Code"
                                             value={importInput}
-                                            onChange={(e) => setImportInput(e.target.value)}
+                                            onChange={e => setImportInput(e.target.value)}
                                         />
-                                        <BubbleButton size="sm" color="bg-orange-400" onClick={importSaveData}>
-                                            Recover
-                                        </BubbleButton>
+                                        <button className="bubble-btn green" style={{ width: 'auto', padding: '8px 12px', fontSize: '0.8rem', margin: 0 }} onClick={importSaveData}>Load</button>
                                     </div>
                                 </div>
                             )}
-
-                            {/* SOLO MODE UI */}
-                            {lobbyMode === 'SOLO' && (
-                                <div className="text-center space-y-4 animate-in fade-in zoom-in">
-                                    <div className="p-4 bg-pink-50 rounded-2xl border border-pink-100 text-pink-500 text-sm">
-                                        Play offline with AI Drone Assistant.
-                                    </div>
-                                    <BubbleButton onClick={handleStartSolo} color="bg-pink-400">
-                                        Play Solo 🌸
-                                    </BubbleButton>
-                                </div>
-                            )}
-
-                            {/* DUO MODE UI */}
-                            {lobbyMode === 'DUO' && (
-                                <div className="space-y-4 animate-in fade-in zoom-in">
-                                    {connectionStatus === 'IDLE' && (
-                                        <>
-                                            <BubbleButton onClick={handleHostGame} color="bg-purple-400">Create Room</BubbleButton>
-                                            <div className="flex space-x-2">
-                                                <input
-                                                    type="text"
-                                                    value={joinId}
-                                                    onChange={(e) => setJoinId(e.target.value)}
-                                                    placeholder="Room ID"
-                                                    className="w-full bg-gray-50 border-2 border-gray-200 p-3 rounded-2xl font-bold text-center outline-none focus:border-purple-400"
-                                                />
-                                                <BubbleButton onClick={handleJoinGame} color="bg-blue-400" size="sm">Join</BubbleButton>
-                                            </div>
-                                        </>
-                                    )}
-
-                                    {connectionStatus === 'CONNECTING' && (
-                                        <div className="text-center py-4 bg-yellow-50 rounded-2xl border border-yellow-100">
-                                            <div className="text-2xl animate-spin mb-2">⏳</div>
-                                            <div className="text-yellow-600 font-bold">Connecting...</div>
-                                            {isHost && hostId && (
-                                                <div className="mt-2 text-xl font-black select-all">{hostId}</div>
-                                            )}
-                                        </div>
-                                    )}
-
-                                    {connectionStatus === 'CONNECTED' && (
-                                        <div className="text-center space-y-4">
-                                            <div className="bg-green-50 p-4 rounded-2xl text-green-500 font-bold">Connected!</div>
-                                            {isHost ? (
-                                                <BubbleButton onClick={handleStartDuo} color="bg-green-400">Start Duo Match</BubbleButton>
-                                            ) : (
-                                                <div className="text-gray-400 animate-pulse">Waiting for Host...</div>
-                                            )}
-                                        </div>
-                                    )}
-                                </div>
-                            )}
-                        </Card>
-                    </div>
-                </div>
-            )}
-
-            {/* GAME OVER CARD - Reuse from previous step but generic */}
-            {gameState === 'GAMEOVER' && (
-                <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
-                    <Card className="w-full max-w-sm text-center">
-                        <h2 className="text-3xl font-['Fredoka'] font-bold text-gray-700 mb-4">GAME OVER</h2>
-                        <BubbleButton onClick={() => { setGameState('LOBBY'); setConnectionStatus('IDLE'); }} color="bg-gray-400">
-                            Back to Menu
-                        </BubbleButton>
-                    </Card>
-                </div>
-            )}
-
-            {/* UPGRADE CARD - Same as before ... */}
-            {showLevelUp && (
-                <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-                    <div className="w-full max-w-md bg-white rounded-3xl p-6">
-                        <h2 className="text-2xl font-bold text-center mb-4">Level Up!</h2>
-                        <div className="space-y-3">
-                            {randomUpgrades.map((u, i) => (
-                                <button
-                                    key={i}
-                                    onClick={() => handleSelectUpgrade(u)}
-                                    className="w-full bg-gray-50 hover:bg-gray-100 rounded-xl p-4 text-left border border-gray-100"
-                                >
-                                    <div className="font-bold text-gray-700">{u.title}</div>
-                                    <div className="text-xs text-gray-500">{u.description}</div>
-                                </button>
-                            ))}
                         </div>
                     </div>
                 </div>
             )}
-        </div>
+
+            {/* GAME OVER */}
+            {gameState === 'GAMEOVER' && (
+                <div className="ui-container">
+                    <div className="glass-card" style={{ textAlign: 'center' }}>
+                        <div style={{ fontSize: '3rem' }}>💀</div>
+                        <h2 style={{ fontFamily: 'Fredoka', color: '#555' }}>GAME OVER</h2>
+                        <button className="bubble-btn" onClick={() => { setGameState('LOBBY'); setConnectionStatus('IDLE'); }}>Back to Menu</button>
+                    </div>
+                </div>
+            )}
+
+            {/* LEVEL UP */}
+            {showLevelUp && (
+                <div className="ui-container">
+                    <div className="glass-card">
+                        <h2 style={{ textAlign: 'center', color: '#FFD700', fontFamily: 'Fredoka' }}>LEVEL UP!</h2>
+                        {randomUpgrades.map((u, i) => (
+                            <button
+                                key={i}
+                                className="bubble-btn blue"
+                                style={{ textAlign: 'left', display: 'flex', flexDirection: 'column', alignItems: 'flex-start', padding: '12px 20px' }}
+                                onClick={() => handleSelectUpgrade(u)}
+                            >
+                                <span style={{ fontSize: '1rem' }}>{u.title}</span>
+                                <span style={{ fontSize: '0.7rem', opacity: 0.8, fontWeight: 'normal' }}>{u.description}</span>
+                            </button>
+                        ))}
+                    </div>
+                </div>
+            )}
+        </>
     );
 };
 

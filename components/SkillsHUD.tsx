@@ -76,11 +76,7 @@ export const SkillsHUD: React.FC = () => {
                         </div>
 
                         {/* Key Hint (Pixel Tag) */}
-                        <div className="absolute -top-3 -left-2 bg-black px-1 border border-slate-600">
-                            <span className="text-[8px] text-gray-400">
-                                {skill.id === 'dash' ? 'SPC' : skill.id === 'skill1' ? 'Q' : 'E'}
-                            </span>
-                        </div>
+
                     </div>
                 );
             })}

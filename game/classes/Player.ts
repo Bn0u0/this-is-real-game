@@ -37,6 +37,7 @@ export class Player extends Phaser.GameObjects.Container {
     // Dash State
     public isDashing: boolean = false;
     public isInvulnerable: boolean = false; // i-frame flag
+    public isMoving: boolean = false; // Auto-Aim flag
     private dashTimer: number = 0;
     private dashCooldown: number = 0;
 
@@ -276,7 +277,8 @@ export class Player extends Phaser.GameObjects.Container {
         const speed = body.velocity.length();
 
         // Stance Logic: If nearly stopped, Auto-Fire
-        if (speed < 50) {
+        // ONE-THUMB: "Stop to Shoot"
+        if (!this.isMoving && speed < 50) {
             // Find Target
             const target = this.scanForTarget(enemies);
             if (target) {

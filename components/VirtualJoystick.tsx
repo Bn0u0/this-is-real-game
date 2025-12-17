@@ -72,7 +72,7 @@ export const VirtualJoystick: React.FC<VirtualJoystickProps> = ({ onMove, onAim,
     }, []);
 
     return (
-        <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', pointerEvents: 'none', zIndex: 200 }}>
+        <div className="absolute bottom-12 left-12 w-48 h-48 z-[9999] pointer-events-auto border-2 border-red-500 bg-red-500/20 rounded-full flex items-center justify-center">
             {/* Left Stick (Move) */}
             <div
                 ref={moveRef}

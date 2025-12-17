@@ -73,7 +73,23 @@ export class ExtractionManager {
     }
 
     public checkExtraction(player: Player): boolean {
-        if (this.isLocked) return false;
+        // V5.1 Panic Theater: Access Denied
+        if (this.isLocked) {
+            this.zones.getChildren().forEach((z: any) => {
+                const zone = z as ExtractionZone;
+                const dist = Phaser.Math.Distance.Between(player.x, player.y, zone.x, zone.y);
+                if (dist < 100) {
+                    // Bounce Player
+                    const angle = Phaser.Math.Angle.Between(zone.x, zone.y, player.x, player.y);
+                    const body = player.body as Phaser.Physics.Arcade.Body;
+                    body.setVelocity(Math.cos(angle) * 800, Math.sin(angle) * 800);
+
+                    // Visuals
+                    EventBus.emit('SHOW_FLOATING_TEXT', { x: player.x, y: player.y - 50, text: "ACCESS DENIED", color: "#FF0000" });
+                }
+            });
+            return false;
+        }
 
         let extracted = false;
         this.zones.getChildren().forEach((z: any) => {

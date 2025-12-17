@@ -165,12 +165,55 @@ export class MainScene extends Phaser.Scene {
             }
         });
 
-        // V5.0 Boss Spawn
+        // V5.0 Boss Spawn + V5.1 Panic Theater
         EventBus.on('BOSS_SPAWN', () => {
             this.extractionManager.setLocked(true);
-            this.cameras.main.shake(500, 0.01);
-            const txt = this.add.text(this.cameras.main.width / 2, 200, "⚠️ BOSS DETECTED - EXTRACTION SEALED ⚠️", { fontSize: '32px', color: '#FF0000', fontStyle: 'bold' }).setOrigin(0.5).setScrollFactor(0);
+
+            // 1. Visual Glitch (Shake + RGB Shift simulation via cam offset)
+            this.cameras.main.shake(500, 0.02);
+            this.cameras.main.flash(500, 255, 0, 0); // Red Flash
+
+            // 2. Alert Red Filter (Overlay)
+            const overlay = this.add.rectangle(0, 0, this.worldWidth, this.worldHeight, 0xFF0000, 0.2)
+                .setOrigin(0, 0).setDepth(1000).setScrollFactor(0);
+            this.tweens.add({
+                targets: overlay,
+                alpha: { from: 0.1, to: 0.3 },
+                duration: 500,
+                yoyo: true,
+                repeat: -1,
+                onDestroy: () => overlay.destroy() // Cleanup handled by listener cleanup or boss death? 
+                // Currently Boss Death event needs to clean this up. 
+                // For now, let's keep it for 5 seconds as "Initial Panic" or store reference.
+            });
+            // Store panic reference? Or just let it run for a bit?
+            // "Overall tint turn to Alert Red Filter". Let's persist until death ideally.
+            // Simplified: Flash red strongly, then keep subtle red tint.
+            this.time.delayedCall(5000, () => overlay.destroy()); // Temporary panic for now
+
+            // 3. Audio Panic (Heartbeat) - Simulating by ducking volume?
+            // this.sound.volume = 0.2; 
+            // Play alarm if available
+
+            const txt = this.add.text(this.cameras.main.width / 2, 200, "WARNING: SECTOR LOCKED\nKILL THE GUARDIAN", {
+                fontSize: '40px', color: '#FF0000', fontStyle: 'bold', align: 'center', stroke: '#000', strokeThickness: 6
+            }).setOrigin(0.5).setScrollFactor(0).setDepth(2001);
+
             this.tweens.add({ targets: txt, alpha: 0, duration: 5000, delay: 1000, onComplete: () => txt.destroy() });
+        });
+
+        EventBus.on('SHOW_FLOATING_TEXT', (data: any) => {
+            const txt = this.add.text(data.x, data.y, data.text, {
+                fontSize: '20px', color: data.color, fontStyle: 'bold', stroke: '#000', strokeThickness: 2
+            }).setOrigin(0.5).setDepth(2000);
+
+            this.tweens.add({
+                targets: txt,
+                y: data.y - 50,
+                alpha: 0,
+                duration: 1000,
+                onComplete: () => txt.destroy()
+            });
         });
         EventBus.on('DIRECTOR_STATE_CHANGE', (data: any) => {
             // Show Toast
@@ -231,6 +274,20 @@ export class MainScene extends Phaser.Scene {
         this.resetGame();
         this.updateCameraZoom();
         this.emitStatsUpdate();
+
+        // --- HOTFIX CAMERA START ---
+        if (this.myUnit) {
+            // 1. 強制設定角色到地圖安全中間位置
+            this.myUnit.setPosition(1000, 1000);
+            // 2. 攝影機立刻鎖定 (true = 無平滑過度，避免暈眩)
+            this.cameras.main.startFollow(this.myUnit, true);
+            this.cameras.main.setZoom(1);
+            // 3. 確保角色在最上層
+            this.myUnit.setDepth(100);
+        } else {
+            console.error('Player creation failed!');
+        }
+        // --- HOTFIX CAMERA END ---
     }
 
     handleResize() {

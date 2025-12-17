@@ -129,8 +129,9 @@ body {
     transform: translate(2px, -2px);
   }
 
-  transform: translate(0);
-}
+  100% {
+    transform: translate(0);
+  }
 }
 
 /* Main Menu Styles */

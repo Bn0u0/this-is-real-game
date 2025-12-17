@@ -13,25 +13,38 @@ export const MainMenu: React.FC<MainMenuProps> = ({ onStartGame }) => {
             <div className="relative z-10 flex flex-col items-center">
                 {/* Title / Logo Placeholder */}
                 <div className="mb-12 text-center">
-                    <h1 className="text-4xl md:text-6xl font-black italic text-[#00FFFF] tracking-tighter drop-shadow-[0_0_15px_rgba(0,255,255,0.5)]">
-                        SYNAPSE
+                    <h1 className="text-6xl md:text-8xl font-black italic text-[#00FFFF] tracking-tighter drop-shadow-[0_0_15px_rgba(0,255,255,0.8)] glitch-text" data-text="這才叫割草">
+                        這才叫割草
                     </h1>
-                    <h2 className="text-xl md:text-2xl text-[#FF0055] tracking-[0.5em] font-light">
-                        PROJECT BALLISTIC
+                    <h2 className="text-2xl md:text-3xl text-[#FF0055] tracking-[0.2em] font-bold mt-2">
+                        別貪！快撤
                     </h2>
                 </div>
 
                 {/* Hero Button - Force Vanguard */}
                 <button
-                    className="hero-button"
+                    className="hero-button mb-6"
                     onClick={() => onStartGame('Vanguard')}
                 >
                     立即出擊
                 </button>
 
-                {/* Multiplayer / Squad Link */}
-                <div className="sub-link" onClick={() => alert("SQUAD LINK [OFFLINE]\nSERVER MAINTENANCE")}>
-                    SQUAD LINK (BETA)
+                {/* Secondary Links */}
+                <div className="flex flex-col gap-3 w-full max-w-xs">
+                    <button
+                        className="sub-link w-full text-center py-3 border border-[#00FFFF]/30 hover:bg-[#00FFFF]/10 hover:border-[#00FFFF] transition-all text-[#00FFFF] tracking-widest text-sm font-bold uppercase"
+                        onClick={() => alert("SQUAD LINK [OFFLINE]\nSERVER MAINTENANCE")}
+                    >
+                        SQUAD LINK (BETA)
+                    </button>
+
+                    <button
+                        className="sub-link w-full text-center py-3 border border-[#FFD700]/30 hover:bg-[#FFD700]/10 hover:border-[#FFD700] transition-all text-[#FFD700] tracking-widest text-sm font-bold uppercase relative overflow-hidden group"
+                        onClick={() => alert("創始股東名單 (Founding Shareholders):\n\n1. You\n2. Me\n3. Everybody")}
+                    >
+                        <span className="relative z-10">★ 創始股東 ★</span>
+                        <div className="absolute inset-0 bg-[#FFD700]/5 -translate-x-[100%] group-hover:translate-x-[100%] transition-transform duration-500 ease-in-out"></div>
+                    </button>
                 </div>
             </div>
 

@@ -24,6 +24,9 @@ export class DirectorSystem {
 
     // Callbacks
     public onSpawnRequest: ((type: string, cost: number) => boolean) | null = null;
+    public onSuddenDeath: (() => void) | null = null;
+
+    private suddenDeathTriggered: boolean = false;
 
     constructor(scene: Phaser.Scene) {
         this.scene = scene;
@@ -35,6 +38,11 @@ export class DirectorSystem {
         // 1. Difficulty Scaling (Linear over time)
         // Increases by 0.1 every minute
         this.difficulty += (0.1 / 60) * dt;
+
+        // CHECK SUDDEN DEATH (180s = 3 minutes)
+        if (time > 180000 && !this.suddenDeathTriggered) {
+            this.triggerSuddenDeath();
+        }
 
         // 2. State Machine
         this.phaseTimer -= delta;
@@ -134,5 +142,24 @@ export class DirectorSystem {
         if (this.credits >= 2 && roll < 0.8) return { type: 'fast', cost: 2 };
 
         return { type: 'scout', cost: 1 };
+    }
+
+    private triggerSuddenDeath() {
+        this.suddenDeathTriggered = true;
+        this.state = 'PEAK'; // Force peak state
+        this.difficulty = 999; // Maximum difficulty
+        this.credits = 99999; // Infinite money for the director
+
+        // Notify Scene
+        EventBus.emit('DIRECTOR_STATE_CHANGE', { state: 'SUDDEN_DEATH', msg: 'WARNING: 3 MIN LIMIT REACHED // EXTERMINATION PROTOCOL' });
+
+        if (this.onSuddenDeath) {
+            this.onSuddenDeath();
+        }
+
+        // Force a massive wave
+        // In a real implementation this might spawn specific "Reaper" units
+        // For now, we rely on the inflated credits and difficulty to just flood everything
+        console.log("💀 SUDDEN DEATH TRIGGERED 💀");
     }
 }

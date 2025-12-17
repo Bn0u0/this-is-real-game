@@ -35,76 +35,26 @@ export class TerrainManager {
     }
 
     /**
-     * Generates a "Fractured Sector" map.
-     * Use a fixed size (e.g. 50x50 tiles = 3200x3200 world).
-     * Algorithm: Cellular Automata or Room Growth.
+     * Generates a "Flat Arena" map.
+     * Simple 50x50 grid with boundary walls.
      */
     generateWorld(cols: number = 50, rows: number = 50) {
         this.worldWidth = cols * this.tileSize;
         this.worldHeight = rows * this.tileSize;
 
-        // 1. Initialize to VOID
-        let grid: TileType[][] = [];
-        for (let y = 0; y < rows; y++) {
-            grid[y] = [];
-            for (let x = 0; x < cols; x++) {
-                grid[y][x] = TileType.VOID;
-            }
-        }
-
-        // 2. Create "Data Islands" (Rooms)
-        const rooms = 8;
-        for (let i = 0; i < rooms; i++) {
-            const w = Math.floor(6 + Math.random() * 8); // 6-14 width
-            const h = Math.floor(6 + Math.random() * 8);
-            const x = Math.floor(2 + Math.random() * (cols - w - 4));
-            const y = Math.floor(2 + Math.random() * (rows - h - 4));
-
-            this.carveRoom(grid, x, y, w, h);
-
-            // Connect previous center to this center (Corridors/Bridges)
-            if (i > 0) {
-                // Simple L-shape corridor
-                // We could make these "Bridges" later
-            }
-        }
-
-        // 3. Simple Cellular Automata for "Ruins" shape in the middle
-        // Fill center 60% with random ground/wall
-        const centerPadding = 5;
-        for (let y = centerPadding; y < rows - centerPadding; y++) {
-            for (let x = centerPadding; x < cols - centerPadding; x++) {
-                // If it's VOID, maybe spawn land
-                if (grid[y][x] === TileType.VOID) {
-                    if (Math.random() < 0.45) grid[y][x] = TileType.GROUND;
-                }
-            }
-        }
-
-        // 4. Smoothing (Connect islands)
-        for (let k = 0; k < 4; k++) {
-            grid = this.smoothMap(grid, cols, rows);
-        }
-
-        // 5. Border Walls (Safety rails) - ensure edges are VOID but buffered by WALL?
-        // Actually, HLD lets you fall. So Voids are open.
-        // But we want obstacles.
-
-        // 6. Instantiate
+        // Simple nested loop
         for (let y = 0; y < rows; y++) {
             for (let x = 0; x < cols; x++) {
-                // Determine actual type based on grid
-                // If neighbor is ground and self is void -> Edge Logic?
+                // Determine Type
+                let type = TileType.GROUND;
 
-                const type = grid[y][x];
-                if (type !== TileType.VOID) {
-                    // Random obstacles on Ground
-                    let finalType = type;
-                    if (type === TileType.GROUND && Math.random() < 0.1) {
-                        finalType = TileType.WALL;
-                    }
-                    this.createTile(x, y, finalType, finalType === TileType.WALL ? 40 + Math.random() * 20 : 0);
+                // Boundary Walls
+                if (x === 0 || x === cols - 1 || y === 0 || y === rows - 1) {
+                    type = TileType.WALL;
                 }
+
+                // Create
+                this.createTile(x, y, type, type === TileType.WALL ? 64 : 0);
             }
         }
 
@@ -120,31 +70,7 @@ export class TerrainManager {
         });
     }
 
-    private carveRoom(grid: TileType[][], x: number, y: number, w: number, h: number) {
-        for (let iy = y; iy < y + h; iy++) {
-            for (let ix = x; ix < x + w; ix++) {
-                grid[iy][ix] = TileType.GROUND;
-            }
-        }
-    }
-
-    private smoothMap(grid: TileType[][], cols: number, rows: number): TileType[][] {
-        const next = JSON.parse(JSON.stringify(grid));
-        for (let y = 1; y < rows - 1; y++) {
-            for (let x = 1; x < cols - 1; x++) {
-                let neighbors = 0;
-                for (let ny = y - 1; ny <= y + 1; ny++) {
-                    for (let nx = x - 1; nx <= x + 1; nx++) {
-                        if (grid[ny][nx] !== TileType.VOID) neighbors++;
-                    }
-                }
-                // If grounded neighbors > 4, become ground
-                if (neighbors > 4) next[y][x] = TileType.GROUND;
-                else if (neighbors < 4) next[y][x] = TileType.VOID;
-            }
-        }
-        return next;
-    }
+    // Removed: carveRoom, smoothMap (Simplified for V5.3)
 
     createTile(gridX: number, gridY: number, type: TileType, height: number) {
         const key = `${gridX},${gridY}`;

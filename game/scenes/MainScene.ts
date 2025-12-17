@@ -326,7 +326,7 @@ export class MainScene extends Phaser.Scene {
             }
 
             if (this.myUnit) {
-                this.cameras.main.startFollow(this.myUnit, true, 0.08, 0.08);
+                this.cameras.main.startFollow(this.myUnit, true, 1, 1);
                 this.cameras.main.setBounds(0, 0, this.worldWidth, this.worldHeight);
             }
         }

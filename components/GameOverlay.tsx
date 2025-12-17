@@ -1,7 +1,6 @@
 
 import React, { useEffect, useState } from 'react';
 import { EventBus } from '../services/EventBus';
-import { SkillsHUD } from './SkillsHUD';
 import { GameStats } from '../types';
 
 export const GameOverlay: React.FC = () => {
@@ -119,11 +118,6 @@ export const GameOverlay: React.FC = () => {
 
             {/* --- THUMB ZONE (Bottom 40%) --- */}
             {/* Kept clear for gestures */}
-
-            {/* --- BOTTOM RIGHT: SKILLS (Moved Up for Thumb Reach) --- */}
-            <div className="absolute bottom-16 right-6 pointer-events-auto transform scale-125 origin-bottom-right">
-                <SkillsHUD />
-            </div>
         </div>
     );
 };

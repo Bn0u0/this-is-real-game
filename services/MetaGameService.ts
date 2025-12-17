@@ -24,9 +24,9 @@ class MetaGameService {
 
     private init() {
         // Auto-load persistence
-        const savedData = persistence.getData();
-        if (!savedData) {
-            console.log("New User - Creating Fresh Save");
+        const profile = persistence.getProfile();
+        if (profile.level === 1 && profile.xp === 0) {
+            console.log("New User / Default Profile Loaded");
         }
 
         // Mobile Check binding
@@ -54,7 +54,7 @@ class MetaGameService {
     }
 
     // --- Game Logic Hooks ---
-    public startGame() {
+    public startMatch() {
         // Final check: Do we have energy? Do we have a loadout? 
         // For MVP2: Just go.
         this.navigateTo('GAME_LOOP');

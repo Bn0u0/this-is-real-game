@@ -224,45 +224,127 @@ export class Player extends Phaser.GameObjects.Container {
         body.setMaxVelocity(final);
     }
 
-    public dash() {
+    public dash(direction?: Phaser.Math.Vector2) {
         if (this.dashCooldown > 0) return;
 
         // Calculate Cooldown with CDR
-        const baseCd = 1500;
-        const cdr = Math.min(0.5, this.stats.cooldown || 0); // Cap CDR at 50%
+        const baseCd = 1200; // Faster dash for flick combat
+        const cdr = Math.min(0.5, this.stats.cooldown || 0);
         const finalCd = baseCd * (1 - cdr);
 
         this.isDashing = true;
         this.isInvulnerable = true;
-        this.dashTimer = 200;
+        this.dashTimer = 250; // Slightly longer dash
         this.dashCooldown = finalCd;
 
         // Physics push
         const body = this.body as Phaser.Physics.Arcade.Body;
-        const speed = 800 * (1 + (this.stats.speed || 0) * 0.5); // Dash scales slightly with speed
-        const angle = this.rotation - Math.PI / 2;
+        const speed = 1100 * (1 + (this.stats.speed || 0) * 0.5);
 
         body.drag.set(0);
-        body.maxVelocity.set(1000); // Temporary uncap for dash
-        body.setVelocity(Math.cos(angle) * speed, Math.sin(angle) * speed);
+        body.maxVelocity.set(1200);
 
-        this.zVelocity = 10;
+        // Direction: Flick Vector or Current Rotation
+        let vx = 0;
+        let vy = 0;
+        if (direction && (direction.x !== 0 || direction.y !== 0)) {
+            vx = direction.x;
+            vy = direction.y;
+            // Snap rotation to dash
+            this.rotation = Math.atan2(vy, vx) - Math.PI / 2;
+        } else {
+            const angle = this.rotation - Math.PI / 2;
+            vx = Math.cos(angle);
+            vy = Math.sin(angle);
+        }
+
+        body.setVelocity(vx * speed, vy * speed);
+
+        this.zVelocity = 12;
 
         this.scene.tweens.add({
             targets: this.coreShape,
-            scale: { from: 1.5, to: 1 },
-            duration: 200
+            scale: { from: 1.4, to: 1 },
+            duration: 250,
+            ease: 'Back.out'
         });
+
+        // JUICE: Camera Shake?
+        this.scene.cameras.main.shake(100, 0.005);
+    }
+
+    // Auto-Fire System (Stop & Shoot)
+    private lastFireTime: number = 0;
+    private fireRate: number = 200; // ms
+
+    public autoFire(time: number, enemies: Phaser.GameObjects.Group, projectiles: Phaser.GameObjects.Group) {
+        if (this.isDashing) return;
+
+        const body = this.body as Phaser.Physics.Arcade.Body;
+        const speed = body.velocity.length();
+
+        // Stance Logic: If nearly stopped, Auto-Fire
+        if (speed < 50) {
+            // Find Target
+            const target = this.scanForTarget(enemies);
+            if (target) {
+                const t = target as any; // Cast to access x,y
+                // Rotate towards target
+                const angle = Phaser.Math.Angle.Between(this.x, this.y, t.x, t.y);
+                this.rotation = Phaser.Math.Angle.RotateTo(this.rotation, angle + Math.PI / 2, 0.2);
+
+                // Fire
+                if (time > this.lastFireTime + this.fireRate) {
+                    this.fireProjectile(projectiles, angle);
+                    this.lastFireTime = time;
+                }
+            }
+        }
+    }
+
+    private scanForTarget(enemies: Phaser.GameObjects.Group): Phaser.GameObjects.GameObject | null {
+        let closest: Phaser.GameObjects.GameObject | null = null;
+        let minDist = 600; // Range
+
+        enemies.children.each((child) => {
+            const e = child as any; // Cast to access properties
+            if (!e.active || e.isDead) return true; // continue
+            const dist = Phaser.Math.Distance.Between(this.x, this.y, e.x, e.y);
+            if (dist < minDist) {
+                minDist = dist;
+                closest = e;
+            }
+            return true;
+        });
+        return closest;
+    }
+
+    private fireProjectile(projectiles: Phaser.GameObjects.Group, angle: number) {
+        // Get projectile from pool (simplified here, in reality ProjectileGroup manages this)
+        // Since we don't have direct access to Group methods without casting, 
+        // we'll assume MainScene handles the actual creation if we emit event OR we assume projectiles group has `get()`.
+        const bullet = projectiles.get(this.x, this.y) as any; // Projectile type
+        if (bullet) {
+            bullet.onEnable(
+                this.x + Math.cos(angle) * 20,
+                this.y + Math.sin(angle) * 20,
+                angle,
+                800, // Speed
+                1000, // Duration
+                COLORS.primary,
+                this.stats.atk,
+                this.id
+            );
+            // Recoil
+            const body = this.body as Phaser.Physics.Arcade.Body;
+            body.setVelocity(body.velocity.x - Math.cos(angle) * 20, body.velocity.y - Math.sin(angle) * 20);
+        }
     }
 
     public getDamage(): { dmg: number, isCrit: boolean } {
-        const isCrit = Math.random() < (this.stats.crit / 100); // e.g. 5 is 5% or 0.05? Items.ts said 5 for 5%? No, Items.ts said "5" likely means 5%.
-        // Wait, in Items.ts: "crit: 5" for Mk2 Sword. "0.05" for speed.
-        // Let's assume stats.crit is PERCENTAGE (0-100).
-
+        const isCrit = Math.random() < (this.stats.crit / 100);
         let dmg = this.stats.atk;
-        if (isCrit) dmg *= 1.5; // 1.5x Crit Damage
-
+        if (isCrit) dmg *= 1.5;
         return { dmg, isCrit };
     }
 

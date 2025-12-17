@@ -3,70 +3,111 @@ import './App.css';
 import { PhaserGame } from './game/PhaserGame';
 import { GameOverlay } from './components/GameOverlay';
 import { Hideout } from './components/Hideout';
-import { metaGame, MetaGameState, GameScreen } from './services/MetaGameService';
+import { BootScreen } from './components/BootScreen';
+import { metaGame, MetaGameState } from './services/MetaGameService';
+import { persistence, UserProfile } from './services/PersistenceService';
 import { EventBus } from './services/EventBus';
 
+// Application State Machine
+type AppState = 'BOOT' | 'HIDEOUT' | 'COMBAT' | 'SUMMARY';
+
 const App: React.FC = () => {
-    // Single Source of Truth: MetaGameService
-    const [state, setState] = useState<MetaGameState>(metaGame.getState());
+    const [appState, setAppState] = useState<AppState>('BOOT');
+    const [profile, setProfile] = useState<UserProfile>(persistence.getProfile());
+
+    // Subscribe to MetaGame for Game Loop updates (Score, Waves, etc)
+    const [metaState, setMetaState] = useState<MetaGameState>(metaGame.getState());
 
     useEffect(() => {
-        // Subscribe to state changes
         const unsubscribe = metaGame.subscribe((newState: MetaGameState) => {
-            // Force re-render with new state (shallow copy to ensure React sees change if needed, though reference usually fine if we stick to immutable patterns. Here we spread just to be safe)
-            setState({ ...newState });
+            setMetaState({ ...newState });
         });
 
-        // Global Event Listeners (Bridge between Phaser and React/MetaGame)
-        const onGameOver = (data: any) => {
-            metaGame.handleGameOver(data.score);
+        // Listen for Game Over / Extraction to return to Hideout
+        const onMissionEnd = (data: any) => {
+            // Update Profile
+            if (data.type === 'GAME_OVER') {
+                // Logic handled in MetaGame or here? 
+                // Let's assume MetaGame handles logic, we just route.
+            }
+            setAppState('SUMMARY');
         };
 
-        const onExtraction = (lootBag: any[]) => {
-            const ids = lootBag.map(i => i.id || i.defId || 'm_scrap'); // Fallback
-            metaGame.handleExtractionSuccess(ids);
+        const onExtraction = (loot: any[]) => {
+            setAppState('SUMMARY');
         };
 
-        EventBus.on('GAME_OVER', onGameOver);
+        EventBus.on('GAME_OVER', onMissionEnd);
         EventBus.on('EXTRACTION_SUCCESS', onExtraction);
 
         return () => {
             unsubscribe();
-            EventBus.off('GAME_OVER', onGameOver);
+            EventBus.off('GAME_OVER', onMissionEnd);
             EventBus.off('EXTRACTION_SUCCESS', onExtraction);
         };
     }, []);
 
-    // --- Router ---
-    return (
-        <>
-            {/* The Game Layer - Persistent but hidden when not in loop to save resources? 
-                Actually, we want to destroy Phaser when in Menu to save battery? 
-                For "Pocket" feel, keeping it hot is faster, but for simple MVP let's mount/unmount.
-                Re-mounting Phaser is heavy. Let's keep it but hide it via CSS.
-            */}
+    // Actions
+    const handleBootComplete = () => {
+        // Play SFX?
+        setAppState('HIDEOUT');
+    };
 
-            <div className={`ui-layer ${state.currentScreen === 'GAME_LOOP' ? 'z-0' : '-z-10'}`}
-                style={{ visibility: state.currentScreen === 'GAME_LOOP' ? 'visible' : 'hidden' }}>
+    const handleDeploy = () => {
+        // Start Game
+        metaGame.startMatch(); // Reset state
+        setAppState('COMBAT');
+        EventBus.emit('START_MATCH', 'SINGLE');
+    };
+
+    const handleReturnToBase = () => {
+        // Reload profile in case it changed
+        setProfile(persistence.getProfile());
+        setAppState('HIDEOUT');
+    };
+
+    return (
+        <div className="app-container relative w-full h-full overflow-hidden">
+            {/* Background Effects */}
+            <div className="scanlines" />
+            <div className={`noise-overlay ${appState === 'BOOT' ? 'opacity-10' : 'opacity-5'}`} />
+
+            {/* State: BOOT */}
+            {appState === 'BOOT' && (
+                <BootScreen onStart={handleBootComplete} />
+            )}
+
+            {/* State: HIDEOUT */}
+            {appState === 'HIDEOUT' && (
+                <div className="absolute inset-0 z-20 bg-[var(--hld-bg)]">
+                    <Hideout profile={profile} onDeploy={handleDeploy} />
+                </div>
+            )}
+
+            {/* State: COMBAT (Phaser Persistent) */}
+            <div
+                className={`absolute inset-0 transition-opacity duration-1000 ${appState === 'COMBAT' ? 'opacity-100 z-10' : 'opacity-0 -z-10'}`}
+                style={{ visibility: appState === 'COMBAT' ? 'visible' : 'hidden' }}
+            >
                 <PhaserGame />
+                {appState === 'COMBAT' && <GameOverlay />}
             </div>
 
-            {/* UI Layers */}
-            {state.currentScreen === 'GAME_LOOP' && <GameOverlay />}
-
-            {state.currentScreen === 'HIDEOUT' && <Hideout />}
-
-            {state.currentScreen === 'GAME_OVER' && (
-                <div className="ui-container">
-                    <div className="glass-card" style={{ textAlign: 'center' }}>
-                        <h2>MISSION ENDED</h2>
-                        <button className="bubble-btn" onClick={() => metaGame.navigateTo('HIDEOUT')}>
+            {/* State: SUMMARY (Overlay on top of Game) */}
+            {appState === 'SUMMARY' && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm animate-in fade-in">
+                    <div className="glass-card max-w-md w-full text-center border-[#FF0055]">
+                        <h2 className="text-4xl font-black text-[#FF0055] mb-4 tracking-widest">MISSION END</h2>
+                        <div className="mb-8 text-gray-300">
+                            SIGNAL LOST OR EXTRACTED
+                        </div>
+                        <button className="bubble-btn" onClick={handleReturnToBase}>
                             RETURN TO BASE
                         </button>
                     </div>
                 </div>
             )}
-        </>
+        </div>
     );
 };
 

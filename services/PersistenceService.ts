@@ -1,61 +1,79 @@
-export interface GameSaveData {
-    highScore: number;
-    totalGamesPlayed: number;
-    lootStash?: string[]; // Optional for backward compatibility
+// PersistenceService.ts - Driver's License
+export interface UserProfile {
+    level: number;
+    xp: number;
+    credits: number;
+    inventory: string[]; // List of Item IDs
+    loadout: {
+        weapon: string; // 'Vanguard' etc
+        artifact: string;
+    };
+    unlocks: string[]; // 'Vanguard', 'HardMode', etc.
 }
 
-const STORAGE_KEY = 'SYNAPSE_SAVE_DATA_V1';
+const STORAGE_KEY = 'SYNAPSE_PROFILE_V2';
 
 export class PersistenceService {
-    private data: GameSaveData;
+    private data: UserProfile;
 
     constructor() {
         this.data = this.load();
     }
 
-    public load(): GameSaveData {
+    public load(): UserProfile {
         try {
             const raw = localStorage.getItem(STORAGE_KEY);
             if (raw) {
-                return JSON.parse(raw);
+                const loaded = JSON.parse(raw);
+                // Schema migration could go here
+                return { ...this.defaultProfile(), ...loaded };
             }
         } catch (e) {
-            console.error('Failed to load save data', e);
+            console.error('Failed to load profile', e);
         }
-        return { highScore: 0, totalGamesPlayed: 0, lootStash: [] };
+        return this.defaultProfile();
     }
 
-    public save(newData: Partial<GameSaveData>) {
+    private defaultProfile(): UserProfile {
+        return {
+            level: 1,
+            xp: 0,
+            credits: 0,
+            inventory: [],
+            loadout: {
+                weapon: 'Vanguard', // Default Class
+                artifact: 'None'
+            },
+            unlocks: ['Vanguard']
+        };
+    }
+
+    public save(newData: Partial<UserProfile>) {
         this.data = { ...this.data, ...newData };
         localStorage.setItem(STORAGE_KEY, JSON.stringify(this.data));
     }
 
-    public getData(): GameSaveData {
+    public getProfile(): UserProfile {
         return this.data;
     }
 
-    public exportSaveCode(): string {
-        // Simple Base64 encoding for "Save Code" feel
-        // In reality: JSON -> String -> Base64
-        const json = JSON.stringify(this.data);
-        return btoa(json);
+    // Legacy method support if needed, or just break it. 
+    // User asked for "Execute Immediately", let's keep it clean.
+
+    public addXp(amount: number) {
+        this.data.xp += amount;
+        // Simple leveling curve: 100 * level
+        const nextLevel = this.data.level * 100;
+        if (this.data.xp >= nextLevel) {
+            this.data.level++;
+            this.data.xp -= nextLevel;
+        }
+        this.save({});
     }
 
-    public importSaveCode(code: string): boolean {
-        try {
-            const json = atob(code);
-            const data = JSON.parse(json);
-
-            // Basic validation
-            if (typeof data.highScore === 'number') {
-                this.data = data;
-                this.save(data); // Persist immediately
-                return true;
-            }
-        } catch (e) {
-            console.error('Invalid Save Code', e);
-        }
-        return false;
+    public addCredits(amount: number) {
+        this.data.credits += amount;
+        this.save({});
     }
 }
 

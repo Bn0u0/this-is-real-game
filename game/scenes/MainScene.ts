@@ -180,6 +180,32 @@ export class MainScene extends Phaser.Scene {
             });
         });
 
+        EventBus.on('EXTRACTION_STATE_CHANGE', (state: string) => {
+            let msg = '';
+            let color = '#ffffff';
+
+            if (state === 'WARNING') {
+                msg = '⚠️ EXTRACTION SIGNAL DETECTED ⚠️';
+                color = '#FFFF00';
+            } else if (state === 'OPEN') {
+                msg = '>>> EXTRACTION POINTS ACTIVE <<<';
+                color = '#00FF00';
+            } else if (state === 'CLOSED') {
+                msg = 'SIGNAL LOST... RECALIBRATING';
+                color = '#FF0000';
+            }
+
+            if (msg) {
+                const txt = this.add.text(this.cameras.main.width / 2, 200, msg, {
+                    fontSize: '24px', color: color, stroke: '#000', strokeThickness: 4, fontStyle: 'bold'
+                }).setOrigin(0.5).setScrollFactor(0).setDepth(2000);
+
+                this.tweens.add({
+                    targets: txt, alpha: 0, duration: 5000, onComplete: () => txt.destroy()
+                });
+            }
+        });
+
         // Input Events
         EventBus.on('JOYSTICK_MOVE', (vec: { x: number, y: number }) => this.inputSystem.setVirtualAxis(vec.x, vec.y));
         EventBus.on('JOYSTICK_AIM', (data: { x: number, y: number, isFiring: boolean }) => this.inputSystem.setVirtualAim(data.x, data.y, data.isFiring));
@@ -323,10 +349,9 @@ export class MainScene extends Phaser.Scene {
         // ... Rest of update ...
         super.update(time, delta);
 
-        // 1. Inputs
-        this.processLocalInput();
-
-        // 2. Drone Logic
+        if (this.isGameActive) {
+            this.processLocalInput(time);
+        } // 2. Drone Logic
         if (this.currentMode === 'SINGLE') {
             this.updateDroneAI();
         } else if (network.isHost) {
@@ -352,6 +377,7 @@ export class MainScene extends Phaser.Scene {
         this.combatManager.updateCombatAI(this.commander!, this.drone, this.enemyGroup!, this.projectileGroup!);
         this.handlePowerupCollisions();
         this.handleLootCollection();
+        this.extractionManager.update(time, delta);
         this.handleExtraction(); // Check Zone overlap
 
         // 5. Visuals
@@ -422,9 +448,14 @@ export class MainScene extends Phaser.Scene {
     }
 
     // --- Inputs & Movement ---
-    processLocalInput() {
-        if (!this.myUnit) return;
-        this.inputSystem.processInput(this.input, this.cameras, this.myUnit, this.statsModifiers);
+    processLocalInput(time: number) {
+        if (this.commander) {
+            this.inputSystem.processInput(this.input, this.cameras, this.commander, this.statsModifiers);
+            // Auto-Fire (Stop & Shoot mechanic)
+            if (this.enemyGroup && this.projectileGroup) {
+                this.commander.autoFire(time, this.enemyGroup, this.projectileGroup);
+            }
+        }
     }
 
     updateDroneAI() {

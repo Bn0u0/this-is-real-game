@@ -36,13 +36,15 @@ export const PhaserGame: React.FC = () => {
       },
       scene: [MainScene],
       scale: {
-        mode: Phaser.Scale.RESIZE,
+        mode: Phaser.Scale.HEIGHT_CONTROLS_WIDTH,
         autoCenter: Phaser.Scale.CENTER_BOTH,
-        // Crucial: Set min dimensions to prevent 0x0 framebuffer errors during resize/init
-        min: {
-          width: 320,
-          height: 240
-        }
+        width: 720,
+        height: 1280,
+        // min dimensions are not typically used with HEIGHT_CONTROLS_WIDTH when explicit width/height are set
+        // min: {
+        //   width: 320,
+        //   height: 240
+        // }
       }
     };
 

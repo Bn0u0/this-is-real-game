@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import Phaser from 'phaser';
-import { MainScene } from './scenes/風格底層遵循';
+import { MainScene } from './scenes/MainScene';
 import { COLORS } from '../constants';
 
 export const PhaserGame: React.FC = () => {

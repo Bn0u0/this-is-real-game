@@ -54,9 +54,10 @@ export const Hideout: React.FC = () => {
     return (
         <div className="absolute inset-0 bg-[#0e0d16] font-['Press_Start_2P'] text-[#eddbda] selection:bg-[#ff0055] selection:text-white pointer-events-auto flex flex-col">
 
-            {/* Background Image Layer (Code Only) */}
-            <div className="absolute inset-0 z-0 bg-[#0e0d16]">
-                <div className="absolute inset-0 bg-gradient-to-t from-[#0e0d16] via-[#1a1c24] to-[#0e0d16]"></div>
+            {/* Background Image Layer */}
+            <div className="absolute inset-0 z-0">
+                <img src="/assets/ui/bg_hld_ruins.png" className="w-full h-full object-cover opacity-60" />
+                <div className="absolute inset-0 bg-gradient-to-t from-[#0e0d16] via-[#0e0d16]/80 to-transparent"></div>
             </div>
 
             {/* Top Bar: Minimalist Header */}
@@ -83,10 +84,11 @@ export const Hideout: React.FC = () => {
                     <div className="absolute inset-0 bg-[url('/assets/textures/floor_scifi.png')] opacity-10 mix-blend-overlay"></div>
                     <div className="absolute top-0 w-full h-1 bg-gradient-to-r from-transparent via-cyan-500 to-transparent opacity-50"></div>
 
-                    {/* Character Placeholder (Code Only) */}
-                    <div className={`w-32 h-32 flex items-center justify-center transition-transform group-hover:scale-110 duration-500`}>
-                        <div className={`w-20 h-20 rotate-45 border-4 border-cyan-400 bg-cyan-900/50 shadow-[0_0_20px_cyan]`}></div>
-                    </div>
+                    {/* Character Placeholder (Would use Sprite) */}
+                    <img
+                        src={`/assets/sprites/hero_${heroId.toLowerCase()}.png`}
+                        className="w-32 h-32 rendering-pixelated scale-150 drop-shadow-[0_0_15px_rgba(84,252,252,0.4)] transition-transform group-hover:scale-175 duration-500"
+                    />
 
                     <div className="mt-8 text-center z-10">
                         <h2 className="text-2xl text-cyan-400 tracking-[0.2em] mb-2 uppercase">{heroId}</h2>
@@ -195,8 +197,9 @@ function getRarityColor(r: string) {
 }
 
 function getIcon(t: string) {
-    // Code Only Icons (Unicode/CSS)
-    if (t === 'WEAPON') return <span className="text-2xl">🔫</span>;
-    if (t === 'ARTIFACT') return <span className="text-2xl">📦</span>;
-    return <span className="text-2xl">⚙️</span>;
+    // Map types to simple unicode or reuse images if verified. 
+    // Using images for better HLD feel.
+    if (t === 'WEAPON') return <img src="/assets/icons/icon_pulse_rifle.png" className="w-8 h-8 filter invert" />;
+    if (t === 'ARTIFACT') return <img src="/assets/icons/icon_artifact_box.png" className="w-8 h-8 filter invert" />;
+    return <img src="/assets/icons/icon_scrap_metal.png" className="w-8 h-8 filter invert" />;
 }

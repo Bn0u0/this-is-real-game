@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { MainScene } from '../scenes/風格底層遵循';
+import { MainScene } from '../scenes/MainScene';
 import { COLORS } from '../../constants';
 
 // 2.5D Tiling System
@@ -115,22 +115,27 @@ export class TerrainManager {
         tile.instance = g;
 
         if (type === TileType.GROUND) {
-            // Textured Floor
-            this.scene.add.image(worldX + this.tileSize / 2, worldY + this.tileSize / 2, 'floor')
-                .setDisplaySize(this.tileSize, this.tileSize)
-                .setDepth(-1);
+            // Textured Floor (Code Only MVP: Dark Rect)
+            const g = this.scene.add.graphics();
+            g.fillStyle(0x1a1c24, 1); // Dark Slate
+            g.fillRect(worldX, worldY, this.tileSize, this.tileSize);
+            g.setDepth(-10);
+            tile.instance = g;
         }
         // Wall
         else if (type === TileType.WALL) {
-            // 2.5D Block Sprite
-            // Draw slightly offset up by 'height'
-            // We'll use the texture. If it's isometric, we place it carefully.
-            // Our texture is a block. Let's just place it.
-            const wall = this.scene.add.image(worldX + this.tileSize / 2, worldY + this.tileSize / 2 - height / 2, 'wall'); // Shift up
-            wall.setDisplaySize(this.tileSize, this.tileSize + height); // Stretch height? Or maintain aspect ratio?
-            // If texture is 2.5D side view, we should just place it.
-            // Let's assume standard square for now but stretched.
-            // Better: use slicing if we had it. For now, simple scaling.
+            // 2.5D Block (Code Only)
+            const g = this.scene.add.graphics();
+
+            // Side (Darker)
+            g.fillStyle(0x0e0d16, 1);
+            g.fillRect(worldX, worldY + this.tileSize, this.tileSize, height); // Fake "side" dropping down? Or just a box.
+
+            // Top (Lighter)
+            g.fillStyle(0x272933, 1);
+            g.fillRect(worldX, worldY - height, this.tileSize, this.tileSize + height); // Tall box
+            g.lineStyle(2, 0x494d5e, 1);
+            g.strokeRect(worldX, worldY - height, this.tileSize, this.tileSize + height);
 
             // Physics Body -> needs to be at GROUND level (worldY)
             const zone = this.scene.add.zone(worldX + this.tileSize / 2, worldY + this.tileSize / 2, this.tileSize, this.tileSize);
@@ -138,8 +143,8 @@ export class TerrainManager {
             this.wallGroup.add(zone);
             tile.body = zone.body as Phaser.Physics.Arcade.Body;
 
-            wall.setDepth(worldY + this.tileSize); // Y-sort
-            tile.instance = wall as any;
+            g.setDepth(worldY + this.tileSize); // Y-sort
+            tile.instance = g;
         }
 
         this.tiles.set(key, tile);

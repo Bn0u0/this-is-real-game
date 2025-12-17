@@ -84,11 +84,13 @@ export class MainScene extends Phaser.Scene {
     }
 
     preload() {
-        // CODE-ONLY MVP: No external assets to ensure Vercel stability
-        // this.load.image('floor', 'assets/textures/floor_scifi.png');
-        // this.load.image('wall', 'assets/textures/wall_tech.png');
-        // this.load.image('hero_vanguard', 'assets/sprites/hero_vanguard.png');
-        // ...
+        this.load.image('floor', 'assets/textures/floor_scifi.png');
+        this.load.image('wall', 'assets/textures/wall_tech.png');
+        this.load.image('hero_vanguard', 'assets/sprites/hero_vanguard.png');
+        this.load.image('hero_spectre', 'assets/sprites/hero_spectre.png');
+        this.load.image('hero_bastion', 'assets/sprites/hero_bastion.png');
+        this.load.image('hero_weaver', 'assets/sprites/hero_weaver.png');
+        this.load.image('hero_catalyst', 'assets/sprites/hero_catalyst.png');
     }
 
     create() {

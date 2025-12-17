@@ -61,25 +61,27 @@ export const GameOverlay: React.FC = () => {
 
                 {/* Top Left: Health & Ammo */}
                 <div className="flex flex-col gap-4">
-                    {/* Health Diamonds (CSS) */}
+                    {/* Health Diamonds */}
                     <div className="flex gap-2">
                         {Array.from({ length: chunks }).map((_, i) => (
-                            <div
+                            <img
                                 key={i}
-                                className={`w-6 h-6 rotate-45 border-2 border-pink-500 m-1 transition-all ${i < currentChunks ? 'bg-pink-500 shadow-[0_0_10px_#ff0055]' : 'bg-transparent opacity-30'}`}
+                                src={i < currentChunks ? "/assets/ui/diamond_full.png" : "/assets/ui/diamond_empty.png"}
+                                className={`w-8 h-8 rendering-pixelated ${i < currentChunks ? 'drop-shadow-[0_0_8px_rgba(255,0,85,0.8)]' : 'opacity-40'}`}
+                                alt=""
                             />
                         ))}
                     </div>
 
                     {/* Weapon / Ammo (Decor) */}
                     <div className="flex items-center gap-4 opacity-80 mt-2">
-                        <div className="w-10 h-10 border-2 border-slate-700 bg-slate-900/80 flex items-center justify-center p-1 text-2xl">
-                            🔫
+                        <div className="w-10 h-10 border-2 border-slate-700 bg-slate-900/80 flex items-center justify-center p-1">
+                            <img src="/assets/icons/icon_pulse_rifle.png" className="w-full h-full object-contain filter grayscale hover:grayscale-0 transition-all" />
                         </div>
                         <div className="flex gap-1 h-6 items-end">
                             {/* Infinite Ammo Visuals */}
                             {Array.from({ length: 6 }).map((_, i) => (
-                                <div key={i} className="w-2 h-4 bg-cyan-400/80 skew-x-12"></div>
+                                <img key={i} src="/assets/ui/ammo_pip.png" className="w-2 h-4" />
                             ))}
                         </div>
                     </div>
@@ -97,7 +99,7 @@ export const GameOverlay: React.FC = () => {
                 {/* Top Right: Currency / Score */}
                 <div className="flex flex-col items-end gap-1">
                     <div className="flex items-center gap-2">
-                        <div className="w-3 h-3 bg-yellow-400 rotate-45"></div> {/* Yellowish */}
+                        <img src="assets/ui/diamond_full.png" className="w-4 h-4 hue-rotate-[60deg]" /> {/* Yellowish */}
                         <span className="text-yellow-400 text-sm">{stats.score}</span>
                     </div>
                     {/* XP Indicator (Tiny bar) */}

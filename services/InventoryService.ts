@@ -5,7 +5,7 @@ function genId() { return Math.random().toString(36).substr(2, 9); }
 
 export interface InventoryState {
     credits: number;
-    stash: InventoryItem[]; // Un-equipped items
+    stash: InventoryItem[]; // Un-equipped items (Safe at Home)
     // Loadouts: HeroClass -> { Slot: Item }
     loadouts: Record<string, Record<string, InventoryItem | null>>;
 }
@@ -75,6 +75,55 @@ class InventoryService {
         this.save();
     }
 
+    /**
+     * Called when extraction is successful.
+     */
+    public processExtractionLoot(lootIds: string[]) {
+        const newItems: InventoryItem[] = [];
+        lootIds.forEach(originalId => {
+            // Map logic
+            let artifactDefId = 'art_box_mk1';
+            newItems.push(this.createItem(artifactDefId));
+        });
+        this.state.stash.push(...newItems);
+        this.save();
+        return newItems;
+    }
+
+    /**
+     * DEATH PENALTY:
+     * 1. All "Backpack" loot is already lost (because we never called processExtractionLoot).
+     * 2. LOSE 1 RANDOM EQUIPPED ITEM from the current hero.
+     */
+    public punishDeath(heroId: string): string | null {
+        const loadout = this.state.loadouts[heroId];
+        if (!loadout) return null;
+
+        // Find all equipped slots (non-null)
+        const equippedSlots = Object.keys(loadout).filter(slot => loadout[slot] !== null) as EquipmentSlot[];
+
+        if (equippedSlots.length === 0) return null;
+
+        // Pick one to destroy
+        const victimSlot = equippedSlots[Math.floor(Math.random() * equippedSlots.length)];
+        const victimItem = loadout[victimSlot];
+
+        if (victimItem) {
+            // Check if it's a 2H weapon? If so, we might need to clear Offhand too if strictly linked,
+            // but our current logic just deletes the Item object.
+
+            // Delete it
+            loadout[victimSlot] = null;
+
+            this.state.loadouts[heroId] = loadout;
+            this.save();
+
+            const def = getItemDef(victimItem.defId);
+            return def ? def.name : 'Unknown Item';
+        }
+        return null;
+    }
+
     public equipItem(heroClass: string, item: InventoryItem, slot: EquipmentSlot) {
         const def = getItemDef(item.defId);
         if (!def) return false;
@@ -90,12 +139,24 @@ class InventoryService {
         // Remove from Stash
         this.state.stash = this.state.stash.filter(i => i.id !== item.id);
 
-        // Unequip current if any
         const loadout = this.state.loadouts[heroClass] || this.createEmptyLoadout();
-        const current = loadout[slot];
-        if (current) {
-            this.state.stash.push(current);
+
+        // 2-Handed Logic
+        // If equipping a 2H weapon, Main Hand takes slot, Off Hand must be unequipped.
+        // For MVP, we'll assume standard slot mapping first.
+        // Implementation: If Item Name contains "Hammer" or "Rifle" -> Assume 2H for now if not explicit in DB.
+        // Better: Check define.
+        if (slot === EquipmentSlot.MAIN_HAND && def.isTwoHanded) { // Assuming `isTwoHanded` property exists on ItemDef
+            const offHandItem = loadout[EquipmentSlot.OFF_HAND];
+            if (offHandItem) {
+                this.state.stash.push(offHandItem);
+                loadout[EquipmentSlot.OFF_HAND] = null;
+            }
         }
+
+        // Unequip target slot
+        const current = loadout[slot];
+        if (current) this.state.stash.push(current);
 
         // Equip new
         loadout[slot] = item;

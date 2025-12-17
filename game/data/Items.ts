@@ -37,10 +37,11 @@ export interface ItemDef {
     type: ItemType;
     slot: EquipmentSlot;
     rarity: ItemRarity;
-    classReq?: string[]; // If null, usable by all
+    classReq?: string[]; // If undefined, usable by all
     tier: number; // 1-10
     stats: ItemStats;
     icon: string; // CSS emoji or eventual path
+    isTwoHanded?: boolean;
 }
 
 export interface InventoryItem {
@@ -77,7 +78,8 @@ export const ITEM_DATABASE: Record<string, ItemDef> = {
         id: 'wpn_bastion_hammer_mk1', name: 'Impact Hammer',
         type: ItemType.WEAPON, slot: EquipmentSlot.MAIN_HAND,
         rarity: ItemRarity.COMMON, tier: 1, classReq: ['Bastion'],
-        stats: { atk: 15, speed: -0.1 }, icon: '🔨'
+        stats: { atk: 15, speed: -0.1 }, icon: '🔨',
+        isTwoHanded: true
     },
     'wpn_bastion_wall_mk1': {
         id: 'wpn_bastion_wall_mk1', name: 'Aegis Wall',
@@ -91,32 +93,33 @@ export const ITEM_DATABASE: Record<string, ItemDef> = {
         id: 'wpn_spectre_rifle_mk1', name: 'Phase Rifle',
         type: ItemType.WEAPON, slot: EquipmentSlot.MAIN_HAND,
         rarity: ItemRarity.COMMON, tier: 1, classReq: ['Spectre'],
-        stats: { atk: 25, cooldown: -0.05 }, icon: '🔫'
+        stats: { atk: 25, cooldown: -0.05 }, icon: '🔫',
+        isTwoHanded: true
     },
 
     // === ARMOR (SHARED) ===
     'arm_head_mk1': {
         id: 'arm_head_mk1', name: 'Civilian Visor',
         type: ItemType.ARMOR, slot: EquipmentSlot.HEAD,
-        rarity: ItemRarity.COMMON, tier: 1, classReq: null,
+        rarity: ItemRarity.COMMON, tier: 1,
         stats: { shield: 10 }, icon: '🥽'
     },
     'arm_body_mk1': {
         id: 'arm_body_mk1', name: 'Kevlar Vest',
         type: ItemType.ARMOR, slot: EquipmentSlot.BODY,
-        rarity: ItemRarity.COMMON, tier: 1, classReq: null,
+        rarity: ItemRarity.COMMON, tier: 1,
         stats: { hp: 20 }, icon: '🦺'
     },
     'arm_legs_mk1': {
         id: 'arm_legs_mk1', name: 'Cargo Pants',
         type: ItemType.ARMOR, slot: EquipmentSlot.LEGS,
-        rarity: ItemRarity.COMMON, tier: 1, classReq: null,
+        rarity: ItemRarity.COMMON, tier: 1,
         stats: { speed: 0.02 }, icon: '👖'
     },
     'arm_feet_mk1': {
         id: 'arm_feet_mk1', name: 'Combat Boots',
         type: ItemType.ARMOR, slot: EquipmentSlot.FEET,
-        rarity: ItemRarity.COMMON, tier: 1, classReq: null,
+        rarity: ItemRarity.COMMON, tier: 1,
         stats: { speed: 0.05 }, icon: '👢'
     },
 
@@ -124,7 +127,7 @@ export const ITEM_DATABASE: Record<string, ItemDef> = {
     'art_box_mk1': {
         id: 'art_box_mk1', name: 'Encrypted Cache (Mk.I)',
         type: ItemType.ARTIFACT, slot: EquipmentSlot.NONE,
-        rarity: ItemRarity.COMMON, tier: 1, classReq: null,
+        rarity: ItemRarity.COMMON, tier: 1,
         stats: {}, icon: '📦'
     },
 
@@ -132,7 +135,7 @@ export const ITEM_DATABASE: Record<string, ItemDef> = {
     'm_scrap': {
         id: 'm_scrap', name: 'Scrap Metal',
         type: ItemType.SCRAP, slot: EquipmentSlot.NONE,
-        rarity: ItemRarity.COMMON, tier: 0, classReq: null,
+        rarity: ItemRarity.COMMON, tier: 0,
         stats: {}, icon: '⚙️'
     }
 };

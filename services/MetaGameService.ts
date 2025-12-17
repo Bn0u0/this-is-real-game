@@ -71,6 +71,14 @@ class MetaGameService {
     public handleGameOver(score: number) {
         // 1. Save Highscore (Persistence) - Already done by App.tsx? Move it here.
         // 2. Clear temp inventory?
+
+        // DEATH PENALTY LOGIC
+        const lostItemName = inventoryService.punishDeath(this.state.selectedHeroId);
+        if (lostItemName) {
+            console.log(`[DEATH PENALTY] Hero died. Lost Item: ${lostItemName}`);
+            // We should ideally pass this to the Game Over screen
+        }
+
         this.navigateTo('GAME_OVER');
     }
 

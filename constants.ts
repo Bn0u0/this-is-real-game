@@ -1,14 +1,24 @@
-// Cute Theme Colors
+// Hyper Light Drifter Inspired Palette (Code-Only Construction)
 export const COLORS = {
-  bg: 0xFFF0F5, // Lavender Blush / Light Pink
-  primary: 0xFF69B4, // Hot Pink
-  secondary: 0x87CEEB, // Sky Blue
-  accent: 0xFFD700, // Gold
-  white: 0xFFFFFF,
+  bg: 0x0e0d16,          // Void Dark
+  primary: 0x54fcfc,     // Drifter Cyan (Hero)
+  secondary: 0xff0055,   // Enemy Magenta
+  accent: 0xffe736,      // Gold/Electric
 
-  // Grid/UI
-  grid: 0xE6E6FA, // Lavender
-  text: 0x555555
+  // Environment
+  floor: 0x1a1c24,       // Dark Slate
+  wallTop: 0x272933,     // Lighter Grey
+  wallSide: 0x050508,    // Deep Shadow
+
+  // UI
+  health: 0xff0055,      // Magenta
+  shield: 0x54fcfc,      // Cyan
+  xp: 0xffe736,          // Gold
+  text: '#eddbda',       // Dust White
+
+  // Legacy mapping for compatibility
+  white: 0xFFFFFF,
+  grid: 0x272933
 };
 
 export const PHYSICS = {

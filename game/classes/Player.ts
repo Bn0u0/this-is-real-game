@@ -26,7 +26,7 @@ export class Player extends Phaser.GameObjects.Container {
     declare public setDepth: (value: number) => this;
 
     protected coreShape: Phaser.GameObjects.Graphics;
-    public visualSprite?: Phaser.GameObjects.Sprite;
+    public visualSprite?: Phaser.GameObjects.Sprite | Phaser.GameObjects.Container;
     private emitter: Phaser.GameObjects.Particles.ParticleEmitter;
     private shadow: Phaser.GameObjects.Ellipse; // 2.5D Anchor
 

@@ -12,24 +12,49 @@ export class Vanguard extends Player {
     constructor(scene: Phaser.Scene, x: number, y: number, id: string, isLocal: boolean) {
         super(scene, x, y, id, isLocal);
 
-        // Visual distinction: Sprite
-        this.coreShape.visible = false; // Hide hexagon
-
-        this.visualSprite = scene.add.sprite(0, 0, 'hero_vanguard');
-        this.visualSprite.setDisplaySize(80, 80); // Bigger than hitbox
+        // Visual distinction: Code Only MVP (HLD Style)
+        this.coreShape.visible = false; // Disable default
+        this.visualSprite = scene.add.container(0, 0); // Container for drawn parts
         this.add(this.visualSprite);
 
-        // Create Blade Aura visuals
+        this.drawDrifter();
+
+        // Blade Aura (Already Code-based)
         this.aura = scene.add.graphics();
         this.add(this.aura);
-
-        // Aura Logic (simulated physics body for overlap)
-        // We will use manual distance check for the aura to avoid complex physics bodies attached to containers if possible, 
-        // or just add a sensor. 
-        // Let's use manual check for "Spin to Win" feel.
     }
 
-    // drawBeetle removed
+    drawDrifter() {
+        const g = this.scene.make.graphics({ x: 0, y: 0 });
+
+        // 1. Cape (Triangle Flowing back)
+        g.fillStyle(0xff0055, 1); // Secondary Red
+        g.fillTriangle(-15, 10, 15, 10, 0, 35);
+
+        // 2. Body (Drifter Tunic)
+        g.fillStyle(COLORS.primary, 1); // Cyan
+        g.fillRect(-12, -12, 24, 24);
+
+        // 3. Head (Diamond/Helmet)
+        g.fillStyle(0xFFFFFF, 1);
+        g.beginPath();
+        g.moveTo(0, -20);
+        g.lineTo(10, -10);
+        g.lineTo(0, 0);
+        g.lineTo(-10, -10);
+        g.closePath();
+        g.fillPath();
+
+        // 4. Scarf (Cyan blowing)
+        g.lineStyle(4, 0x54fcfc, 1);
+        g.lineBetween(8, -8, 20, -5);
+
+        (this.visualSprite as Phaser.GameObjects.Container).add(g);
+    }
+
+    // Aura Logic: Manual distance check used in updateCombat
+
+    // drawBeetle removed - deprecated
 
     update() {
         super.update();

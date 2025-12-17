@@ -4,12 +4,13 @@ import { PhaserGame } from './game/PhaserGame';
 import { GameOverlay } from './components/GameOverlay';
 import { Hideout } from './components/Hideout';
 import { BootScreen } from './components/BootScreen';
+import { MainMenu } from './components/MainMenu';
 import { metaGame, MetaGameState } from './services/MetaGameService';
 import { persistence, UserProfile } from './services/PersistenceService';
 import { EventBus } from './services/EventBus';
 
 // Application State Machine
-type AppState = 'BOOT' | 'HIDEOUT' | 'COMBAT' | 'SUMMARY';
+type AppState = 'BOOT' | 'MAIN_MENU' | 'HIDEOUT' | 'COMBAT' | 'SUMMARY' | 'TUTORIAL_DEBRIEF';
 
 const App: React.FC = () => {
     const [appState, setAppState] = useState<AppState>('BOOT');
@@ -25,12 +26,15 @@ const App: React.FC = () => {
 
         // Listen for Game Over / Extraction to return to Hideout
         const onMissionEnd = (data: any) => {
-            // Update Profile
-            if (data.type === 'GAME_OVER') {
-                // Logic handled in MetaGame or here? 
-                // Let's assume MetaGame handles logic, we just route.
+            const currentProfile = persistence.getProfile();
+
+            // FTUE Logic: If rookie, go to Tutorial Debrief
+            if (!currentProfile.hasPlayedOnce) {
+                persistence.save({ hasPlayedOnce: true });
+                setAppState('TUTORIAL_DEBRIEF');
+            } else {
+                setAppState('SUMMARY');
             }
-            setAppState('SUMMARY');
         };
 
         const onExtraction = (loot: any[]) => {
@@ -49,15 +53,21 @@ const App: React.FC = () => {
 
     // Actions
     const handleBootComplete = () => {
-        // Play SFX?
-        setAppState('HIDEOUT');
+        // Go to Main Menu instead of Hideout
+        setAppState('MAIN_MENU');
     };
 
-    const handleDeploy = () => {
+    // Called from MainMenu
+    const handleStartGame = (role: string) => {
         // Start Game
         metaGame.startMatch(); // Reset state
         setAppState('COMBAT');
-        EventBus.emit('START_MATCH', 'SINGLE');
+        EventBus.emit('START_MATCH', { mode: 'SINGLE', hero: role });
+    };
+
+    // Called from Hideout -> Deploy
+    const handleDeploy = () => {
+        handleStartGame(profile.loadout.weapon);
     };
 
     const handleReturnToBase = () => {
@@ -77,6 +87,11 @@ const App: React.FC = () => {
                 <BootScreen onStart={handleBootComplete} />
             )}
 
+            {/* State: MAIN_MENU (Instant Challenge) */}
+            {appState === 'MAIN_MENU' && (
+                <MainMenu onStartGame={handleStartGame} />
+            )}
+
             {/* State: HIDEOUT */}
             {appState === 'HIDEOUT' && (
                 <div className="absolute inset-0 z-20 bg-[var(--hld-bg)]">
@@ -93,7 +108,22 @@ const App: React.FC = () => {
                 {appState === 'COMBAT' && <GameOverlay />}
             </div>
 
-            {/* State: SUMMARY (Overlay on top of Game) */}
+            {/* State: TUTORIAL DEBRIEF (Rookie End) */}
+            {appState === 'TUTORIAL_DEBRIEF' && (
+                <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-black/90 backdrop-blur-md animate-in fade-in p-8 text-center">
+                    <h2 className="text-4xl md:text-6xl font-black text-[#00FFFF] mb-6">SIGNAL ESTABLISHED</h2>
+                    <p className="text-gray-300 max-w-md mb-12 leading-relaxed tracking-wider">
+                        戰鬥數據已上傳。<br />
+                        指揮官權限已解鎖。<br />
+                        歡迎來到 SYNAPSE 神經網絡。
+                    </p>
+                    <button className="hero-button" onClick={handleReturnToBase}>
+                        進入基地
+                    </button>
+                </div>
+            )}
+
+            {/* State: SUMMARY (Veteran End) */}
             {appState === 'SUMMARY' && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm animate-in fade-in">
                     <div className="glass-card max-w-md w-full text-center border-[#FF0055]">

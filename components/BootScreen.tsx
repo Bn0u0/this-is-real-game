@@ -6,7 +6,7 @@ interface BootScreenProps {
 
 export const BootScreen: React.FC<BootScreenProps> = ({ onStart }) => {
     const [text, setText] = useState('');
-    const fullText = "SYNAPSE LINK...";
+    const fullText = "神經網絡連結中...";
 
     // Typewriter effect
     useEffect(() => {
@@ -45,7 +45,7 @@ export const BootScreen: React.FC<BootScreenProps> = ({ onStart }) => {
             </div>
 
             <div className="mt-8 text-gray-500 tracking-[0.5em] text-xs animate-bounce">
-                TOUCH TO INITIALIZE
+                點擊螢幕以初始化
             </div>
         </div>
     );

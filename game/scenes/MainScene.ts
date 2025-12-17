@@ -15,6 +15,7 @@ import { Projectile } from '../classes/Projectile';
 import { PowerupService, PowerupType } from '../../services/PowerupService';
 import { LootService } from '../../services/LootService';
 import { inventoryService } from '../../services/InventoryService';
+import { persistence } from '../../services/PersistenceService';
 
 // Managers
 import { WaveManager } from '../managers/WaveManager';
@@ -252,7 +253,14 @@ export class MainScene extends Phaser.Scene {
         this.setupPlayers();
 
         if (this.currentMode === 'SINGLE' || network.isHost) {
-            this.startNewWave(1);
+            // FTUE: Check if rookie
+            // Note: In React we update hasPlayedOnce AFTER game over. So here it is still false for first run.
+            const profile = persistence.getProfile();
+            if (!profile.hasPlayedOnce) {
+                // this.startTutorialMode(); // Removed as part of tutorial deletion
+            } else {
+                this.startNewWave(1);
+            }
         }
 
         if (this.myUnit) {
@@ -739,5 +747,53 @@ export class MainScene extends Phaser.Scene {
             // Erase lights from darkness
             this.lightLayer.erase(this.lightMask);
         }
+    }
+
+
+    // --- FTUE: INVISIBLE TUTORIAL ---
+    private tutorialWall: Phaser.GameObjects.Rectangle | null = null;
+    private tutorialText: Phaser.GameObjects.Text | null = null;
+
+    startTutorialMode() {
+        // 1. Spawn Glass Wall (Visual + Physics)
+        const wallY = -400;
+        this.tutorialWall = this.add.rectangle(0, wallY, 800, 50, 0x00FFFF, 0.3);
+        this.physics.add.existing(this.tutorialWall);
+        const body = this.tutorialWall.body as Phaser.Physics.Arcade.Body;
+        body.setImmovable(true);
+
+        // 2. Add "FLICK TO BREACH" Text
+        this.tutorialText = this.add.text(0, 200, "快速滑動以衝刺\nFLICK TO DASH", {
+            fontSize: '40px', color: '#00FFFF', align: 'center', stroke: '#000', strokeThickness: 4
+        }).setOrigin(0.5);
+
+        // 3. Collision Logic: Dash breaks wall
+        // Note: Needs to be checked in update() or add collider here involving myUnit
+        // But myUnit might be recreated in setupPlayers?
+        // Let's add collider in update() or just strictly here if myUnit exists
+        if (this.myUnit) {
+            this.physics.add.collider(this.myUnit, this.tutorialWall, () => {
+                if (this.myUnit?.isDashing) {
+                    this.breakTutorialWall();
+                }
+            });
+        }
+    }
+
+    breakTutorialWall() {
+        if (!this.tutorialWall) return;
+
+        // FX
+        this.cameras.main.shake(300, 0.02);
+
+        // Destroy Wall
+        this.tutorialWall.destroy();
+        this.tutorialWall = null;
+        if (this.tutorialText) this.tutorialText.destroy();
+
+        // Start Game
+        this.time.delayedCall(1000, () => {
+            this.startNewWave(1);
+        });
     }
 }

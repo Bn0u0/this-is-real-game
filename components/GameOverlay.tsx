@@ -23,14 +23,14 @@ export const GameOverlay: React.FC = () => {
         const handleWaveStart = (data: { wave: number, isElite: boolean }) => {
             setWaveAlert({
                 show: true,
-                text: data.isElite ? '⚠️ ANOMALY ⚠️' : `CYCLE ${data.wave.toString().padStart(2, '0')} `,
-                subtext: data.isElite ? 'HIGH THREAT DETECTED' : 'HOSTILES INBOUND'
+                text: data.isElite ? '⚠️ 異常高能量反映 ⚠️' : `週期循環 ${data.wave.toString().padStart(2, '0')}`,
+                subtext: data.isElite ? '極度危險 // 建議撤離' : '偵測到敵意實體'
             });
             setTimeout(() => setWaveAlert(null), 3000);
         };
 
         const handleWaveComplete = () => {
-            setWaveAlert({ show: true, text: 'AREA SECURED', subtext: 'SYSTEM STABLE' });
+            setWaveAlert({ show: true, text: '區域淨化完成', subtext: '系統暫時穩定' });
             setTimeout(() => setWaveAlert(null), 2500);
         };
 

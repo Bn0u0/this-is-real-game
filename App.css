@@ -33,6 +33,12 @@ body {
   /* 禁止選取文字 */
   -webkit-touch-callout: none;
   /* 禁止長按選單 */
+
+  /* Mobile Safe Area */
+  padding-top: env(safe-area-inset-top);
+  padding-bottom: env(safe-area-inset-bottom);
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
 }
 
 /* UX Primitive: Tech Button */
@@ -123,7 +129,54 @@ body {
     transform: translate(2px, -2px);
   }
 
-  100% {
-    transform: translate(0);
+  transform: translate(0);
+}
+}
+
+/* Main Menu Styles */
+@keyframes pulse {
+  from {
+    box-shadow: 0 0 10px var(--hld-magenta);
+    transform: scale(1);
   }
+
+  to {
+    box-shadow: 0 0 25px var(--hld-magenta);
+    transform: scale(1.02);
+  }
+}
+
+.hero-button {
+  width: 280px;
+  height: 80px;
+  background: linear-gradient(90deg, var(--hld-magenta), #ff0055aa);
+  clip-path: polygon(20px 0, 100% 0, 100% 60px, calc(100% - 20px) 100%, 0 100%, 0 20px);
+  font-family: 'Orbitron', sans-serif;
+  font-size: 1.5rem;
+  /* Adjusted for mobile readability */
+  color: white;
+  text-shadow: 0 0 10px white;
+  animation: pulse 1s infinite alternate;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  margin-bottom: 2rem;
+}
+
+.sub-link {
+  font-size: 0.8rem;
+  color: var(--hld-cyan);
+  opacity: 0.7;
+  text-decoration: underline;
+  margin-top: 20px;
+  cursor: pointer;
+  transition: opacity 0.3s;
+}
+
+.sub-link:hover {
+  opacity: 1;
 }

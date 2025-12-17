@@ -7,7 +7,16 @@ export class InputSystem {
     // Virtual Input State
     private virtualMove = { x: 0, y: 0 };
     private virtualAim = { x: 0, y: 0, isFiring: false };
+    // Virtual Input State
+    private virtualMove = { x: 0, y: 0 };
+    private virtualAim = { x: 0, y: 0, isFiring: false };
     private targetMovePosition: Phaser.Math.Vector2 | null = null;
+
+    // Flick Logic
+    private pointerDownPos = new Phaser.Math.Vector2();
+    private pointerDownTime = 0;
+    private readonly FLICK_THRESHOLD = 0.15; // Seconds max for a flick
+    private readonly FLICK_DIST_MIN = 30;    // Pixels min for a flick
 
     constructor(scene: Phaser.Scene) {
         this.scene = scene;
@@ -45,12 +54,48 @@ export class InputSystem {
         let moveX = this.virtualMove.x;
         let moveY = this.virtualMove.y;
 
-        // Mouse/Touch Click-to-Move Logic
-        if (pointer.isDown && moveX === 0 && moveY === 0) {
-            const worldPoint = pointer.positionToCamera(cameras.main) as Phaser.Math.Vector2;
+        // Mouse/Touch Logic
+        if (pointer.isDown) {
+            if (pointer.justDown) {
+                this.pointerDownPos.set(pointer.x, pointer.y);
+                this.pointerDownTime = this.scene.time.now;
+            }
 
-            // Set target
-            this.targetMovePosition = new Phaser.Math.Vector2(worldPoint.x, worldPoint.y);
+            // Standard Movement logic ...
+            if (moveX === 0 && moveY === 0) {
+                const worldPoint = pointer.positionToCamera(cameras.main) as Phaser.Math.Vector2;
+                this.targetMovePosition = new Phaser.Math.Vector2(worldPoint.x, worldPoint.y);
+            }
+        } else if (pointer.justUp) {
+            // Check for Flick
+            const duration = (this.scene.time.now - this.pointerDownTime) / 1000;
+            const dist = this.pointerDownPos.distance(pointer.position);
+
+            if (duration < this.FLICK_THRESHOLD && dist > this.FLICK_DIST_MIN) {
+                // FLICK DETECTED!
+                // Calculate direction
+                const angle = Phaser.Math.Angle.Between(
+                    this.pointerDownPos.x, this.pointerDownPos.y,
+                    pointer.x, pointer.y
+                );
+
+                // Override movement with dash direction logic if needed, 
+                // but usually Player handles dash direction based on Move or Facing.
+                // Here we force player to face flick direction provided we update rotation?
+                // Actually, let's just trigger dash. The player class usually dashes in movement dir.
+                // We should momentarily force movement dir to flick dir?
+
+                // Better: Player.dash() uses current velocity. 
+                // So we need to ensure velocity is set.
+
+                player.dash();
+
+                // Visual Text
+                this.scene.events.emit('SHOW_FLOATING_TEXT', {
+                    x: player.x, y: player.y - 50,
+                    text: "FLICK!", color: "#00FFFF"
+                });
+            }
         }
 
         // Apply Click Movement

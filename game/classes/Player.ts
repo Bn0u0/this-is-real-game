@@ -3,6 +3,7 @@ import { COLORS, PHYSICS } from '../../constants';
 import { ItemDef } from '../data/Items';
 import { ClassConfig } from '../factories/PlayerFactory';
 import { WeaponSystem } from '../systems/WeaponSystem';
+import { cardSystem } from '../systems/CardSystem';
 
 export class Player extends Phaser.GameObjects.Container {
     public id: string;
@@ -152,7 +153,7 @@ export class Player extends Phaser.GameObjects.Container {
         };
 
         // 2. Apply Cards (Dynamic)
-        const { cardSystem } = require('../systems/CardSystem');
+        // 2. Apply Cards (Dynamic)
         const modified = cardSystem.applyStats(base);
 
         // 3. Apply Loot Weight (Encumbrance)

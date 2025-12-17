@@ -12,14 +12,13 @@ export class Vanguard extends Player {
     constructor(scene: Phaser.Scene, x: number, y: number, id: string, isLocal: boolean) {
         super(scene, x, y, id, isLocal);
 
-        // Visual distinction: Sprite
-        this.coreShape.visible = false; // Hide hexagon
+        // Visual distinction: Code Only MVP
+        this.coreShape.visible = true; // Show hexagon
+        // this.visualSprite = scene.add.sprite(0, 0, 'hero_vanguard');
+        // this.visualSprite.setDisplaySize(80, 80); 
+        // this.add(this.visualSprite);
 
-        this.visualSprite = scene.add.sprite(0, 0, 'hero_vanguard');
-        this.visualSprite.setDisplaySize(80, 80); // Bigger than hitbox
-        this.add(this.visualSprite);
-
-        // Create Blade Aura visuals
+        // Blade Aura (Already Code-based)
         this.aura = scene.add.graphics();
         this.add(this.aura);
 

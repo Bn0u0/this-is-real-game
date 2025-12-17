@@ -42,10 +42,32 @@ export class ExtractionZone extends Phaser.GameObjects.Container {
 
     private drawZone(color: number) {
         this.gfx.clear();
-        this.gfx.lineStyle(4, color, 1);
+
+        // 1. Base Ring (Static)
+        this.gfx.lineStyle(2, color, 0.3);
         this.gfx.strokeCircle(0, 0, this.radius);
-        this.gfx.fillStyle(color, 0.1);
-        this.gfx.fillCircle(0, 0, this.radius);
+
+        // 2. Spinning Data Ring (Dashed)
+        const time = this.scene.time.now;
+
+        // Ring A (Clockwise)
+        this.gfx.lineStyle(4, color, 0.8);
+        const startA = (time / 1000) % (Math.PI * 2);
+        this.gfx.beginPath();
+        this.gfx.arc(0, 0, this.radius * 0.9, startA, startA + Math.PI / 2);
+        this.gfx.strokePath();
+
+        // Ring B (Counter-Clockwise - Inner)
+        this.gfx.lineStyle(2, 0xFFFFFF, 0.5);
+        const startB = -(time / 800) % (Math.PI * 2);
+        this.gfx.beginPath();
+        this.gfx.arc(0, 0, this.radius * 0.6, startB, startB + Math.PI * 1.5);
+        this.gfx.strokePath();
+
+        // 3. Core Pulse
+        const pulse = 0.8 + Math.sin(time / 200) * 0.2;
+        this.gfx.fillStyle(color, 0.2 * pulse);
+        this.gfx.fillCircle(0, 0, this.radius * 0.4);
     }
 
     // Called by MainScene when player overlaps

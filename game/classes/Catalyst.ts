@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import { Player } from './Player';
+import { COLORS } from '../../constants';
 import { Enemy } from './Enemy';
 import { NetworkPacket } from '../../types'; // Assuming we might sync this later
 
@@ -7,16 +8,37 @@ export class Catalyst extends Player {
     constructor(scene: Phaser.Scene, x: number, y: number, id: string, isLocal: boolean) {
         super(scene, x, y, id, isLocal);
 
-        // Visual: Sprite
+        // Visual: Code Only MVP (HLD Style)
         this.coreShape.visible = false;
-
-        this.visualSprite = scene.add.sprite(0, 0, 'hero_catalyst');
-        this.visualSprite.setDisplaySize(70, 70);
+        this.visualSprite = scene.add.container(0, 0);
         this.add(this.visualSprite);
 
+        this.drawCatalyst();
+
         // 2. Cooldowns
-        this.maxCooldowns['skill1'] = 6000; // Goo Patch
-        this.maxCooldowns['skill2'] = 12000; // Chain Reaction
+        this.maxCooldowns['skill1'] = 6000;
+        this.maxCooldowns['skill2'] = 12000;
+    }
+
+    drawCatalyst() {
+        const g = this.scene.make.graphics({ x: 0, y: 0 });
+
+        // 1. Flask Body (Round bottom)
+        g.fillStyle(0x00FF00, 0.8); // Toxic Green
+        g.beginPath();
+        g.arc(0, 5, 12, 0, Math.PI * 2, false);
+        g.fillPath();
+
+        // 2. Bubbles
+        g.fillStyle(0xFFFFFF, 0.8);
+        g.fillCircle(-4, 0, 3);
+        g.fillCircle(4, 8, 2);
+
+        // 3. Metal Ring
+        g.lineStyle(2, 0x555555, 1);
+        g.strokeCircle(0, 5, 12);
+
+        (this.visualSprite as Phaser.GameObjects.Container).add(g);
     }
 
     // drawSlime removed

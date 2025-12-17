@@ -10,14 +10,45 @@ export class Weaver extends Player {
 
     constructor(scene: Phaser.Scene, x: number, y: number, id: string, isLocal: boolean) {
         super(scene, x, y, id, isLocal);
-        // Visual: Sprite
+        // Visual distinction: Code Only MVP (HLD Style)
         this.coreShape.visible = false;
-
-        this.visualSprite = scene.add.sprite(0, 0, 'hero_weaver');
-        this.visualSprite.setDisplaySize(60, 60);
+        this.visualSprite = scene.add.container(0, 0);
         this.add(this.visualSprite);
 
-        this.speedMultiplier = 1.2; // Faster
+        this.drawWeaver();
+
+        this.speedMultiplier = 1.2;
+    }
+
+    drawWeaver() {
+        const g = this.scene.make.graphics({ x: 0, y: 0 });
+
+        // 1. Central Hub (Small Octagon)
+        g.fillStyle(COLORS.primary, 1);
+        g.fillCircle(0, 0, 10);
+
+        // 2. Floating Orbitals (Drones)
+        const radius = 20;
+        for (let i = 0; i < 3; i++) {
+            const angle = i * (Math.PI * 2 / 3);
+            const ox = Math.cos(angle) * radius;
+            const oy = Math.sin(angle) * radius;
+            g.fillStyle(COLORS.accent, 1); // Gold bits
+            g.fillCircle(ox, oy, 4);
+            g.lineStyle(1, 0xFFFFFF, 0.3);
+            g.lineBetween(0, 0, ox, oy);
+        }
+
+        (this.visualSprite as Phaser.GameObjects.Container).add(g);
+
+        // Animate rotation in update?
+        // Simple tween for the sprite container
+        this.scene.tweens.add({
+            targets: this.visualSprite,
+            angle: 360,
+            duration: 2000,
+            repeat: -1
+        });
     }
 
     // drawBee removed

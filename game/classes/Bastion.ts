@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import { Player } from './Player';
+import { COLORS } from '../../constants';
 import { EventBus } from '../../services/EventBus';
 import { Enemy } from './Enemy';
 
@@ -11,12 +12,12 @@ export class Bastion extends Player {
     constructor(scene: Phaser.Scene, x: number, y: number, id: string, isLocal: boolean) {
         super(scene, x, y, id, isLocal);
 
-        // Visual distinction: Sprite
+        // Visual distinction: Code Only MVP (HLD Style)
         this.coreShape.visible = false;
-
-        this.visualSprite = scene.add.sprite(0, 0, 'hero_bastion');
-        this.visualSprite.setDisplaySize(85, 85); // Big boy
+        this.visualSprite = scene.add.container(0, 0);
         this.add(this.visualSprite);
+
+        this.drawBastion();
 
         // 1. Mobile Shield Visuals
         this.shield = scene.add.graphics();
@@ -24,10 +25,30 @@ export class Bastion extends Player {
         this.shield.alpha = 0;
 
         // 2. Cooldowns
-        this.maxCooldowns['skill1'] = 8000; // Mobile Dome (Duration 4s, CD 8s)
-        this.maxCooldowns['skill2'] = 5000; // Shockwave
-        // For testing
-        this.speedMultiplier = 0.8; // Slower
+        this.maxCooldowns['skill1'] = 8000;
+        this.maxCooldowns['skill2'] = 5000;
+
+        this.speedMultiplier = 0.8;
+    }
+
+    drawBastion() {
+        const g = this.scene.make.graphics({ x: 0, y: 0 });
+
+        // 1. Heavy Armor (Square Body)
+        g.fillStyle(0x272933, 1); // Dark Metal
+        g.fillRect(-18, -18, 36, 36);
+        g.lineStyle(2, 0xffffff, 1);
+        g.strokeRect(-18, -18, 36, 36);
+
+        // 2. Shield Generator (Backpack)
+        g.fillStyle(COLORS.secondary, 1); // Red accent
+        g.fillRect(-10, -22, 20, 6);
+
+        // 3. Front Plate (Gold/Yellow)
+        g.fillStyle(COLORS.accent, 1);
+        g.fillRect(-12, -10, 24, 20);
+
+        (this.visualSprite as Phaser.GameObjects.Container).add(g);
     }
 
     // drawTortoise removed

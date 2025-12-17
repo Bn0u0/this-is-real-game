@@ -11,20 +11,41 @@ export class Spectre extends Player {
     constructor(scene: Phaser.Scene, x: number, y: number, id: string, isLocal: boolean) {
         super(scene, x, y, id, isLocal);
 
-        // Visual distinction: Sprite
+        // Visual distinction: Code Only MVP (HLD Style)
         this.coreShape.visible = false;
-
-        this.visualSprite = scene.add.sprite(0, 0, 'hero_spectre');
-        this.visualSprite.setDisplaySize(60, 60);
+        this.visualSprite = scene.add.container(0, 0);
         this.add(this.visualSprite);
+
+        this.drawSpectre();
 
         // 1. Snipe Aim Line
         this.snipeLine = scene.add.graphics();
         this.add(this.snipeLine);
 
         // 2. Cooldowns
-        this.maxCooldowns['skill1'] = 4000; // Vanish
-        this.maxCooldowns['skill2'] = 1500; // Snipe (short cd, ammo?) lets say 1.5s is fine for main weapon feel if strong
+        this.maxCooldowns['skill1'] = 4000;
+        this.maxCooldowns['skill2'] = 1500;
+    }
+
+    drawSpectre() {
+        const g = this.scene.make.graphics({ x: 0, y: 0 });
+
+        // 1. Cloak (Triangle downward)
+        g.fillStyle(0x000000, 0.8); // Shadow Black
+        g.fillTriangle(-12, -10, 12, -10, 0, 25);
+        g.lineStyle(1, COLORS.primary, 0.5);
+        g.strokeTriangle(-12, -10, 12, -10, 0, 25);
+
+        // 2. Eye (Cyclops)
+        g.fillStyle(COLORS.secondary, 1); // Red Eye
+        g.fillCircle(0, -5, 3);
+
+        // 3. Hover bits
+        g.fillStyle(COLORS.primary, 1);
+        g.fillCircle(-15, 0, 2);
+        g.fillCircle(15, 0, 2);
+
+        (this.visualSprite as Phaser.GameObjects.Container).add(g);
     }
 
     // drawOrigamiGhost removed

@@ -210,12 +210,12 @@ const App: React.FC = () => {
 
             {/* State: GAME_OVER (Veteran End / Death) */}
             {appState === 'GAME_OVER' && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-md animate-in fade-in">
-                    <div className="relative flex flex-col items-center w-full max-w-lg p-8 border-y-4 border-[#FF0055] bg-[rgba(20,20,30,0.95)]">
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-hld-bg/95 backdrop-blur-md animate-in fade-in">
+                    <div className="relative flex flex-col items-center w-full max-w-lg p-8 border-y-4 border-hld-magenta bg-[rgba(30,20,40,0.95)]">
                         {/* Background Glitch Effect */}
                         <div className="absolute inset-0 bg-[url('/assets/ui/noise.png')] opacity-10 pointer-events-none"></div>
 
-                        <h2 className="text-6xl md:text-7xl font-black text-[#FF0055] mb-2 tracking-tighter glitch-text" data-text="業績未達標">
+                        <h2 className="text-6xl md:text-7xl font-black text-hld-magenta mb-2 tracking-tighter glitch-text" data-text="業績未達標">
                             業績未達標
                         </h2>
                         <h3 className="text-xl md:text-2xl text-gray-500 font-mono tracking-[0.5em] mb-8">

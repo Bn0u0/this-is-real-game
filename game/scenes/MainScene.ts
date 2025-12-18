@@ -24,6 +24,7 @@ import { NetworkSyncSystem } from '../systems/NetworkSyncSystem';
 import { GlitchPipeline } from '../pipelines/GlitchPipeline';
 import { InputRecorder } from '../systems/InputRecorder'; // Module D: SecurityMode = 'SINGLE' | 'MULTI';
 import { TextureManager } from '../managers/TextureManager'; // Zero-Asset Polish
+import { SoundManager } from '../managers/SoundManager'; // Phase IV: Audio
 
 type GameMode = 'SINGLE' | 'MULTI';
 
@@ -89,6 +90,7 @@ export class MainScene extends Phaser.Scene {
     public inputSystem!: InputSystem;
     public networkSyncSystem!: NetworkSyncSystem;
     public inputRecorder!: InputRecorder; // Module D
+    public soundManager!: SoundManager; // Phase IV
 
     // Player Choice
     private myClass: string = 'BLADE'; // Default to new class ID
@@ -104,6 +106,10 @@ export class MainScene extends Phaser.Scene {
     public worldHeight: number = 4000;
 
     private lastStatsTime: number = 0;
+
+    // Fixed Timestep
+    private accumulator: number = 0;
+    private readonly fixedTimeStep: number = 1000 / 60; // 16.66ms (60Hz)
 
     constructor() {
         super('MainScene');
@@ -163,15 +169,25 @@ export class MainScene extends Phaser.Scene {
         if (!this.enemyGroup) this.enemyGroup = this.add.group();
         this.waveManager = new WaveManager(this, this.enemyGroup);
 
+        // Module IV: Audio
+        this.soundManager = new SoundManager();
+        EventBus.on('PLAY_SFX', (key: string) => {
+            if (key === 'SHOOT') this.soundManager.playShoot();
+            if (key === 'HIT') this.soundManager.playHit();
+            if (key === 'COLLECT') this.soundManager.playCollect();
+        });
+        EventBus.on('START_MATCH', () => this.soundManager.startBGM());
+
         // Re-implement Boss Panic via EventBus
         EventBus.on('BOSS_SPAWN', () => {
             this.effectManager.showPanicOverlay();
             this.triggerGlitch(2.0, 1000); // Boss Glitch
         });
 
-        // Module A: Lighting
-        this.lights.enable().setAmbientColor(0x808080); // Dim ambient
-        this.playerLight = this.lights.addLight(0, 0, 400).setIntensity(1.0).setColor(0x00ffff);
+        // Module A: Lighting (Amber-Glitch Update)
+        this.lights.enable().setAmbientColor(COLORS.ambient); // Warm Grey
+        // Player Light: 3500K Tungsten Warning (#FFD1A9)
+        this.playerLight = this.lights.addLight(0, 0, 450).setIntensity(1.2).setColor(0xffd1a9);
 
         // V4.0: Glitch Pipeline Init
         if (this.game.renderer.type === Phaser.WEBGL) {
@@ -464,25 +480,17 @@ export class MainScene extends Phaser.Scene {
     }
 
     update(time: number, delta: number) {
-        if (!this.myUnit) return; // Guard clause from other update
+        if (!this.myUnit) return;
 
-        // 1. Update Time (Merged)
-        if (this.isGameActive && !this.isPaused) {
-            this.survivalTime += delta / 1000;
-            // 2. Pulse Logic (Merged)
-            // V5.0: Extraction is always open, managed by ExtractionManager state.
-            // if (this.survivalTime >= 180 && !this.extractionManager.isActive) {
-            //     this.extractionManager.spawnZones();
-            // }
-        }
-
-        if (this.survivalTime >= this.nextBossTime && this.pulsePhase !== 'PURGE') {
-            this.triggerPurge();
-        }
-
+        // --- RENDER UPDATE (Every Frame) ---
         this.updateBackground(time);
+        this.updateLighting();
+        if (this.myUnit && this.playerLight) {
+            this.playerLight.setPosition(this.myUnit.x, this.myUnit.y);
+            this.playerLight.intensity = 1.0 + Math.sin(time / 100) * 0.1;
+        }
 
-        // V4.0: Glitch Decay
+        // Glitch (Visual)
         if (this.glitchDuration > 0) {
             this.glitchDuration -= delta;
         } else if (this.glitchIntensity > 0) {
@@ -493,39 +501,49 @@ export class MainScene extends Phaser.Scene {
             this.glitchPipeline.intensity = this.glitchIntensity;
         }
 
-        // Lighting Update (Fog of War)
-        this.updateLighting();
+        // Entity Visuals
+        this.commander?.update();
+        this.drone?.update();
 
-        // Sync Player Light
-        if (this.myUnit && this.playerLight) {
-            this.playerLight.setPosition(this.myUnit.x, this.myUnit.y);
-            // Flicker effect
-            this.playerLight.intensity = 1.0 + Math.sin(time / 100) * 0.1;
+        // UI Update (Throttled Visual)
+        if (time - this.lastStatsTime > 100) {
+            this.emitStatsUpdate();
+            this.lastStatsTime = time;
         }
 
+        // --- FIXED LOGIC LOOP (60Hz) ---
+        this.accumulator += delta;
+        while (this.accumulator >= this.fixedTimeStep) {
+            this.fixedUpdate(time, this.fixedTimeStep);
+            this.accumulator -= this.fixedTimeStep;
+        }
+    }
+
+    fixedUpdate(time: number, delta: number) {
         if (!this.isGameActive || this.isPaused) return;
 
-        // ... Rest of update ...
-        super.update(time, delta);
+        // 1. Time & Pulse
+        this.survivalTime += delta / 1000;
+        if (this.survivalTime >= this.nextBossTime && this.pulsePhase !== 'PURGE') {
+            this.triggerPurge();
+        }
 
-        // V12.0: Network Sync Update
+        // 2. Logic Systems
         this.networkSyncSystem.update(time, delta, this.currentMode, network.isHost);
+        this.processLocalInput(time);
 
-        if (this.isGameActive) {
-            this.processLocalInput(time);
-        } // 2. Drone Logic
-        // D. Input Recording (Module D)
+        // Input Recording
         if (this.myUnit) {
             this.inputRecorder.record(time, this.myUnit.x, this.myUnit.y, this.input.activePointer.isDown, false);
         }
 
+        // AI Logic
         if (this.currentMode === 'SINGLE') {
             this.updateDroneAI();
         } else if (network.isHost) {
             this.processDroneMovementAsHost();
         }
 
-        // 3. Logic (Host/Single)
         if (this.currentMode === 'SINGLE' || network.isHost) {
             this.enemyGroup?.getChildren().forEach((child) => {
                 if (child.active) {
@@ -534,28 +552,13 @@ export class MainScene extends Phaser.Scene {
             });
             this.runCombatLogic();
             this.waveManager.update(time, delta);
-
-            // Note: broadcastGameState removed, handled in NetworkSyncSystem
-        } else {
-            // Note: sendClientInput removed, handled in NetworkSyncSystem
         }
 
-        // 4. Shared Mechanics
-        this.combatManager.updateCombatAI(this.commander!, this.drone, this.enemyGroup!, this.projectileGroup!);
+        this.combatManager.updateCombatAI(this.commander!, this.drone!, this.enemyGroup!, this.projectileGroup!);
         this.handlePowerupCollisions();
         this.handleLootCollection();
         this.extractionManager.update(time, delta);
-        this.handleExtraction(); // Check Zone overlap
-
-        // 5. Visuals
-        this.commander?.update();
-        this.drone?.update();
-
-        // 6. UI Update (Throttled to 10fps / 100ms)
-        if (time - this.lastStatsTime > 100) {
-            this.emitStatsUpdate();
-            this.lastStatsTime = time;
-        }
+        this.handleExtraction();
     }
 
     runCombatLogic() {
@@ -724,7 +727,7 @@ export class MainScene extends Phaser.Scene {
     takeDamage(amt: number) {
         this.cameras.main.shake(200, 0.01);
         this.triggerGlitch(0.5, 200); // Damage Glitch
-        this.triggerGlitch(0.5, 200); // Damage Glitch
+        EventBus.emit('PLAY_SFX', 'HIT'); // Audio
         this.hp -= amt;
         if (this.hp <= 0) {
             this.hp = 0;

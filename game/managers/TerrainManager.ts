@@ -28,11 +28,13 @@ export class TerrainManager {
     private tiles: Map<string, TileData> = new Map();
     public wallGroup: Phaser.GameObjects.Group;
     public voidGroup: Phaser.GameObjects.Group; // For falling logic
+    public clutterGroup: Phaser.GameObjects.Group;
 
     constructor(scene: MainScene) {
         this.scene = scene;
         this.wallGroup = scene.add.group();
         this.voidGroup = scene.add.group();
+        this.clutterGroup = scene.add.group();
     }
 
     /**
@@ -59,6 +61,8 @@ export class TerrainManager {
                 }
             }
         }
+
+        this.scatterClutter();
 
         // Physics
         this.scene.time.delayedCall(100, () => {
@@ -175,5 +179,25 @@ export class TerrainManager {
         });
         if (candidates.length === 0) return null;
         return candidates[Math.floor(Math.random() * candidates.length)];
+    }
+
+    private scatterClutter() {
+        const textures = ['clutter_can', 'clutter_wire', 'clutter_tire'];
+        this.tiles.forEach(tile => {
+            if (tile.type === TileType.GROUND && Math.random() < 0.15) { // 15% Chance
+                const tex = textures[Math.floor(Math.random() * textures.length)];
+
+                // Random offset within tile
+                const x = tile.x * this.tileSize + Math.random() * 40 + 12;
+                const y = tile.y * this.tileSize + Math.random() * 40 + 12;
+
+                const clutter = this.scene.add.image(x, y, tex);
+                clutter.setRotation(Math.random() * Math.PI * 2);
+                clutter.setPipeline('Light2D'); // React to lights
+                clutter.setDepth(y); // Y-Sort
+
+                this.clutterGroup.add(clutter);
+            }
+        });
     }
 }

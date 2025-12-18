@@ -12,6 +12,7 @@ export class TextureManager {
         this.createParticle();
         this.createCircle();
         this.createIconPlaceholders();
+        this.createClutter();
         console.log("🎨 [TextureManager] Procedural Textures Generated.");
     }
 
@@ -64,5 +65,42 @@ export class TextureManager {
 
             graphics.generateTexture(type, size, size);
         });
+    }
+
+    public createClutter() {
+        // 1. Can (Eastward: Crushed Soda Can)
+        if (!this.scene.textures.exists('clutter_can')) {
+            const g = this.scene.make.graphics({ x: 0, y: 0 });
+            g.fillStyle(0xff3333, 1);
+            g.fillRect(2, 4, 8, 12); // Red Body
+            g.fillStyle(0xcccccc, 1);
+            g.fillRect(2, 2, 8, 2); // Silver Top
+            g.fillStyle(0x992222, 1); // Dent
+            g.fillTriangle(4, 8, 8, 8, 6, 12);
+            g.generateTexture('clutter_can', 12, 18);
+        }
+
+        // 2. Wire (Eastward: Loose Cable)
+        if (!this.scene.textures.exists('clutter_wire')) {
+            const g = this.scene.make.graphics({ x: 0, y: 0 });
+            g.lineStyle(2, 0x333333, 1);
+            g.beginPath();
+            g.moveTo(0, 0);
+            g.lineTo(10, 10);
+            g.lineTo(20, 5);
+            g.lineTo(32, 32); // Jagged Wire
+            g.strokePath();
+            g.generateTexture('clutter_wire', 32, 32);
+        }
+
+        // 3. Tire (Eastward: Old Rubber)
+        if (!this.scene.textures.exists('clutter_tire')) {
+            const g = this.scene.make.graphics({ x: 0, y: 0 });
+            g.fillStyle(0x111111, 1);
+            g.fillCircle(12, 12, 12); // Outer
+            g.fillStyle(0x333333, 1); // Detail
+            g.fillCircle(12, 12, 4); // Inner Hub
+            g.generateTexture('clutter_tire', 24, 24);
+        }
     }
 }

@@ -141,115 +141,72 @@ export class Player extends Phaser.GameObjects.Container {
         const g = this.graphics;
         g.clear();
 
+        // AMBER-GLITCH STYLE: 1px Dark Outline
+        g.lineStyle(1, 0x222222, 1);
+
         // Palette
         const primary = color;
         const dark = Phaser.Display.Color.IntegerToColor(color).darken(40).color;
         const bright = Phaser.Display.Color.IntegerToColor(color).lighten(40).color;
         const white = 0xffffff;
 
+        // "Cult of the Lamb" Ratios: 
+        // Bobblehead (Head > Body). Cute but menacing.
+
         switch (classId) {
             case 'IMPACT':
-                // "THE TANK" - Heavy Hexagonal Plating
-                // Shoulders
+                // "THE TANK" - Chunky Square Robot
+                // Legs (Tiny)
                 g.fillStyle(dark, 1);
-                g.fillRoundedRect(-24, -20, 16, 40, 4); // Left
-                g.fillRoundedRect(8, -20, 16, 40, 4);   // Right
-                g.lineStyle(2, primary, 1);
-                g.strokeRoundedRect(-24, -20, 16, 40, 4);
-                g.strokeRoundedRect(8, -20, 16, 40, 4);
+                g.fillRoundedRect(-15, 10, 10, 15, 2);
+                g.fillRoundedRect(5, 10, 10, 15, 2);
+                g.strokeRoundedRect(-15, 10, 10, 15, 2);
+                g.strokeRoundedRect(5, 10, 10, 15, 2);
 
-                // Core
-                g.fillStyle(0x222222, 1);
-                g.fillCircle(0, 0, 14);
-                g.fillStyle(primary, 0.8);
-                g.fillCircle(0, 0, 8); // Reactor
+                // Body (Small)
+                g.fillStyle(dark, 1);
+                g.fillRect(-10, -5, 20, 20);
+                g.strokeRect(-10, -5, 20, 20);
 
-                // Shield Front
-                g.fillStyle(white, 0.3);
-                g.beginPath();
-                g.moveTo(-15, 10); g.lineTo(15, 10); g.lineTo(0, 30);
-                g.closePath();
-                g.fillPath();
+                // Head (Huge)
+                g.fillStyle(primary, 1);
+                g.fillRoundedRect(-20, -35, 40, 30, 8);
+                g.strokeRoundedRect(-20, -35, 40, 30, 8);
+
+                // Face (One Eye)
+                g.fillStyle(0xffffff, 1);
+                g.fillCircle(0, -20, 8);
                 break;
 
             case 'BLADE':
-                // "THE SPEEDSTER" - Swept-Forward Wings / Jet
-                // Wings
+                // "THE SPEEDSTER" - Ninja Hood
+                // Cape/Body
                 g.fillStyle(dark, 1);
                 g.beginPath();
-                g.moveTo(0, 20); g.lineTo(-20, -10); g.lineTo(-10, -25); g.lineTo(0, -10);
-                g.lineTo(10, -25); g.lineTo(20, -10); g.closePath();
+                g.moveTo(0, -10); g.lineTo(15, 15); g.lineTo(-15, 15);
+                g.closePath();
                 g.fillPath();
-                g.lineStyle(2, primary, 1);
                 g.strokePath();
 
-                // Blade Edge
-                g.fillStyle(bright, 0.9);
-                g.beginPath();
-                g.moveTo(0, -10); g.lineTo(-5, -40); g.lineTo(0, -35); g.lineTo(5, -40);
-                g.closePath();
-                g.fillPath();
-
-                // Engine Glow
-                g.fillStyle(0x00FFFF, 0.8);
-                g.fillCircle(0, 15, 4);
-                break;
-
-            case 'WEAVER':
-                // "THE TECH" - Floating Drones / Orb
-                // Central Hub
-                g.fillStyle(0x111111, 1);
-                g.fillCircle(0, 0, 12);
-                g.lineStyle(2, primary, 1);
-                g.strokeCircle(0, 0, 12);
-
-                // Circuitry
-                g.fillStyle(bright, 1);
-                g.fillRect(-4, -4, 8, 8);
-
-                // Orbitals (Static visually, but imply rotation via update or just implied)
-                g.fillStyle(dark, 0.8);
-                g.fillCircle(-18, -10, 5);
-                g.fillCircle(18, 10, 5);
-                g.fillCircle(10, -18, 5);
-                g.fillCircle(-10, 18, 5);
-                break;
-
-            case 'PRISM':
-                // "THE GLASS CANNON" - Jagged Crystal
-                g.fillStyle(primary, 0.4);
-                g.beginPath();
-                g.moveTo(0, -25); g.lineTo(15, 0); g.lineTo(0, 25); g.lineTo(-15, 0);
-                g.closePath();
-                g.fillPath();
-
-                // Inner Shard
-                g.fillStyle(white, 0.8);
-                g.beginPath();
-                g.moveTo(0, -15); g.lineTo(8, 0); g.lineTo(0, 15); g.lineTo(-8, 0);
-                g.closePath();
-                g.fillPath();
-                break;
-
-            case 'PHANTOM':
-                // "THE STEALTH" - Cloak shape
-                g.fillStyle(0x000000, 0.6); // Semi-transparent cloak
-                g.beginPath();
-                g.moveTo(0, -20);
-                g.lineTo(20, 10);
-                g.lineTo(0, 30); // Tail
-                g.lineTo(-20, 10);
-                g.closePath();
-                g.fillPath();
-
-                // Eye
+                // Head (Hood)
                 g.fillStyle(primary, 1);
-                g.fillRect(-6, -5, 12, 4);
+                g.fillCircle(0, -15, 16);
+                g.strokeCircle(0, -15, 16);
+
+                // Eyes (Determined)
+                g.fillStyle(white, 1);
+                g.fillRect(-10, -18, 8, 4);
+                g.fillRect(2, -18, 8, 4);
                 break;
 
             default:
+                // Fallback Cute Blob
                 g.fillStyle(primary, 1);
-                g.fillCircle(0, 0, 16);
+                g.fillCircle(0, -10, 20); // Big Head
+                g.strokeCircle(0, -10, 20);
+                g.fillStyle(dark, 1);
+                g.fillCircle(0, 15, 10); // Small Body
+                g.strokeCircle(0, 15, 10);
                 break;
         }
     }

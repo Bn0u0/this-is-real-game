@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
 import { COLORS } from '../../constants';
-// import { EVENT_BUS } from ...
+import { EventBus } from '../../services/EventBus';
 
 export type WeaponType = 'MELEE_SWEEP' | 'HOMING_ORB' | 'SHOCKWAVE' | 'LASER' | 'BOOMERANG';
 
@@ -14,6 +14,7 @@ export class WeaponSystem {
     public fire(type: WeaponType, source: { x: number, y: number, rotation: number, id: string }, stats: any, target?: { x: number, y: number }) {
         const count = stats.projectileCount || 1;
         const spread = 0.2; // Radian spread
+        EventBus.emit('PLAY_SFX', 'SHOOT');
 
         for (let i = 0; i < count; i++) {
             // Calculate angle offset

@@ -19,7 +19,7 @@ export const DraftOverlay: React.FC<DraftOverlayProps> = ({ choices, onDraftComp
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm animate-in fade-in duration-300">
             <div className="flex flex-col items-center w-full max-w-4xl px-4">
-                <h2 className="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-purple-500 mb-8 tracking-widest drop-shadow-[0_0_10px_rgba(0,255,255,0.5)]">
+                <h2 className="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-hld-cyan to-hld-magenta mb-8 tracking-widest drop-shadow-[0_0_10px_rgba(0,255,255,0.5)]">
                     SYSTEM UPGRADE
                 </h2>
 
@@ -32,8 +32,8 @@ export const DraftOverlay: React.FC<DraftOverlayProps> = ({ choices, onDraftComp
                         >
                             {/* Rarity Glow */}
                             <div className={`absolute top-0 left-0 w-full h-1 ${card.rarity === 'LEGENDARY' ? 'bg-yellow-400 shadow-[0_0_15px_gold]' :
-                                    card.rarity === 'RARE' ? 'bg-purple-500 shadow-[0_0_10px_purple]' :
-                                        'bg-cyan-500'
+                                card.rarity === 'RARE' ? 'bg-purple-500 shadow-[0_0_10px_purple]' :
+                                    'bg-cyan-500'
                                 }`} />
 
                             {/* Card Content */}

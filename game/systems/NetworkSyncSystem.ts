@@ -3,6 +3,7 @@ import { network } from '../../services/NetworkService';
 import { EventBus } from '../../services/EventBus';
 import { Player } from '../classes/Player';
 import { WaveManager } from '../managers/WaveManager';
+import { NetworkPacket } from '../../types';
 
 export class NetworkSyncSystem {
     private scene: Phaser.Scene;
@@ -92,7 +93,7 @@ export class NetworkSyncSystem {
         this.lastSentTime = time;
     }
 
-    private handleNetworkPacket(data: any) {
+    private handleNetworkPacket(data: NetworkPacket) {
         if (data.type === 'START_MATCH') {
             EventBus.emit('START_MATCH', 'MULTI');
         }

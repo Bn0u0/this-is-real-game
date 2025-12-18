@@ -1,14 +1,21 @@
-// Hyper Light Drifter Inspired Palette (Code-Only Construction)
+// Amber-Glitch Palette (Strategic Partner: Neon-Candy)
 export const COLORS = {
-  bg: 0x0e0d16,          // Void Dark
-  primary: 0x54fcfc,     // Drifter Cyan (Hero)
-  secondary: 0xff0055,   // Enemy Magenta
+  bg: 0x1b191f,          // Dark Warm Grey (Not pure black)
+  shadow: 0x2d1b2e,      // Deep Purple Shadow (Eastward)
+  ambient: 0x555060,     // Warm Grey Ambient (Eastward)
+
+  primary: 0x54fcfc,     // Drifter Cyan (Hero) - Kept for contrast
+  secondary: 0xff0055,   // Magenta (Enemy)
   accent: 0xffe736,      // Gold/Electric
 
-  // Environment
-  floor: 0x1a1c24,       // Dark Slate
-  wallTop: 0x272933,     // Lighter Grey
-  wallSide: 0x050508,    // Deep Shadow
+  // Glitch Layer (Atomicrops)
+  glitchA: 0x00ff00,     // Neon Green
+  glitchB: 0xff00ff,     // Neon Pink
+
+  // Environment (Warm/Cozy)
+  floor: 0x231e26,       // Warm Dark Floor
+  wallTop: 0x3e3542,     // Lighter Warm Grey
+  wallSide: 0x16101a,    // Deepest Warm Shadow
 
   // UI
   health: 0xff0055,      // Magenta
@@ -16,9 +23,9 @@ export const COLORS = {
   xp: 0xffe736,          // Gold
   text: '#eddbda',       // Dust White
 
-  // Legacy mapping for compatibility
+  // Legacy mapping
   white: 0xFFFFFF,
-  grid: 0x272933
+  grid: 0x3e3542
 };
 
 export const PHYSICS = {

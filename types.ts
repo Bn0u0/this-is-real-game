@@ -1,8 +1,15 @@
 
-export interface NetworkPacket {
-  type: string;
-  payload?: any;
-}
+export type NetworkPacket =
+  | { type: 'START_MATCH'; payload: { mode: string; hero?: string } }
+  | { type: 'INPUT'; payload: { x: number; y: number } }
+  | {
+    type: 'STATE'; payload: {
+      c: { x: number; y: number; r: number };
+      d: { x: number; y: number; r: number };
+      s: { hp: number; sc: number; w: number; l: number };
+    }
+  }
+  | { type: 'GAME_OVER'; payload: { score: number } };
 
 export interface JoystickData {
   x: number;

@@ -1,4 +1,6 @@
-// PersistenceService.ts - Driver's License
+// PersistenceService.ts - Zero-Backend Protocol
+import LZString from 'lz-string';
+
 export interface UserProfile {
     level: number;
     xp: number;
@@ -8,7 +10,7 @@ export interface UserProfile {
         weapon: string; // 'Vanguard' etc
         artifact: string;
     };
-    unlocks: ['Vanguard'],
+    unlocks: string[];
     hasPlayedOnce: boolean;
     lockedClass: string | null; // V4.0: One Life, One Class
 }
@@ -27,7 +29,6 @@ export class PersistenceService {
             const raw = localStorage.getItem(STORAGE_KEY);
             if (raw) {
                 const loaded = JSON.parse(raw);
-                // Schema migration could go here
                 return { ...this.defaultProfile(), ...loaded };
             }
         } catch (e) {
@@ -43,7 +44,7 @@ export class PersistenceService {
             credits: 0,
             inventory: [],
             loadout: {
-                weapon: 'Vanguard', // Default Class
+                weapon: 'Vanguard', // Default Class: Blade
                 artifact: 'None'
             },
             unlocks: ['Vanguard'],
@@ -61,12 +62,60 @@ export class PersistenceService {
         return this.data;
     }
 
-    // Legacy method support if needed, or just break it. 
-    // User asked for "Execute Immediately", let's keep it clean.
+    // --- ZERO-BACKEND PROTOCOL ---
+
+    public exportSaveString(): string {
+        const json = JSON.stringify(this.data);
+        const checksum = this.generateChecksum(json);
+        const packet = `${checksum}|${json}`;
+        return LZString.compressToBase64(packet);
+    }
+
+    public importSaveString(encoded: string): { success: boolean, msg: string } {
+        try {
+            const decoded = LZString.decompressFromBase64(encoded);
+            if (!decoded) return { success: false, msg: 'INVALID CODE: Decompression Failed' };
+
+            const [hash, json] = decoded.split('|');
+            if (!hash || !json) return { success: false, msg: 'INVALID CODE: Format Error' };
+
+            const calculatedHash = this.generateChecksum(json);
+            if (hash !== calculatedHash) return { success: false, msg: 'INVALID CODE: Checksum Mismatch (Corruputed Asset)' };
+
+            const loaded = JSON.parse(json);
+            // Deep Merge to ensure schema safety match
+            const merged = { ...this.defaultProfile(), ...loaded };
+
+            // Validate critical fields
+            if (typeof merged.level !== 'number' || !Array.isArray(merged.inventory)) {
+                return { success: false, msg: 'INVALID CODE: Schema Mismatch' };
+            }
+
+            this.data = merged;
+            this.save({}); // Commit to LocalStorage
+            return { success: true, msg: 'DIGITAL ASSET RESTORED' };
+
+        } catch (e) {
+            console.error(e);
+            return { success: false, msg: 'CRITICAL ERROR' };
+        }
+    }
+
+    private generateChecksum(str: string): string {
+        let hash = 0, i, chr;
+        if (str.length === 0) return hash.toString(16);
+        for (i = 0; i < str.length; i++) {
+            chr = str.charCodeAt(i);
+            hash = ((hash << 5) - hash) + chr;
+            hash |= 0; // Convert to 32bit integer
+        }
+        return hash.toString(16);
+    }
+
+    // --- GAMEPLAY HOOKS ---
 
     public addXp(amount: number) {
         this.data.xp += amount;
-        // Simple leveling curve: 100 * level
         const nextLevel = this.data.level * 100;
         if (this.data.xp >= nextLevel) {
             this.data.level++;

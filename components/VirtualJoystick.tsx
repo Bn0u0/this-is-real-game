@@ -19,30 +19,35 @@ export const VirtualJoystick: React.FC<VirtualJoystickProps> = ({ onMove, onSkil
     const startTimeRef = useRef(0);
     const maxMagRef = useRef(0);
 
-    const handleTouchStart = (e: React.TouchEvent) => {
-        const touch = e.changedTouches[0];
-        setOrigin({ x: touch.clientX, y: touch.clientY });
-        setCurrent({ x: touch.clientX, y: touch.clientY });
+    // Unified Pointer Handlers (Mouse + Touch)
+    const handlePointerDown = (e: React.PointerEvent) => {
+        // Prevent default only if needed, but pointer-events-auto handles most
+        const clientX = e.clientX;
+        const clientY = e.clientY;
+
+        e.currentTarget.setPointerCapture(e.pointerId);
+
+        setOrigin({ x: clientX, y: clientY });
+        setCurrent({ x: clientX, y: clientY });
         setIsVisible(true);
-        onMove(0, 0); // Reset
+        onMove(0, 0);
 
         // Flick Init
         startTimeRef.current = Date.now();
         maxMagRef.current = 0;
     };
 
-    const handleTouchMove = (e: React.TouchEvent) => {
+    const handlePointerMove = (e: React.PointerEvent) => {
         if (!isVisible) return;
-        const touch = e.changedTouches[0];
+        const clientX = e.clientX;
+        const clientY = e.clientY;
 
-        let dx = touch.clientX - origin.x;
-        let dy = touch.clientY - origin.y;
+        let dx = clientX - origin.x;
+        let dy = clientY - origin.y;
         const dist = Math.sqrt(dx * dx + dy * dy);
 
-        // Track Max Magnitude for Flick
         if (dist > maxMagRef.current) maxMagRef.current = dist;
 
-        // Clamp
         if (dist > RADIUS) {
             const ratio = RADIUS / dist;
             dx *= ratio;
@@ -50,70 +55,29 @@ export const VirtualJoystick: React.FC<VirtualJoystickProps> = ({ onMove, onSkil
         }
 
         setCurrent({ x: origin.x + dx, y: origin.y + dy });
-
-        // Output normalized vector
         onMove(dx / RADIUS, dy / RADIUS);
     };
 
-    const handleTouchEnd = () => {
+    const handlePointerUp = (e: React.PointerEvent) => {
         setIsVisible(false);
         onMove(0, 0);
+        e.currentTarget.releasePointerCapture(e.pointerId);
 
         // Flick Check
         const duration = Date.now() - startTimeRef.current;
         if (duration < 250 && maxMagRef.current > 30) {
-            // Short duration, decent movement -> FLICK
             onSkill('DASH');
         }
     };
 
-    // Mouse Start (for consistency)
-    const handleMouseDown = (e: React.MouseEvent) => {
-        setOrigin({ x: e.clientX, y: e.clientY });
-        setCurrent({ x: e.clientX, y: e.clientY });
-        setIsVisible(true);
-        onMove(0, 0);
-        startTimeRef.current = Date.now();
-        maxMagRef.current = 0;
-    };
-
-    // Global prevent default for smooth touch
-    useEffect(() => {
-        const prevent = (e: TouchEvent) => e.preventDefault();
-        document.body.addEventListener('touchmove', prevent, { passive: false });
-        return () => document.body.removeEventListener('touchmove', prevent);
-    }, []);
-
     return (
         <div
             className="absolute inset-0 z-[9999] touch-none pointer-events-auto"
-            onTouchStart={handleTouchStart}
-            onTouchMove={handleTouchMove}
-            onTouchEnd={handleTouchEnd}
-            onTouchCancel={handleTouchEnd}
-
-            // Mouse Support
-            onMouseDown={handleMouseDown}
-            onMouseMove={(e) => {
-                if (!isVisible) return;
-                let dx = e.clientX - origin.x;
-                let dy = e.clientY - origin.y;
-                const dist = Math.sqrt(dx * dx + dy * dy);
-
-                if (dist > maxMagRef.current) maxMagRef.current = dist;
-
-                if (dist > RADIUS) {
-                    const ratio = RADIUS / dist;
-                    dx *= ratio; dy *= ratio;
-                }
-                setCurrent({ x: origin.x + dx, y: origin.y + dy });
-                onMove(dx / RADIUS, dy / RADIUS);
-            }}
-            onMouseUp={handleTouchEnd}
-            onMouseLeave={() => {
-                setIsVisible(false);
-                onMove(0, 0);
-            }}
+            onPointerDown={handlePointerDown}
+            onPointerMove={handlePointerMove}
+            onPointerUp={handlePointerUp}
+            onPointerCancel={handlePointerUp}
+            onPointerLeave={handlePointerUp}
         >
             {isVisible && (
                 <div

@@ -25,6 +25,21 @@ const App: React.FC = () => {
             setMetaState({ ...newState });
         });
 
+        // ZERO-BACKEND: Gifting Protocol
+        const query = new URLSearchParams(window.location.search);
+        const giftCode = query.get('gift');
+        if (giftCode) {
+            const result = persistence.importSaveString(giftCode);
+            if (result.success) {
+                // Remove gift from URL to prevent reload-loop issues
+                window.history.replaceState({}, document.title, window.location.pathname);
+                alert(`INCOMING TRANSMISSION RECEIVED:\n${result.msg}`);
+                setProfile(persistence.getProfile()); // Refresh
+            } else {
+                alert(`TRANSMISSION CORRUPTED:\n${result.msg}`);
+            }
+        }
+
         // Listen for Game Over / Extraction to return to Hideout
         const onMissionEnd = (data: any) => {
             const currentProfile = persistence.getProfile();

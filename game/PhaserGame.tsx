@@ -26,7 +26,8 @@ export const PhaserGame: React.FC = () => {
         powerPreference: 'high-performance',
         antialias: false,
         pixelArt: true,
-        roundPixels: true
+        roundPixels: true,
+        maxLights: 20 // Module A: Deferred Lighting Prerequisite
       },
       physics: {
         default: 'arcade',

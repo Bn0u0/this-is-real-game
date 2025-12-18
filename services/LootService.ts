@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import { ItemDef, getItemDef, ItemRarity, ItemType } from '../game/data/Items';
+import { WeaponFactory } from '../game/factories/WeaponFactory';
 
 export class LootService {
     private scene: Phaser.Scene;
@@ -19,8 +20,14 @@ export class LootService {
             return;
         }
 
-        // 25% Chance for Scrap (if not artifact)
-        if (roll < 0.40 * chanceMod) {
+        // 10% Chance for Procedural Weapon (Module C)
+        if (roll < 0.25 * chanceMod) { // 15 + 10 = 25
+            this.spawnWeapon(x, y, 1);
+            return;
+        }
+
+        // 25% Chance for Scrap (if not artifact or weapon)
+        if (roll < 0.50 * chanceMod) {
             this.spawnItem(x, y, 'm_scrap');
             return;
         }
@@ -71,5 +78,42 @@ export class LootService {
         this.group.add(loot);
     }
 
+    private spawnWeapon(x: number, y: number, level: number) {
+        const stats = WeaponFactory.generate(Date.now().toString(), level); // Procedural
 
+        // Visual
+        const loot = this.scene.add.sprite(x, y, 'icon_weapon_crate'); // Placeholder texture
+        // Note: Make sure icon_weapon_crate exists or fallback
+        if (!this.scene.textures.exists('icon_weapon_crate')) {
+            loot.setTexture('icon_scrap_metal'); // Fallback
+            loot.setTint(0xFF00FF);
+        }
+
+        loot.setDisplaySize(48, 48);
+        loot.setScale(0);
+
+        // Physics
+        this.scene.physics.add.existing(loot);
+        (loot.body as Phaser.Physics.Arcade.Body).setBounce(0.5).setDrag(100).setVelocity(
+            Phaser.Math.Between(-50, 50),
+            Phaser.Math.Between(-50, 50)
+        );
+
+        // Pop
+        this.scene.tweens.add({ targets: loot, scale: { from: 0, to: 0.8 }, duration: 400, ease: 'Back.out' });
+
+        // Float
+        this.scene.tweens.add({ targets: loot, y: '+=5', duration: 1500, yoyo: true, repeat: -1, ease: 'Sine.inOut' });
+
+        // Data
+        loot.setData('itemDef', {
+            id: 'PROC_WEAPON',
+            name: stats.name,
+            type: ItemType.WEAPON,
+            rarity: ItemRarity.RARE,
+            stats: stats // Store full stats
+        });
+
+        this.group.add(loot);
+    }
 }

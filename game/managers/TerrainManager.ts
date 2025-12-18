@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
 import { MainScene } from '../scenes/MainScene';
 import { COLORS } from '../../constants';
+import { MapGenerator, TILE_FLOOR, TILE_WALL, TILE_VOID } from '../generators/MapGenerator';
 
 // 2.5D Tiling System
 export enum TileType {
@@ -35,26 +36,27 @@ export class TerrainManager {
     }
 
     /**
-     * Generates a "Flat Arena" map.
-     * Simple 50x50 grid with boundary walls.
+     * Generates a "Pandora" map using WFC-lite.
      */
     generateWorld(cols: number = 50, rows: number = 50) {
         this.worldWidth = cols * this.tileSize;
         this.worldHeight = rows * this.tileSize;
 
-        // Simple nested loop
+        const seed = Date.now().toString(); // Or "Fort Knox" constant seed
+        const generator = new MapGenerator(cols, rows, seed);
+        const grid = generator.generate();
+
         for (let y = 0; y < rows; y++) {
             for (let x = 0; x < cols; x++) {
-                // Determine Type
-                let type = TileType.GROUND;
+                const val = grid[y][x];
+                let type = TileType.VOID;
 
-                // Boundary Walls
-                if (x === 0 || x === cols - 1 || y === 0 || y === rows - 1) {
-                    type = TileType.WALL;
+                if (val === TILE_FLOOR) type = TileType.GROUND;
+                else if (val === TILE_WALL) type = TileType.WALL;
+
+                if (type !== TileType.VOID) {
+                    this.createTile(x, y, type, type === TileType.WALL ? 64 : 0);
                 }
-
-                // Create
-                this.createTile(x, y, type, type === TileType.WALL ? 64 : 0);
             }
         }
 
@@ -69,8 +71,6 @@ export class TerrainManager {
             }
         });
     }
-
-    // Removed: carveRoom, smoothMap (Simplified for V5.3)
 
     createTile(gridX: number, gridY: number, type: TileType, height: number) {
         const key = `${gridX},${gridY}`;

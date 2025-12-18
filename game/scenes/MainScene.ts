@@ -21,6 +21,8 @@ import { PlayerFactory } from '../factories/PlayerFactory';
 import { InputSystem } from '../systems/InputSystem';
 import { EffectManager } from '../managers/EffectManager';
 import { NetworkSyncSystem } from '../systems/NetworkSyncSystem';
+import { GlitchPipeline } from '../pipelines/GlitchPipeline';
+import { InputRecorder } from '../systems/InputRecorder'; // Module D: SecurityMode = 'SINGLE' | 'MULTI';
 
 type GameMode = 'SINGLE' | 'MULTI';
 
@@ -48,6 +50,14 @@ export class MainScene extends Phaser.Scene {
     private lightLayer: Phaser.GameObjects.RenderTexture | null = null;
     private lightMask: Phaser.GameObjects.Graphics | null = null;
 
+    // V4.0: Glitch Pipeline
+    private glitchPipeline: GlitchPipeline | null = null;
+    private glitchIntensity: number = 0;
+    private glitchDuration: number = 0;
+
+    // Lighting Interactables
+    private playerLight: Phaser.GameObjects.Light | null = null;
+
     // Game Stats
     private isGameActive: boolean = false;
     private currentMode: GameMode = 'SINGLE';
@@ -64,17 +74,20 @@ export class MainScene extends Phaser.Scene {
     private nextBossTime: number = 300;
     private pulsePhase: 'SCAVENGE' | 'WARNING' | 'PURGE' = 'SCAVENGE';
 
-    // Services & Managers
-    public weaponSystem!: WeaponSystem;
-    private powerupService!: PowerupService;
-    private lootService!: LootService;
-    private waveManager!: WaveManager;
-    private extractionManager!: ExtractionManager;
-    private combatManager!: CombatManager;
+    // Managers
+    public waveManager!: WaveManager;
+    public extractionManager!: ExtractionManager; // Module B: Public for AI
+    public combatManager!: CombatManager;
     public terrainManager!: TerrainManager;
-    private inputSystem!: InputSystem;
-    private effectManager!: EffectManager;
-    private networkSyncSystem!: NetworkSyncSystem;
+    public effectManager!: EffectManager;
+
+    // Services
+    public powerupService!: PowerupService;
+    public lootService!: LootService; // Module B: Public for AI
+    public weaponSystem!: WeaponSystem;
+    public inputSystem!: InputSystem;
+    public networkSyncSystem!: NetworkSyncSystem;
+    public inputRecorder!: InputRecorder; // Module D
 
     // Player Choice
     private myClass: string = 'BLADE'; // Default to new class ID
@@ -114,6 +127,7 @@ export class MainScene extends Phaser.Scene {
 
         this.weaponSystem = new WeaponSystem(this);
         this.inputSystem = new InputSystem(this);
+        this.inputRecorder = new InputRecorder(); // Module D
         this.networkSyncSystem = new NetworkSyncSystem(this); // V12.0
 
 
@@ -135,7 +149,19 @@ export class MainScene extends Phaser.Scene {
         // Re-implement Boss Panic via EventBus
         EventBus.on('BOSS_SPAWN', () => {
             this.effectManager.showPanicOverlay();
+            this.triggerGlitch(2.0, 1000); // Boss Glitch
         });
+
+        // Module A: Lighting
+        this.lights.enable().setAmbientColor(0x808080); // Dim ambient
+        this.playerLight = this.lights.addLight(0, 0, 400).setIntensity(1.0).setColor(0x00ffff);
+
+        // V4.0: Glitch Pipeline Init
+        if (this.game.renderer.type === Phaser.WEBGL) {
+            (this.renderer as Phaser.Renderer.WebGL.WebGLRenderer).pipelines.addPostPipeline('GlitchPipeline', GlitchPipeline);
+            this.cameras.main.setPostPipeline(GlitchPipeline);
+            this.glitchPipeline = this.cameras.main.getPostPipeline(GlitchPipeline) as GlitchPipeline;
+        }
 
         // Input Events
         EventBus.on('JOYSTICK_MOVE', (vec: { x: number, y: number }) => this.inputSystem.setVirtualAxis(vec.x, vec.y));
@@ -247,6 +273,9 @@ export class MainScene extends Phaser.Scene {
         this.resetGame();
         this.updateCameraZoom();
         this.emitStatsUpdate();
+
+        // D. Input Recording (Module D)
+
 
         // --- HOTFIX CAMERA END ---
 
@@ -418,8 +447,26 @@ export class MainScene extends Phaser.Scene {
 
         this.updateBackground(time);
 
+        // V4.0: Glitch Decay
+        if (this.glitchDuration > 0) {
+            this.glitchDuration -= delta;
+        } else if (this.glitchIntensity > 0) {
+            this.glitchIntensity *= 0.9;
+            if (this.glitchIntensity < 0.01) this.glitchIntensity = 0;
+        }
+        if (this.glitchPipeline) {
+            this.glitchPipeline.intensity = this.glitchIntensity;
+        }
+
         // Lighting Update (Fog of War)
         this.updateLighting();
+
+        // Sync Player Light
+        if (this.myUnit && this.playerLight) {
+            this.playerLight.setPosition(this.myUnit.x, this.myUnit.y);
+            // Flicker effect
+            this.playerLight.intensity = 1.0 + Math.sin(time / 100) * 0.1;
+        }
 
         if (!this.isGameActive || this.isPaused) return;
 
@@ -432,6 +479,11 @@ export class MainScene extends Phaser.Scene {
         if (this.isGameActive) {
             this.processLocalInput(time);
         } // 2. Drone Logic
+        // D. Input Recording (Module D)
+        if (this.myUnit) {
+            this.inputRecorder.record(time, this.myUnit.x, this.myUnit.y, this.input.activePointer.isDown, false);
+        }
+
         if (this.currentMode === 'SINGLE') {
             this.updateDroneAI();
         } else if (network.isHost) {
@@ -630,6 +682,8 @@ export class MainScene extends Phaser.Scene {
 
     takeDamage(amt: number) {
         this.cameras.main.shake(200, 0.01);
+        this.triggerGlitch(0.5, 200); // Damage Glitch
+        this.triggerGlitch(0.5, 200); // Damage Glitch
         this.hp -= amt;
         if (this.hp <= 0) {
             this.hp = 0;
@@ -807,5 +861,10 @@ export class MainScene extends Phaser.Scene {
         this.time.delayedCall(1000, () => {
             this.startNewWave(1);
         });
+    }
+
+    triggerGlitch(intensity: number, duration: number) {
+        this.glitchIntensity = intensity;
+        this.glitchDuration = duration;
     }
 }

@@ -1,7 +1,8 @@
 import Phaser from 'phaser';
 import { COLORS } from '../../constants';
 
-export type AIBehavior = 'CHASE' | 'SWARM' | 'DASH' | 'STRAFE' | 'FLEE' | 'STATIONARY' | 'ERRATIC';
+export type AIBehavior = 'CHASE' | 'SWARM' | 'DASH' | 'STRAFE' | 'FLEE' | 'STATIONARY' | 'ERRATIC' | 'SCAVENGE' | 'EXTRICT';
+export type AIMotivation = 'AGGRESSOR' | 'SCAVENGER' | 'EXTRACTOR';
 
 export interface EnemyConfig {
     id: string;
@@ -16,6 +17,7 @@ export interface EnemyConfig {
     };
     ai: {
         type: AIBehavior;
+        motivation?: AIMotivation; // Module B
         range?: number; // Detection or attack range
         interval?: number; // For dash windup etc
     };
@@ -26,13 +28,35 @@ export const ENEMY_TYPES: { [key: string]: EnemyConfig } = {
         id: 'JELLY',
         name: 'Jelly',
         stats: { hp: 20, speed: 80, damage: 10, value: 10, color: COLORS.secondary, radius: 12 },
-        ai: { type: 'CHASE' }
+        ai: { type: 'CHASE', motivation: 'AGGRESSOR' }
     },
     TRI_DART: {
         id: 'TRI_DART',
         name: 'Tri-Dart',
-        stats: { hp: 15, speed: 180, damage: 15, value: 20, color: 0x00FF88, radius: 10 }, // Green
-        ai: { type: 'SWARM' }
+        stats: { hp: 15, speed: 180, damage: 15, value: 20, color: 0x00FF88, radius: 10 },
+        ai: { type: 'SWARM', motivation: 'AGGRESSOR' }
+    },
+    // ... Existing types ...
+
+    // Module B: Predator Ecosystem
+    SCAVENGER_BOT: {
+        id: 'SCAVENGER_BOT',
+        name: 'Scavenger',
+        stats: { hp: 40, speed: 200, damage: 5, value: 100, color: 0x00FFFF, radius: 15 }, // Cyan
+        ai: { type: 'SCAVENGE', motivation: 'SCAVENGER', range: 500 }
+    },
+    EXTRACTOR_BOT: {
+        id: 'EXTRACTOR_BOT',
+        name: 'Extractor Unit',
+        stats: { hp: 80, speed: 120, damage: 10, value: 200, color: 0xFF00FF, radius: 20 }, // Magenta
+        ai: { type: 'EXTRICT', motivation: 'EXTRACTOR' }
+    },
+    // Overwrite existing LOOT_BUNNY to use SCAVENGER logic?
+    LOOT_BUNNY: {
+        id: 'LOOT_BUNNY',
+        name: 'Loot Bunny',
+        stats: { hp: 30, speed: 200, damage: 0, value: 500, color: 0xFFD700, radius: 14 },
+        ai: { type: 'FLEE', motivation: 'SCAVENGER', range: 300 } // Hybrid
     },
     CHARGER: {
         id: 'CHARGER',
@@ -70,12 +94,7 @@ export const ENEMY_TYPES: { [key: string]: EnemyConfig } = {
         stats: { hp: 150, speed: 40, damage: 35, value: 80, color: 0x888888, radius: 30 }, // Grey
         ai: { type: 'CHASE' }
     },
-    LOOT_BUNNY: {
-        id: 'LOOT_BUNNY',
-        name: 'Loot Bunny',
-        stats: { hp: 30, speed: 200, damage: 0, value: 500, color: 0xFFD700, radius: 14 }, // Gold
-        ai: { type: 'FLEE', range: 300 }
-    },
+    // LOOT_BUNNY removed (use SCAVENGER_BOT or above override)
     PHANTOM: {
         id: 'PHANTOM',
         name: 'Phantom',

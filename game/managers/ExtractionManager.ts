@@ -31,12 +31,9 @@ export class ExtractionManager {
 
     public setTerrainManager(tm: any) {
         this.terrainManager = tm;
-        // Refresh zones if terrain loaded late? 
-        // For now, let's just stick to initial spawn.
     }
 
     public update(time: number, delta: number) {
-        // No more timer cycle logic.
         // Visual updates for locked state?
     }
 
@@ -102,5 +99,9 @@ export class ExtractionManager {
             }
         });
         return extracted;
+    }
+
+    public getZones(): Phaser.GameObjects.GameObject[] {
+        return this.zones.getChildren();
     }
 }

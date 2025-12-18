@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import { Player } from './Player';
+import { MainScene } from '../scenes/MainScene'; // Module B Dependency
 import { COLORS } from '../../constants';
 import { IPoolable } from '../core/ObjectPool';
 import { EnemyConfig } from '../factories/EnemyFactory';
@@ -205,6 +206,12 @@ export class Enemy extends Phaser.GameObjects.Container implements IPoolable {
             case 'ERRATIC':
                 this.behaviorErratic(delta, time);
                 break;
+            case 'SCAVENGE': // Module B
+                this.behaviorScavenge(delta, time);
+                break;
+            case 'EXTRICT': // Module B
+                this.behaviorExtrict(delta, time);
+                break;
         }
 
         // Depth Sort
@@ -305,6 +312,88 @@ export class Enemy extends Phaser.GameObjects.Container implements IPoolable {
             this.body.setVelocity(velocity.x, velocity.y);
         }
         this.rotation += 0.1;
+    }
+
+    // --- Module B: Advanced AI ---
+
+    private behaviorScavenge(delta: number, time: number) {
+        const scene = this.scene as MainScene;
+
+        // 1. Find Loot if no target or target invalid
+        // Note: We use 'target' property for Player usually, let's keep it that way.
+        // We'll calculate loot target dynamically or store it in a temp variable.
+        // Using a simple scan every 500ms
+
+        this.aiTimer += delta;
+        if (this.aiTimer > 500) {
+            this.aiTimer = 0;
+            // Scan for nearest Loot
+            let nearest: Phaser.GameObjects.Sprite | null = null;
+            let minDst = 1000;
+
+            scene.lootService.group.getChildren().forEach((child) => {
+                const item = child as Phaser.GameObjects.Sprite;
+                if (!item.active) return;
+                const dst = Phaser.Math.Distance.Between(this.x, this.y, item.x, item.y);
+                if (dst < minDst) {
+                    minDst = dst;
+                    nearest = item;
+                }
+            });
+
+            if (nearest) {
+                const item = nearest as Phaser.GameObjects.Sprite;
+                this.scene.physics.moveToObject(this, item, this.speed);
+                this.rotation = Phaser.Math.Angle.Between(this.x, this.y, item.x, item.y) + Math.PI / 2;
+
+                // Eat it if close
+                if (minDst < 30) {
+                    // Steal it!
+                    scene.events.emit('LOOT_PICKUP_VISUAL', { x: this.x, y: this.y, text: "STOLEN!", color: '#ff0000' });
+                    item.destroy();
+                    // Then Run Away? Switch to Extractor?
+                    // For now, just heal
+                    this.hp = Math.min(this.hp + 10, this.maxHp);
+                }
+            } else {
+                // Idle / Wander if no loot
+                this.behaviorErratic(delta, time);
+            }
+        }
+    }
+
+    private behaviorExtrict(delta: number, time: number) {
+        const scene = this.scene as MainScene;
+        const zones = scene.extractionManager.getZones(); // Need public getter? Using public property if avail
+
+        // Find nearest ACTIVE zone
+        let nearestZone = null;
+        let minDst = 9999;
+
+        // Assuming direct access or getter. Let's check ExtractionManager
+        // If unavailable, just Fleep towards center or wait.
+        if (zones && zones.length > 0) {
+            zones.forEach(z => {
+                const zone = z as Phaser.GameObjects.Zone; // Cast to access x,y
+                if (!zone.active) return;
+                const dst = Phaser.Math.Distance.Between(this.x, this.y, zone.x, zone.y);
+                if (dst < minDst) {
+                    minDst = dst;
+                    nearestZone = zone;
+                }
+            });
+        }
+
+        if (nearestZone) {
+            this.scene.physics.moveToObject(this, nearestZone, this.speed);
+            this.rotation = this.body.velocity.angle() + Math.PI / 2;
+
+            if (minDst < 50) {
+                // Escaped!
+                // Add Banked Value to logic? 
+                this.die();
+            }
+        }
     }
 
     public takeDamage(amount: number): boolean {

@@ -4,7 +4,8 @@ export enum ItemType {
     PROTOCOL = 'PROTOCOL', // Attack / Crit / Special
     MATERIAL = 'MATERIAL', // Crafting / Currency
     ARTIFACT = 'ARTIFACT', // Special
-    SCRAP = 'SCRAP' // Junk? Or is SCRAP MATERIAL?
+    SCRAP = 'SCRAP', // Junk? Or is SCRAP MATERIAL?
+    WEAPON = 'WEAPON' // Module C: Procedural Weapons
 }
 
 export enum ItemRarity {

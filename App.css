@@ -1,7 +1,6 @@
 /* App.css - 強制全屏重置 */
 html,
-body,
-#root {
+body {
     width: 100%;
     height: 100%;
     margin: 0;
@@ -9,9 +8,26 @@ body,
     overflow: hidden;
     /* 禁止捲動 */
     background-color: #000;
+    /* Body stays black */
     /* 防止加載時閃白 */
     touch-action: none;
     /* 禁止手機預設的雙擊縮放 */
+}
+
+#root {
+    width: 100%;
+    height: 100%;
+    background-color: transparent;
+    /* ✨ MAGIC FIX: Reveal the Game! */
+    pointer-events: none;
+    /* Allow clicks to pass through empty areas */
+}
+
+/* Re-enable interactions for UI elements */
+.app-container,
+.game-overlay,
+.main-menu {
+    pointer-events: auto;
 }
 
 .app-container {
@@ -21,6 +37,13 @@ body,
     top: 0;
     left: 0;
     overflow: hidden;
+    pointer-events: none;
+    /* UI container itself should not block */
+}
+
+/* Enable pointer events only for interactive children */
+.app-container>* {
+    pointer-events: auto;
 }
 
 /* 確保遊戲容器絕對定位並填滿 */
@@ -64,7 +87,4 @@ body,
     z-index: 51;
 }
 
-/* 你的其他 UI 樣式 ... */
-.hero-button {
-    @apply px-8 py-4 bg-[#00FFFF] text-black font-black tracking-widest text-xl uppercase skew-x-[-10deg] hover:bg-white hover:scale-105 transition-transform;
-}
+/* .hero-button moved to inline Tailwind in App.tsx to avoid @apply errors */

@@ -32,8 +32,11 @@ export class Enemy extends Phaser.GameObjects.Container implements IPoolable {
     public z: number = 0;
     public zVelocity: number = 0;
 
+    private _scene: Phaser.Scene; // [FIX] Explicit Scene Reference
+
     constructor(scene: Phaser.Scene, x: number, y: number) {
         super(scene, x, y);
+        this._scene = scene; // Store it safely
         this.id = Math.random().toString(36).substr(2, 9);
 
         // Shadow
@@ -48,11 +51,10 @@ export class Enemy extends Phaser.GameObjects.Container implements IPoolable {
         this.graphics = scene.add.graphics();
         this.add(this.graphics);
 
-        // Physics
         scene.add.existing(this);
-        scene.physics.add.existing(this);
+        scene.physics.world.enable(this);
         const body = this.body as Phaser.Physics.Arcade.Body;
-        body.setCircle(12);
+        body.setCircle(20);
         body.setBounce(0.5);
         body.setDrag(200);
         body.setCollideWorldBounds(true);
@@ -74,12 +76,13 @@ export class Enemy extends Phaser.GameObjects.Container implements IPoolable {
         this.drawAlienArchitecture(config.id, config.stats.color, config.stats.radius);
 
         // Physics Body
+        if (!this.body) {
+            this._scene.physics.world.enable(this); // Use _scene
+        }
         const body = this.body as Phaser.Physics.Arcade.Body;
-        body.setCircle(config.stats.radius, -config.stats.radius + 12, -config.stats.radius + 12);
-        // Note: Offset simplified, usually handled by container center. 
-        // Container (0,0) is center. Circle center is top-left of circle.
-        // setCircle(radius, offsetX, offsetY).
-        body.setCircle(config.stats.radius, -config.stats.radius, -config.stats.radius);
+        if (body) {
+            body.setCircle(config.stats.radius, -config.stats.radius, -config.stats.radius);
+        }
     }
 
     private drawAlienArchitecture(id: string, color: number, radius: number) {
@@ -419,10 +422,14 @@ export class Enemy extends Phaser.GameObjects.Container implements IPoolable {
         this.setActive(true);
         this.setVisible(true);
         this.isDead = false;
-        this.body.enable = true;
+        if (this.body) this.body.enable = true;
         this.alpha = 1;
         this.setScale(0);
-        this.scene.tweens.add({ targets: this, scaleX: 1, scaleY: 1, duration: 300, ease: 'Back.out' });
+
+        // Use _scene for tweens to prevent crash
+        if (this._scene) {
+            this._scene.tweens.add({ targets: this, scaleX: 1, scaleY: 1, duration: 300, ease: 'Back.out' });
+        }
     }
 
     public onDisable() {

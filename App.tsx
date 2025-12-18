@@ -197,7 +197,10 @@ const App: React.FC = () => {
                         指揮官權限已解鎖。<br />
                         歡迎來到 SYNAPSE 神經網絡。
                     </p>
-                    <button className="hero-button" onClick={handleReturnToBase}>
+                    <button
+                        className="px-8 py-4 bg-[#00FFFF] text-black font-black tracking-widest text-xl uppercase skew-x-[-10deg] hover:bg-white hover:scale-105 transition-transform"
+                        onClick={handleReturnToBase}
+                    >
                         進入基地
                     </button>
                 </div>

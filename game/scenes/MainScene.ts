@@ -202,13 +202,14 @@ export class MainScene extends Phaser.Scene {
     }
 
     handleStartMatch(data: any) {
-        console.log("🚀 [MainScene] Starting Match...");
+        console.log("🚀 [MainScene] Starting Match... (V0.3.1 Debug)");
 
         // 1. Set State
         const mode = (typeof data === 'string') ? data : data.mode;
         if (typeof data === 'object' && data.hero) this.myClass = data.hero;
         this.currentMode = 'SINGLE';
         this.isGameActive = true;
+        console.log("✅ [MainScene] isGameActive set to TRUE");
 
         // 2. Setup Players
         this.setupPlayers();
@@ -257,7 +258,10 @@ export class MainScene extends Phaser.Scene {
     }
 
     update(time: number, delta: number) {
-        if (!this.myUnit) return;
+        if (!this.myUnit) {
+            if (time % 1000 < 20) console.log("⚠️ [MainScene] Update: No MyUnit");
+            return;
+        }
 
         // [STYLE] Lighting Follow
         if (this.playerLight) {
@@ -306,6 +310,11 @@ export class MainScene extends Phaser.Scene {
         this.runCombatLogic();
         this.extractionManager.update(time, delta);
         this.handleExtraction();
+
+        // V0.3.1 Debug: Force UI Update every 10 frames (approx 160ms) to ensure timer moves
+        if (time % 10 < 1) {
+            this.emitStatsUpdate();
+        }
     }
 
     processLocalInput(time: number) {

@@ -1,11 +1,9 @@
 import { Player } from '../classes/Player';
-import { WeaponType } from '../systems/WeaponSystem';
-
-export type ClassType = 'BLADE' | 'WEAVER' | 'IMPACT' | 'PRISM' | 'PHANTOM';
+import { PlayerClassID } from '../../types';
 
 export interface ClassConfig {
     name: string;
-    weapon: WeaponType;
+    // weapon: string; // Deprecated, handled by Player T0 Mapping for now
     stats: {
         hp: number;
         speed: number;
@@ -14,41 +12,65 @@ export interface ClassConfig {
     };
 }
 
-export const CLASSES: Record<ClassType, ClassConfig> = {
-    BLADE: {
-        name: '光刃',
-        weapon: 'MELEE_SWEEP',
-        stats: { hp: 120, speed: 1.2, markColor: 0x00FFFF, atk: 12 } // High Atk
+export const CLASSES: Record<PlayerClassID, ClassConfig> = {
+    // TIER 1
+    SCAVENGER: {
+        name: '拾荒者',
+        stats: { hp: 120, speed: 1.1, markColor: 0xFFFF00, atk: 12 }
+    },
+    RANGER: {
+        name: '遊俠',
+        stats: { hp: 100, speed: 1.2, markColor: 0xFF0000, atk: 10 }
     },
     WEAVER: {
-        name: '星織',
-        weapon: 'HOMING_ORB',
-        stats: { hp: 100, speed: 1.0, markColor: 0xFF77BC, atk: 10 }
+        name: '織命者',
+        stats: { hp: 80, speed: 1.0, markColor: 0x0000FF, atk: 8 }
     },
-    IMPACT: {
-        name: '重錘',
-        weapon: 'SHOCKWAVE',
-        stats: { hp: 150, speed: 0.8, markColor: 0xFFD700, atk: 15 } // Tank
-    },
-    PRISM: {
-        name: '稜鏡',
-        weapon: 'LASER',
-        stats: { hp: 80, speed: 0.9, markColor: 0x9D00FF, atk: 8 } // Low HP High Dps maybe?
-    },
-    PHANTOM: {
-        name: '魅影',
-        weapon: 'BOOMERANG',
-        stats: { hp: 60, speed: 1.4, markColor: 0x00FF00, atk: 11 }
-    }
+
+    // TIER 2 (Placeholder for now)
+    RONIN: { name: '浪人', stats: { hp: 140, speed: 1.3, markColor: 0xFFFFFF, atk: 15 } },
+    SPECTRE: { name: '幽靈', stats: { hp: 80, speed: 1.5, markColor: 0xCCCCCC, atk: 18 } },
+    RAIDER: { name: '掠奪者', stats: { hp: 150, speed: 0.9, markColor: 0x880000, atk: 14 } },
+
+    GUNNER: { name: '機槍手', stats: { hp: 110, speed: 1.0, markColor: 0xFF4400, atk: 12 } },
+    HUNTER: { name: '獵人', stats: { hp: 90, speed: 1.3, markColor: 0x00AA00, atk: 14 } },
+    TRAPPER: { name: '陷阱師', stats: { hp: 100, speed: 1.1, markColor: 0xAA6600, atk: 10 } },
+
+    ARCHITECT: { name: '建築師', stats: { hp: 90, speed: 1.0, markColor: 0x0088FF, atk: 9 } },
+    WITCH: { name: '魔女', stats: { hp: 70, speed: 1.1, markColor: 0xCC00FF, atk: 16 } },
+    MEDIC: { name: '醫官', stats: { hp: 100, speed: 1.1, markColor: 0x00FF88, atk: 6 } }
 };
 
 export class PlayerFactory {
-    static create(scene: Phaser.Scene, x: number, y: number, classId: ClassType, id: string, isLocal: boolean): Player {
-        // Default to BLADE if unknown
-        const config = CLASSES[classId] || CLASSES.BLADE;
+    static create(scene: Phaser.Scene, x: number, y: number, classId: string, id: string, isLocal: boolean): Player {
+        // Safe Cast or Default
+        const validClass = (CLASSES[classId as PlayerClassID]) ? classId as PlayerClassID : 'SCAVENGER';
+        const config = CLASSES[validClass];
 
         const player = new Player(scene, x, y, id, isLocal);
-        player.configure(config, classId);
+        player.configure(config, validClass);
+
+        // [VISUAL] Operation Genesis: Class Differentiation
+        // [VISUAL] Operation Genesis: Class Differentiation
+        // TODO: Implement proper visual differentiation on Player class
+        /*
+        switch (validClass) {
+            case 'SCAVENGER':
+                player.setTint(0xFFFF00); // Yellow
+                break;
+            case 'RANGER':
+                player.setTint(0xFF4444); // Red
+                break;
+            case 'WEAVER':
+                player.setTint(0x00FFFF); // Cyan
+                player.alpha = 0.9;
+                break;
+            default:
+                player.setTint(0xFFFFFF);
+        }
+        */
+
         return player;
     }
 }
+

@@ -24,8 +24,10 @@ export class SoundManager {
         const gain = this.ctx.createGain();
 
         // Pew Pew - Fast frequency drop
+        // Pew Pew - Fast frequency drop with Variance
+        const variance = Math.random() * 200 - 100;
         osc.type = 'triangle';
-        osc.frequency.setValueAtTime(800, t);
+        osc.frequency.setValueAtTime(800 + variance, t);
         osc.frequency.exponentialRampToValueAtTime(100, t + 0.1);
 
         gain.gain.setValueAtTime(0.5, t);
@@ -44,9 +46,10 @@ export class SoundManager {
         const osc = this.ctx.createOscillator();
         const gain = this.ctx.createGain();
 
-        // Crunch - Noise approximation via randomized waves or low square
+        // Crunch - Noise approximation with Variance
+        const variance = Math.random() * 50 - 25;
         osc.type = 'square';
-        osc.frequency.setValueAtTime(150, t);
+        osc.frequency.setValueAtTime(150 + variance, t);
         osc.frequency.exponentialRampToValueAtTime(50, t + 0.1);
 
         gain.gain.setValueAtTime(0.5, t);

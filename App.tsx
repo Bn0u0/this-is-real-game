@@ -10,8 +10,6 @@ import { metaGame, MetaGameState } from './services/MetaGameService';
 import { persistence, UserProfile } from './services/PersistenceService';
 import { EventBus } from './services/EventBus';
 
-import { DraftOverlay } from './components/DraftOverlay';
-import { CardDef } from './game/systems/CardSystem';
 
 // Application State Machine
 type AppState = 'BOOT' | 'MAIN_MENU' | 'HIDEOUT' | 'COMBAT' | 'GAME_OVER' | 'TUTORIAL_DEBRIEF';
@@ -25,7 +23,7 @@ const App: React.FC = () => {
 
     // Draft Logic
     const [showDraft, setShowDraft] = useState(false);
-    const [draftChoices, setDraftChoices] = useState<CardDef[]>([]);
+    // const [draftChoices, setDraftChoices] = useState<any[]>([]); // Deprecated
 
     useEffect(() => {
         // [SYSTEM] 1. Check for Magic Link return
@@ -40,8 +38,8 @@ const App: React.FC = () => {
             setMetaState({ ...newState });
         });
 
-        const onShowDraft = (data: { choices: CardDef[] }) => {
-            setDraftChoices(data.choices);
+        const onShowDraft = (data: { choices: any[] }) => {
+            // setDraftChoices(data.choices);
             setShowDraft(true);
         };
 
@@ -169,15 +167,10 @@ const App: React.FC = () => {
             )}
 
             {/* Draft Overlay */}
-            {showDraft && (
-                <DraftOverlay
-                    choices={draftChoices}
-                    onDraftComplete={() => {
-                        setShowDraft(false);
-                        EventBus.emit('RESUME');
-                    }}
-                />
-            )}
+            {/* Draft Overlay - REMOVED */}
+            {/* {showDraft && (
+                <div className="hidden" />
+            )} */}
 
             {/* State: HIDEOUT */}
             {appState === 'HIDEOUT' && (

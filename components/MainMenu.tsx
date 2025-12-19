@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { CyberModal } from './CyberModal';
 import { HapticService } from '../services/HapticService';
-import { CLASSES, ClassType } from '../game/factories/PlayerFactory';
+import { CLASSES } from '../game/factories/PlayerFactory';
+import { PlayerClassID } from '../types';
 import { persistence } from '../services/PersistenceService';
 
 interface MainMenuProps {
@@ -13,7 +14,7 @@ export const MainMenu: React.FC<MainMenuProps> = ({ onStartGame, onOpenHideout }
     const [modal, setModal] = useState({ isOpen: false, title: '', msg: '' });
 
     // Character Selection State
-    const classKeys = Object.keys(CLASSES) as ClassType[];
+    const classKeys = Object.keys(CLASSES) as PlayerClassID[];
     const [selectedIdx, setSelectedIdx] = useState(0);
     const currentClass = CLASSES[classKeys[selectedIdx]];
 
@@ -138,7 +139,7 @@ export const MainMenu: React.FC<MainMenuProps> = ({ onStartGame, onOpenHideout }
                             {currentClass.name}
                         </h2>
                         <div className="text-xs text-gray-400 font-mono tracking-widest mb-2">
-                            {currentClass.weapon}
+                            {'TODO: Weapon Info'}
                         </div>
                         {/* Simple Stats Display */}
                         <div className="flex gap-2 text-[10px] text-gray-300">

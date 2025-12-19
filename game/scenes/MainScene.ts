@@ -4,13 +4,13 @@ import { Enemy } from '../classes/Enemy';
 import confetti from 'canvas-confetti';
 import { COLORS, PHYSICS } from '../../constants';
 import { EventBus } from '../../services/EventBus';
-import { UpgradeType } from '../../types';
+// import { UpgradeType } from '../../types'; // [VOID]
 import { network } from '../../services/NetworkService';
 import { PowerupService, PowerupType } from '../../services/PowerupService';
 import { LootService } from '../../services/LootService';
 import { inventoryService } from '../../services/InventoryService';
 import { persistence } from '../../services/PersistenceService';
-import { cardSystem } from '../systems/CardSystem';
+// import { cardSystem } from '../systems/CardSystem'; // [VOID]
 import { WeaponSystem } from '../systems/WeaponSystem';
 import { WaveManager } from '../managers/WaveManager';
 import { ExtractionManager } from '../managers/ExtractionManager';
@@ -279,6 +279,9 @@ export class MainScene extends Phaser.Scene {
         // this.commander.setPipeline('Light2D'); 
 
         this.networkSyncSystem.setTargets(this.commander!, null, this.waveManager);
+
+        // [PROTOCOL] Operation Genesis: Safety Net
+        this.weaponSystem.ensurePlayerWeapon(this.commander);
     }
 
     update(time: number, delta: number) {
@@ -305,6 +308,21 @@ export class MainScene extends Phaser.Scene {
         }
         if (this.glitchPipeline) {
             this.glitchPipeline.intensity = this.glitchIntensity;
+        }
+
+        // [JUICE] Low HP Vignette Pulse
+        if (this.hp < this.maxHp * 0.3) {
+            const alpha = 0.3 + Math.sin(time / 200) * 0.2;
+            this.cameras.main.flash(50, 255, 0, 0, false, undefined); // Too aggressive?
+            // Better: Draw a red rectangle overlay via UI or just tint camera?
+            // Camera tint affects everything.
+            // Let's rely on GameOverlay React UI for red borders, or send event.
+            // Actually MainScene can't easily draw "Screen Space" overlay without scrollfactor 0.
+            // Let's emit stats and let React handle the "Red Border".
+            // React already handles HP bar.
+
+            // Just shake more often?
+            if (Math.random() < 0.05) this.cameras.main.shake(100, 0.005);
         }
 
         // Standard Updates
@@ -376,6 +394,30 @@ export class MainScene extends Phaser.Scene {
     processLocalInput(time: number) {
         if (this.commander) {
             this.inputSystem.processInput(this.input, this.cameras, this.commander, this.statsModifiers);
+
+            // [JUICE] Camera Lookahead (Input-driven)
+            const pad = this.inputSystem.getVirtualAxis();
+            // If dragging joystick, peak ahead
+            if (Math.abs(pad.x) > 0.1 || Math.abs(pad.y) > 0.1) {
+                const lookX = this.commander.x + pad.x * 200; // Look 200px ahead
+                const lookY = this.commander.y + pad.y * 200;
+
+                // Soft lerp camera follow offset? 
+                // Phaser's startFollow doesn't easily support offset lerp without manual update.
+                // Let's manually lerp scroll logic or use setLerp.
+
+                // HACK: Tweaking follow offset is tricky. 
+                // Simpler: Just rely on mouse pointer logic for PC, but this is joystick.
+                // Let's use camera.followOffset
+
+                this.cameras.main.followOffset.x = Phaser.Math.Linear(this.cameras.main.followOffset.x, -pad.x * 100, 0.05);
+                this.cameras.main.followOffset.y = Phaser.Math.Linear(this.cameras.main.followOffset.y, -pad.y * 100, 0.05); // Negative to look ahead
+            } else {
+                // Return to center
+                this.cameras.main.followOffset.x = Phaser.Math.Linear(this.cameras.main.followOffset.x, 0, 0.05);
+                this.cameras.main.followOffset.y = Phaser.Math.Linear(this.cameras.main.followOffset.y, 0, 0.05);
+            }
+
             if (this.enemyGroup) this.commander.autoFire(time, this.enemyGroup);
         }
     }
@@ -468,7 +510,7 @@ export class MainScene extends Phaser.Scene {
             this.physics.pause();
             this.isGameActive = false;
             EventBus.emit('EXTRACTION_SUCCESS', this.myUnit.lootBag);
-            inventoryService.processLootBag(this.myUnit.lootBag.map(i => i.id));
+            inventoryService.processLootBag(this.myUnit.lootBag.map(i => i.uid));
         }
     }
 
@@ -481,7 +523,52 @@ export class MainScene extends Phaser.Scene {
         });
     }
 
-    applyUpgrade(type: UpgradeType) { this.isPaused = false; }
+    // [JUICE] Wave 10: Level Up Shockwave
+    levelUp() {
+        this.level++;
+        this.xp = 0;
+        this.xpToNextLevel = Math.floor(this.xpToNextLevel * 1.5);
+
+        EventBus.emit('PLAY_SFX', 'LEVEL_UP');
+        // Wait, SFX not bounded yet? Add to sound manager locally later. Using COLLECT for now.
+
+        // Visual: Shockwave Ring
+        const ring = this.add.circle(this.myUnit!.x, this.myUnit!.y, 10, 0x00FFFF);
+        ring.setStrokeStyle(4, 0x00FFFF);
+        ring.setBlendMode(Phaser.BlendModes.ADD);
+        this.tweens.add({
+            targets: ring,
+            radius: 500,
+            alpha: 0,
+            duration: 800,
+            onComplete: () => ring.destroy()
+        });
+
+        // Logic: Knockback Enemies
+        const range = 500;
+        this.enemyGroup?.getChildren().forEach((child) => {
+            const e = child as Enemy;
+            const dist = Phaser.Math.Distance.Between(this.myUnit!.x, this.myUnit!.y, e.x, e.y);
+            if (dist < range && e.body) {
+                const angle = Phaser.Math.Angle.Between(this.myUnit!.x, this.myUnit!.y, e.x, e.y);
+                const force = 400; // Strong Push
+                e.body.velocity.x += Math.cos(angle) * force;
+                e.body.velocity.y += Math.sin(angle) * force;
+                // Stun?
+                e.takeDamage(5); // Minor damage
+            }
+        });
+
+        // [VOID PROTOCOL] Upgrade System Purged. No pausing.
+        EventBus.emit('SHOW_FLOATING_TEXT', {
+            x: this.myUnit!.x,
+            y: this.myUnit!.y - 50,
+            text: "LEVEL UP!",
+            color: '#FFFF00'
+        });
+
+        // Future: Evolution Check
+    }
     onResume() { this.isPaused = false; this.physics.resume(); }
     cleanup() {
         this.scale.off('resize', this.handleResize, this);

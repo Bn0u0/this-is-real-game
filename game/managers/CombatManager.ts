@@ -81,6 +81,14 @@ export class CombatManager {
                 this.scene.hitStop(60); // Heavier feel on kill
             } else {
                 this.scene.hitStop(20); // Light nudge on hit
+
+                // [JUICE] Wave 9: Enemy Knockback
+                if (e.body) {
+                    const angle = projectile.rotation;
+                    const force = 150;
+                    e.body.velocity.x += Math.cos(angle) * force;
+                    e.body.velocity.y += Math.sin(angle) * force;
+                }
             }
 
             projectile.destroy();

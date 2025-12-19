@@ -1,10 +1,12 @@
 import Phaser from 'phaser';
 import { COLORS, PHYSICS } from '../../constants';
-import { ItemDef } from '../data/Items';
+// import { ItemDef } from '../data/Items'; // [VOID]
+import { ItemInstance, ItemDef, ItemRarity } from '../../types';
+import { ItemLibrary } from '../data/library/items';
 import { ClassConfig } from '../factories/PlayerFactory';
 import { WeaponSystem } from '../systems/WeaponSystem';
-import { cardSystem } from '../systems/CardSystem';
-import { WeaponInstance } from '../../types';
+// import { cardSystem } from '../systems/CardSystem'; // [VOID]
+// import { WeaponInstance } from '../../types'; // [VOID]
 
 export class Player extends Phaser.GameObjects.Container {
     public id: string;
@@ -13,7 +15,7 @@ export class Player extends Phaser.GameObjects.Container {
 
     // Class Config
     public classConfig: ClassConfig | null = null;
-    public equippedWeapon: WeaponInstance | null = null;
+    public equippedWeapon: ItemInstance | null = null;
 
     // Stats
     public stats = {
@@ -32,8 +34,7 @@ export class Player extends Phaser.GameObjects.Container {
     private dashCooldown: number = 0;
 
     // Visuals
-    // public sprite: Phaser.GameObjects.Sprite; // DEPRECATED
-    public classId: string = 'BLADE'; // Default
+    public classId: string = 'SCAVENGER'; // Default
     protected graphics: Phaser.GameObjects.Graphics;
     protected coreShape: Phaser.GameObjects.Graphics;
     private emitter: Phaser.GameObjects.Particles.ParticleEmitter;
@@ -42,7 +43,7 @@ export class Player extends Phaser.GameObjects.Container {
     public zVelocity: number = 0;
 
     // Inventory / Legacy Props
-    public lootBag: ItemDef[] = [];
+    public lootBag: ItemInstance[] = [];
     public lootWeight: number = 0; // V4.0: Encumbrance
     public cooldowns: { [key: string]: number } = {};
     public maxCooldowns: { [key: string]: number } = {};
@@ -118,15 +119,25 @@ export class Player extends Phaser.GameObjects.Container {
         this.classConfig = config;
         this.classId = classId;
 
-        // [Weapon 2.0] Default Weapon based on Class
-        this.equippedWeapon = {
-            id: `init_${classId}_${Date.now()}`,
-            name: `${config.name}標配`,
-            baseType: config.weapon as any,
-            rarity: 'COMMON',
-            modifiers: [],
-            level: 1
+        // [Weapon 2.0] Default T0 Weapon Mapping
+        const T0_MAPPING: Record<string, string> = {
+            'SCAVENGER': 'weapon_crowbar_t0',
+            'RANGER': 'weapon_pistol_t0',
+            'WEAVER': 'weapon_drone_t0',
+            // T2 Fallbacks
+            'RONIN': 'weapon_crowbar_t0', 'SPECTRE': 'weapon_crowbar_t0', 'RAIDER': 'weapon_crowbar_t0',
+            'GUNNER': 'weapon_pistol_t0', 'HUNTER': 'weapon_pistol_t0', 'TRAPPER': 'weapon_pistol_t0',
+            'ARCHITECT': 'weapon_drone_t0', 'WITCH': 'weapon_drone_t0', 'MEDIC': 'weapon_drone_t0'
         };
+
+        const defId = T0_MAPPING[classId] || 'weapon_pistol_t0';
+        const def = ItemLibrary.get(defId);
+
+        if (def) {
+            this.equipWeapon(def);
+        } else {
+            console.warn(`[Player] Default weapon def not found for ${defId}`);
+        }
 
         // Apply Base Stats
         this.stats.hp = config.stats.hp;
@@ -135,6 +146,23 @@ export class Player extends Phaser.GameObjects.Container {
 
         // Redraw with Class Color
         this.drawGuardian(config.stats.markColor);
+    }
+
+    public equipWeapon(def: ItemDef) {
+        this.equippedWeapon = {
+            uid: Phaser.Utils.String.UUID(),
+            defId: def.id,
+            displayName: def.name,
+            name: def.name,
+            rarity: (def.rarity as ItemRarity) || ItemRarity.COMMON,
+            computedStats: {
+                damage: def.baseStats.damage,
+                range: def.baseStats.range,
+                fireRate: def.baseStats.fireRate,
+                critChance: def.baseStats.critChance || 0,
+                speed: def.baseStats.speed || 0,
+            }
+        };
     }
 
     drawGuardian(color: number) {
@@ -167,6 +195,7 @@ export class Player extends Phaser.GameObjects.Container {
 
         switch (classId) {
             case 'IMPACT':
+            case 'RAIDER':
                 // "THE TANK" - Chunky Square Robot
                 // Legs (Tiny)
                 g.fillStyle(dark, 1);
@@ -191,6 +220,7 @@ export class Player extends Phaser.GameObjects.Container {
                 break;
 
             case 'BLADE':
+            case 'RONIN':
                 // "THE SPEEDSTER" - Ninja Hood
                 // Cape/Body
                 g.fillStyle(dark, 1);
@@ -237,8 +267,9 @@ export class Player extends Phaser.GameObjects.Container {
             atk: this.classConfig.stats.atk
         };
 
-        // 2. Apply Cards (Dynamic)
-        const modified = cardSystem.applyStats(base);
+        // 2. [VOID] Card System Removed
+        // TODO: Re-integrate Symbiosis Modifiers here
+        const modified = base;
 
         // 3. Apply Loot Weight (Encumbrance)
         const weightPenalty = Math.pow(0.95, this.lootBag.length);

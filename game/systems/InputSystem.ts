@@ -21,11 +21,18 @@ export class InputSystem {
     private readonly FLICK_VELOCITY_THRESHOLD = 2.5; // High change in short time
     private readonly FLICK_WINDOW = 150; // ms
 
+    private virtualAxis = new Phaser.Math.Vector2();
+
     constructor(scene: Phaser.Scene) {
         this.scene = scene;
     }
 
+    public getVirtualAxis() {
+        return this.virtualAxis;
+    }
+
     public setVirtualAxis(x: number, y: number) {
+        this.virtualAxis.set(x, y);
         this.moveVector.x = x;
         this.moveVector.y = y;
         this.trackHistory(x, y);

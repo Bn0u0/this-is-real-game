@@ -405,8 +405,24 @@ export class Enemy extends Phaser.GameObjects.Container implements IPoolable {
 
     public takeDamage(amount: number): boolean {
         this.hp -= amount;
-        this.graphics.alpha = 0.2;
-        this.scene.tweens.add({ targets: this.graphics, alpha: 1, duration: 100 });
+
+        // [JUICE] Hit Flash (Using Alpha/Scale Pop instead of Tint to avoid Graphics limit)
+        this.alpha = 0.5;
+        this.setScale(1.2);
+
+        this.scene.tweens.add({
+            targets: this, // Tween the container itself
+            alpha: 1,
+            scaleX: 1,
+            scaleY: 1,
+            duration: 80,
+            ease: 'Back.out'
+        });
+
+        // Knockback or Shake?
+        this.x += Math.random() * 4 - 2;
+        this.y += Math.random() * 4 - 2;
+
         if (this.hp <= 0) {
             this.die();
             return true;

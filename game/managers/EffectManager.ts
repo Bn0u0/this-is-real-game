@@ -31,15 +31,25 @@ export class EffectManager {
     }
 
     private showFloatingText(data: { x: number, y: number, text: string, color: string }) {
+        const isCrit = data.color === '#FFAA00'; // Assume gold is crit
+        const fontSize = isCrit ? '32px' : '24px';
+
         const txt = this.scene.add.text(data.x, data.y, data.text, {
-            fontSize: '20px', color: data.color, fontStyle: 'bold', stroke: '#000', strokeThickness: 2
+            fontSize: fontSize,
+            color: data.color,
+            fontStyle: '900',
+            stroke: '#000000',
+            strokeThickness: isCrit ? 8 : 6,
+            fontFamily: '"Courier New", Courier, monospace'
         }).setOrigin(0.5).setDepth(2000);
 
         this.scene.tweens.add({
             targets: txt,
-            y: data.y - 50,
+            y: data.y - (isCrit ? 80 : 50),
+            scale: isCrit ? 1.5 : 1, // Pop effect
             alpha: 0,
             duration: 1000,
+            ease: 'Quart.out',
             onComplete: () => txt.destroy()
         });
     }

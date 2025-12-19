@@ -1,11 +1,12 @@
 import { supabase } from './SupabaseClient';
-import { WeaponInstance } from '../types';
+import { ItemInstance } from '../types';
 
 export interface UserProfile {
     username: string;
     level: number;
+    xp: number; // Added to sync with GameStats
     credits: number;
-    inventory: WeaponInstance[]; // Updated Type
+    inventory: ItemInstance[]; // Updated Type
     loadout: any;     // 你的 Loadout 定義
     hasPlayedOnce: boolean;
     stats: {
@@ -17,6 +18,7 @@ export interface UserProfile {
 const DEFAULT_PROFILE: UserProfile = {
     username: 'Guest',
     level: 1,
+    xp: 0,
     credits: 0,
     inventory: [],
     loadout: { weapon: 'BLADE' },

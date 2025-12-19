@@ -204,6 +204,13 @@ export class MainScene extends Phaser.Scene {
 
         // Emit Ready
         EventBus.emit('SCENE_READY');
+
+        // [PROTOCOL] React UI Resume Game
+        EventBus.on('RESUME_GAME', () => {
+            console.log("▶️ [MainScene] Game Resumed from UI.");
+            this.isPaused = false;
+            this.physics.resume();
+        });
     }
 
     handleResize(gameSize: Phaser.Structs.Size) {
@@ -280,8 +287,41 @@ export class MainScene extends Phaser.Scene {
 
         this.networkSyncSystem.setTargets(this.commander!, null, this.waveManager);
 
-        // [PROTOCOL] Operation Genesis: Safety Net
-        this.weaponSystem.ensurePlayerWeapon(this.commander);
+        // [PROTOCOL] Operation Gacha Link: Poverty RNG
+        // this.weaponSystem.ensurePlayerWeapon(this.commander); // [DEPRECATED]
+
+        if (!this.commander.equippedWeapon) {
+            // A. Determine T0 ID based on Class
+            const t0Map: Record<string, string> = {
+                'SCAVENGER': 'weapon_crowbar_t0',
+                'RANGER': 'weapon_pistol_t0',
+                'WEAVER': 'weapon_drone_t0'
+            };
+            // Default to crowbar if classId map fails (Safety)
+            const defId = t0Map[this.myClass] || 'weapon_crowbar_t0';
+
+            // B. Call LootService for RNG stats (The Soul!)
+            const emergencyWeapon = LootService.generateLoot(0, defId);
+
+            if (emergencyWeapon) {
+                this.commander.equipWeapon(emergencyWeapon);
+                console.log(`🎁 [MainScene] Poverty Gacha Result: ${emergencyWeapon.displayName} (${emergencyWeapon.rarity})`);
+
+                // [PROTOCOL] Operation First Contact: Visual Feedback
+                // 暫停遊戲，等待玩家確認
+                this.isPaused = true;
+                this.physics.pause();
+
+                EventBus.emit('SHOW_ACQUISITION_MODAL', {
+                    title: 'EMERGENCY RATION // 緊急配給',
+                    subtitle: 'NO WEAPON DETECTED',
+                    item: emergencyWeapon,
+                    flavorText: '「在廢土上，有東西拿就不錯了，別挑。」'
+                });
+            } else {
+                console.error("❌ [MainScene] Failed to generate T0 weapon!");
+            }
+        }
     }
 
     update(time: number, delta: number) {

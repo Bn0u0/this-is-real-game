@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { EventBus } from '../services/EventBus';
+import { AcquisitionModal } from './AcquisitionModal';
+import { ItemInstance } from '../types';
 
 /**
  * GameOverlay: The main HUD during combat.
@@ -19,17 +21,37 @@ export const GameOverlay: React.FC = () => {
         wave: 1
     });
 
+    // [NEW] Acquisition Modal State
+    const [acquisitionData, setAcquisitionData] = useState<{
+        item: ItemInstance;
+        title?: string;
+        subtitle?: string;
+        flavorText?: string;
+    } | null>(null);
+
     useEffect(() => {
         const handleUpdate = (data: any) => {
             setStats(data);
         };
 
+        const handleAcquisition = (data: any) => {
+            setAcquisitionData(data);
+            // Phaser is paused by MainScene logic already
+        };
+
         EventBus.on('STATS_UPDATE', handleUpdate);
+        EventBus.on('SHOW_ACQUISITION_MODAL', handleAcquisition);
 
         return () => {
             EventBus.off('STATS_UPDATE', handleUpdate);
+            EventBus.off('SHOW_ACQUISITION_MODAL', handleAcquisition);
         };
     }, []);
+
+    const handleAcceptLoot = () => {
+        setAcquisitionData(null);
+        EventBus.emit('RESUME_GAME');
+    };
 
     // Format Time: MM:SS
     const minutes = Math.floor(stats.survivalTime / 60);
@@ -42,6 +64,19 @@ export const GameOverlay: React.FC = () => {
 
     return (
         <div className="absolute inset-0 pointer-events-none z-[100] select-none font-mono">
+            {/* [NEW] Modal Layer (Pointer events enabled for this overlay if active) */}
+            {acquisitionData && (
+                <div className="absolute inset-0 z-[200] pointer-events-auto">
+                    <AcquisitionModal
+                        item={acquisitionData.item}
+                        title={acquisitionData.title}
+                        subtitle={acquisitionData.subtitle}
+                        flavorText={acquisitionData.flavorText}
+                        onAccept={handleAcceptLoot}
+                    />
+                </div>
+            )}
+
             {/* Vignette Effect */}
             <div className="absolute inset-0 z-[-1]" style={{
                 background: 'radial-gradient(circle at center, transparent 60%, rgba(10, 5, 20, 0.85) 100%)'

@@ -299,21 +299,5 @@ export class WeaponSystem {
         this.scene.time.delayedCall(1200, () => projectile.destroy());
     }
 
-    public ensurePlayerWeapon(player: any) {
-        if (!player.equippedWeapon) {
-            // Give default rusty crowbar
-            // In real flow, this should come from Persistence or LootService.generateLoot(0)
-            // But WeaponSystem shouldn't depened on LootService circularly?
-            // Use simple default for safety.
-            const dummyT0: ItemInstance = {
-                uid: 'safety_net',
-                defId: 'weapon_crowbar_t0',
-                displayName: 'Backup Crowbar',
-                name: 'Backup Crowbar',
-                rarity: ItemRarity.COMMON,
-                computedStats: { damage: 10, range: 60, fireRate: 500, critChance: 0 }
-            };
-            player.equippedWeapon = dummyT0;
-        }
-    }
+
 }

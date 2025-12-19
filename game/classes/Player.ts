@@ -148,21 +148,29 @@ export class Player extends Phaser.GameObjects.Container {
         this.drawGuardian(config.stats.markColor);
     }
 
-    public equipWeapon(def: ItemDef) {
-        this.equippedWeapon = {
-            uid: Phaser.Utils.String.UUID(),
-            defId: def.id,
-            displayName: def.name,
-            name: def.name,
-            rarity: (def.rarity as ItemRarity) || ItemRarity.COMMON,
-            computedStats: {
-                damage: def.baseStats.damage,
-                range: def.baseStats.range,
-                fireRate: def.baseStats.fireRate,
-                critChance: def.baseStats.critChance || 0,
-                speed: def.baseStats.speed || 0,
-            }
-        };
+    public equipWeapon(item: ItemDef | ItemInstance) {
+        // Method Overload Implementation
+        if ('uid' in item) {
+            // Already an Instance (RNG Applied)
+            this.equippedWeapon = item as ItemInstance;
+        } else {
+            // Raw Definition (Fallback Construction)
+            const def = item as ItemDef;
+            this.equippedWeapon = {
+                uid: Phaser.Utils.String.UUID(),
+                defId: def.id,
+                displayName: def.name,
+                name: def.name,
+                rarity: (def.rarity as ItemRarity) || ItemRarity.COMMON,
+                computedStats: {
+                    damage: def.baseStats.damage,
+                    range: def.baseStats.range,
+                    fireRate: def.baseStats.fireRate,
+                    critChance: def.baseStats.critChance || 0,
+                    speed: def.baseStats.speed || 0,
+                }
+            };
+        }
     }
 
     drawGuardian(color: number) {

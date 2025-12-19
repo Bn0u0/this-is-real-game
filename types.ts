@@ -169,3 +169,28 @@ export interface PlayerProfile {
   backpack: Backpack; // Risk: Lost on Death
   stash: ItemInstance[]; // Safe: Banked
 }
+
+// ----------------------
+// 5. Enemy System
+// ----------------------
+export type EnemyBehavior = 'CHASER' | 'SHOOTER' | 'TELEPORTER';
+
+export interface EnemyDef {
+  id: string;
+  name: string;
+  faction: 'RUSTED' | 'OVERGROWN' | 'GLITCHED';
+  tier: 1 | 2 | 3; // 1=Grunt, 2=Elite, 3=Boss
+  stats: {
+    hp: number;
+    speed: number;
+    damage: number;
+    attackRange: number; // Trigger attack at this distance
+  };
+  behavior: EnemyBehavior;
+  visuals: {
+    color: number; // 0xFF9900
+    scale: number;
+    effect?: string; // 'GLITCH_TRAIL'
+  };
+  // Drop rates could go here
+}

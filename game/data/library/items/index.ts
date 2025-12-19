@@ -3,16 +3,16 @@ import { T0_WEAPONS } from './weapons/t0_backup';
 import { T1_WEAPONS } from './weapons/t1_scrap';
 import { T2_WEAPONS } from './weapons/t2_industrial';
 import { T3_WEAPONS } from './weapons/t3_tactical';
-// import { T4_WEAPONS } from './weapons/t4_hitech';
+import { T4_WEAPONS } from './weapons/t4_hitech';
 import { T5_WEAPONS } from './weapons/t5_glitch';
 
 // 1. Aggregate
 const ALL_ITEMS: ItemDef[] = [
     ...T0_WEAPONS,
     ...T1_WEAPONS,
-    ...T2_WEAPONS, // Currently empty placeholder
+    ...T2_WEAPONS,
     ...T3_WEAPONS,
-    // ...T4_WEAPONS,
+    ...T4_WEAPONS,
     ...T5_WEAPONS,
 ];
 

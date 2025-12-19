@@ -1,6 +1,7 @@
 import { inventoryService } from './InventoryService';
 import { persistence } from './PersistenceService';
 import { EventBus } from './EventBus';
+import { PlayerProfile } from '../types';
 
 export type GameScreen = 'HIDEOUT' | 'GAME_LOOP' | 'GAME_OVER';
 
@@ -8,26 +9,28 @@ export interface MetaGameState {
     currentScreen: GameScreen;
     selectedHeroId: string;
     isMobile: boolean;
+    profile: PlayerProfile; // [NEW] Synced Profile
 }
 
 class MetaGameService {
-    private state: MetaGameState = {
-        currentScreen: 'HIDEOUT', // Skip Boot/Menu, straight to Hideout
-        selectedHeroId: 'Vanguard',
-        isMobile: window.innerWidth < 768
-    };
+    private state: MetaGameState;
 
     constructor() {
-        // Validation check
+        this.state = {
+            currentScreen: 'HIDEOUT',
+            selectedHeroId: 'Vanguard',
+            isMobile: window.innerWidth < 768,
+            profile: inventoryService.getState()
+        };
         this.init();
     }
 
     private init() {
-        // Auto-load persistence
-        const profile = persistence.getProfile();
-        if (profile.level === 1 && profile.xp === 0) {
-            console.log("New User / Default Profile Loaded");
-        }
+        // Sync Inventory State
+        inventoryService.subscribe((newProfile) => {
+            this.state.profile = newProfile;
+            this.emitChange();
+        });
 
         // Mobile Check binding
         window.addEventListener('resize', () => {
@@ -55,42 +58,48 @@ class MetaGameService {
 
     // --- Game Logic Hooks ---
     public startMatch() {
-        // Final check: Do we have energy? Do we have a loadout? 
-        // For MVP2: Just go.
+        // [DUAL-TRACK] Loadout Check
+        const mainWep = this.state.profile.loadout.mainWeapon;
+        if (!mainWep) {
+            console.warn("[MetaGame] Warning: No weapon equipped!");
+            // Allowed, poverty logic in MainScene will catch this
+        }
+
         this.navigateTo('GAME_LOOP');
         // Delay to allow React to mount Phaser
         setTimeout(() => {
             EventBus.emit('START_MATCH', {
                 mode: 'SINGLE',
                 hero: this.state.selectedHeroId,
-                // Inject Loadout stats here later
             });
         }, 100);
     }
 
     public handleGameOver(score: number) {
-        // 1. Save Highscore (Persistence) - Already done by App.tsx? Move it here.
-        // 2. Clear temp inventory?
-
-        // DEATH PENALTY LOGIC
+        // [DUAL-TRACK] Death Penalty
         const lostItemName = inventoryService.punishDeath(this.state.selectedHeroId);
+
         if (lostItemName) {
             console.log(`[DEATH PENALTY] Hero died. Lost Item: ${lostItemName}`);
-            // We should ideally pass this to the Game Over screen
+        } else {
+            console.log(`[DEATH PENALTY] Hero died. Backpack lost (Empty).`);
         }
 
         this.navigateTo('GAME_OVER');
     }
 
     public handleExtractionSuccess(lootIds: string[]) {
-        // 1. Convert loot to artifacts
+        // 1. Convert loot to artifacts (Legacy / Compat)
+        // In Dual-Track, ExtractionGate calls extractionManager, which emits EXTRACTION_SUCCESS
+        // MainScene handles it and calls InventoryService.
+        // If this is called from UI or Scene, we ensure InventoryService handles it.
         inventoryService.processExtractionLoot(lootIds);
+
         // 2. Return to Hideout to show loot
         this.navigateTo('HIDEOUT');
     }
 
     // --- React Subscription Helper ---
-    // Simple observer pattern for App.tsx to redraw
     private listeners: Function[] = [];
 
     public subscribe(listener: Function) {

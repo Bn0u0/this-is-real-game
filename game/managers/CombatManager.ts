@@ -52,81 +52,82 @@ export class CombatManager {
     public checkCollisions(
         enemyGroup: Phaser.GameObjects.Group,
         players: Player[],
-        onPlayerDamaged: (amount: number) => void
+        onPlayerDamaged: (amount: number) => void,
+        externalProjectiles?: Phaser.GameObjects.Group // [FIX] Support WeaponSystem
     ) {
-        // Projectile -> Enemy
+        // 1. Internal Pool -> Enemy
         this.scene.physics.overlap(this.projectiles, enemyGroup, (proj: any, enemy: any) => {
-            const projectile = proj as Projectile;
-            const e = enemy as Enemy;
-
-            const damage = projectile.damage;
-            const kill = e.takeDamage(damage);
-
-            // [JUICE] Hit Feedback
-            EventBus.emit('SHOW_FLOATING_TEXT', {
-                x: e.x, y: e.y,
-                text: `${Math.floor(damage)}`,
-                color: kill ? '#FFAA00' : '#FFFFFF'
-            });
-
-            // [CORE LOOP] Juice Injection
-            // 1. Hit Stop
-            const hitStopDuration = (projectile.damage > 20) ? 50 : 10;
-            try {
-                if (!this.scene.physics.world.isPaused) {
-                    this.scene.physics.pause();
-                    this.scene.time.delayedCall(hitStopDuration, () => {
-                        this.scene.physics.resume();
-                    });
-                }
-            } catch (err) {
-                // Ignore
-            }
-
-            // 2. Flash
-            e.setTintFill(0xFFFFFF);
-            this.scene.time.delayedCall(50, () => {
-                e.clearTint();
-            });
-
-            // 3. Knockback
-            if (e.body && !kill) {
-                // Fix: Type safe vector usage
-                const projBody = projectile.body;
-                const vx = projBody?.velocity?.x || 0;
-                const vy = projBody?.velocity?.y || 0;
-
-                const velocity = new Phaser.Math.Vector2(vx, vy).normalize();
-                const force = 300;
-
-                e.setMaxVelocity(1000);
-                e.setVelocity(velocity.x * force, velocity.y * force);
-            }
-
-            if (kill) {
-                this.scene.cameras.main.shake(50, 0.005);
-            }
-
-            projectile.destroy();
+            this.handleHit(proj, enemy);
         });
 
-        // Enemy -> Player (Melee)
-        enemyGroup.getChildren().forEach((child: any) => {
-            const enemy = child as Enemy;
-            if (enemy.isDead) return;
-
-            players.forEach(player => {
-                if (!player) return;
-                const dist = Phaser.Math.Distance.Between(enemy.x, enemy.y, player.x, player.y);
-                if (dist < 30) {
-                    const p = player as any;
-                    if (!p.shielded) {
-                        onPlayerDamaged(10);
-                    }
-                    enemy.die();
-                }
+        // 2. External Group -> Enemy (WeaponSystem)
+        if (externalProjectiles) {
+            this.scene.physics.overlap(externalProjectiles, enemyGroup, (proj: any, enemy: any) => {
+                this.handleHit(proj, enemy);
             });
+        }
+    }
+
+    private handleHit(projectile: any, enemy: any) {
+        const e = enemy as Enemy;
+        const damage = projectile.damage || 0;
+        if (damage <= 0) return;
+
+        const kill = e.takeDamage(damage);
+
+        // [JUICE] Hit Feedback
+        EventBus.emit('SHOW_FLOATING_TEXT', {
+            x: e.x, y: e.y,
+            text: `${Math.floor(damage)}`,
+            color: kill ? '#FFAA00' : '#FFFFFF'
         });
+
+        // [CORE LOOP] Juice Injection
+        // 1. Hit Stop
+        const hitStopDuration = (damage > 20) ? 50 : 10;
+        try {
+            if (!this.scene.physics.world.isPaused) {
+                this.scene.physics.pause();
+                this.scene.time.delayedCall(hitStopDuration, () => {
+                    this.scene.physics.resume();
+                });
+            }
+        } catch (err) { }
+
+        // 2. Flash
+        e.setTintFill(0xFFFFFF);
+        this.scene.time.delayedCall(50, () => {
+            e.clearTint();
+        });
+
+        // 3. Knockback
+        if (e.body && !kill) {
+            const projBody = projectile.body;
+            let vx = 0;
+            let vy = 0;
+            if (projBody) {
+                vx = projBody.velocity.x;
+                vy = projBody.velocity.y;
+            }
+
+            // Fallback for non-physics projectiles (e.g. Laser)
+            if (vx === 0 && vy === 0) {
+                vx = e.x - projectile.x;
+                vy = e.y - projectile.y;
+            }
+
+            const velocity = new Phaser.Math.Vector2(vx, vy).normalize();
+            const force = 300;
+
+            e.setMaxVelocity(1000);
+            e.setVelocity(velocity.x * force, velocity.y * force);
+        }
+
+        if (kill) {
+            this.scene.cameras.main.shake(50, 0.005);
+        }
+
+        projectile.destroy();
     }
 
     public updateCombatAI(commander: Player, drone: Player | null, enemyGroup: Phaser.GameObjects.Group, projectileGroup: Phaser.GameObjects.Group) {

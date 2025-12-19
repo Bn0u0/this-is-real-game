@@ -118,6 +118,9 @@ export class WeaponSystem {
         body.setVelocity(vecX, vecY);
         body.setCircle(10);
 
+        // [LOGIC] Attach Damage for CombatManager
+        (projectile as any).damage = stats.damage;
+
         // Trail effect?
         // Simple expire
         this.scene.time.delayedCall(1000, () => projectile.destroy());

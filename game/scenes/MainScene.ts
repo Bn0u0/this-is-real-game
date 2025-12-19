@@ -6,7 +6,7 @@ import { COLORS, PHYSICS } from '../../constants';
 import { EventBus } from '../../services/EventBus';
 // import { UpgradeType } from '../../types'; // [VOID]
 import { network } from '../../services/NetworkService';
-import { PowerupService, PowerupType } from '../../services/PowerupService';
+// import { PowerupService, PowerupType } from '../../services/PowerupService'; // [ZOMBIE PURGE]
 import { LootService } from '../../services/LootService';
 import { inventoryService } from '../../services/InventoryService';
 import { persistence } from '../../services/PersistenceService';
@@ -77,7 +77,7 @@ export class MainScene extends Phaser.Scene {
     private hp: number = 100;
     private maxHp: number = 100;
     private survivalTime: number = 0;
-    private matchTimer: number = 180; // 3 Minutes Countdown
+    // private matchTimer: number = 180; // [PURGED]
     private nextBossTime: number = 300;
     private pulsePhase: 'SCAVENGE' | 'WARNING' | 'PURGE' = 'SCAVENGE';
 
@@ -87,7 +87,7 @@ export class MainScene extends Phaser.Scene {
     public combatManager!: CombatManager;
     public terrainManager!: TerrainManager;
     public effectManager!: EffectManager;
-    public powerupService!: PowerupService;
+    // public powerupService!: PowerupService; // [ZOMBIE PURGE]
     public lootService!: LootService;
     public weaponSystem!: WeaponSystem;
     public inputSystem!: InputSystem;
@@ -110,32 +110,14 @@ export class MainScene extends Phaser.Scene {
     }
 
     create() {
-        console.log("🎨 [MainScene] Applying Amber-Glitch Style...");
-
-        // 1. [STYLE] 設定背景色 (Amber-Glitch 深紫)
-        this.cameras.main.setBackgroundColor(AMBER_STYLE.bg);
-
-        // 設定世界邊界
-        this.physics.world.setBounds(0, 0, this.worldWidth, this.worldHeight);
-        this.cameras.main.setBounds(0, 0, this.worldWidth, this.worldHeight);
-
-        // 2. Texture Generation
-        const textureManager = new TextureManager(this);
-        textureManager.generateAll();
-
-        // 3. Register Resize (Fix Web Layout)
-        this.scale.on('resize', this.handleResize, this);
-
-        // 4. Initial Camera Center (Fix Invisible Start)
-        this.cameras.main.scrollX = this.worldWidth / 2 - this.cameras.main.width / 2;
-        this.cameras.main.scrollY = this.worldHeight / 2 - this.cameras.main.height / 2;
+        // ... (truncated) setBackgroundColor, setBounds ...
 
         // 5. Initialize Groups
         this.enemyGroup = this.add.group();
         this.projectileGroup = this.add.group(); // 確保這個也被初始化
 
         // 6. Initialize Systems
-        this.powerupService = new PowerupService(this);
+        // this.powerupService = new PowerupService(this); // [ZOMBIE PURGE]
         this.lootService = new LootService(this);
         this.effectManager = new EffectManager(this);
         this.terrainManager = new TerrainManager(this);
@@ -472,7 +454,8 @@ export class MainScene extends Phaser.Scene {
         this.combatManager.checkCollisions(
             this.enemyGroup!,
             players,
-            (amt) => this.takeDamage(amt)
+            (amt) => this.takeDamage(amt),
+            this.weaponSystem.projectiles // [FIX] External Projectiles
         );
     }
 
@@ -526,7 +509,7 @@ export class MainScene extends Phaser.Scene {
             wave: this.waveManager ? this.waveManager.wave : 1,
             enemiesAlive: this.enemyGroup ? this.enemyGroup.getLength() : 0,
             survivalTime: this.survivalTime,
-            matchTimer: Math.ceil(this.matchTimer),
+            matchTimer: 0, // [COMPAT] UI expects this, send 0 to indicate valid empty state
             cooldowns: this.myUnit ? this.myUnit.cooldowns : {},
             maxCooldowns: this.myUnit ? this.myUnit.maxCooldowns : {},
         });

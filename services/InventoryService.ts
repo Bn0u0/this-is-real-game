@@ -82,6 +82,8 @@ class InventoryService {
         const loot = this.state.backpack.slots.filter(i => i !== null) as ItemInstance[];
         this.state.stash.push(...loot);
 
+        console.log(`[Inventory] Uploading ${loot.length} items to Stash. New Stash Size: ${this.state.stash.length}`);
+
         // Clear Backpack
         this.state.backpack.slots.fill(null);
         this.save();

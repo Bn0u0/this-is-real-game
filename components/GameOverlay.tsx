@@ -90,12 +90,12 @@ export const GameOverlay: React.FC = () => {
                     <span className="text-2xl font-black text-white">{stats.score.toLocaleString()}</span>
                 </div>
 
-                {/* Timer */}
+                {/* Timer (Survival) */}
                 <div className="flex flex-col items-center">
                     <div className="bg-black/50 border border-white/20 px-4 py-1 backdrop-blur-sm rounded">
                         <span className="text-2xl font-bold text-[#00FFFF] tracking-widest">{timeString}</span>
                     </div>
-                    <span className="text-[10px] text-gray-500 mt-1">WAVE {stats.wave}</span>
+                    <span className="text-[10px] text-gray-500 mt-1">SURVIVED</span>
                 </div>
 
                 {/* Enemies / Misc */}
@@ -137,14 +137,13 @@ export const GameOverlay: React.FC = () => {
                         </div>
                     </div>
 
-                    {/* [CORE LOOP] 3-Minute Timer */}
+                    {/* [CORE LOOP] Extraction Status */}
                     <div className="flex flex-col items-center ml-4">
-                        <div className={`text-2xl font-black tracking-tighter ${stats.matchTimer < 30 ? 'text-[#FF0000] animate-pulse' : 'text-[#FFD1A9]'}`}>
-                            {Math.floor((stats.matchTimer || 180) / 60)}:
-                            {String((stats.matchTimer || 180) % 60).padStart(2, '0')}
+                        <div className="text-xl font-black text-[#00FF00] tracking-tighter animate-pulse">
+                            ACTIVE
                         </div>
                         <div className="text-[8px] font-bold text-gray-500 tracking-widest -mt-1 uppercase">
-                            Remain Time
+                            STATUS
                         </div>
                     </div>
                 </div>

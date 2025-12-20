@@ -95,7 +95,19 @@ export class MainScene extends Phaser.Scene {
         super('MainScene');
     }
 
+    preload() {
+        console.log("🚀 [MainScene] Preloading Assets...");
+        // Generating 'flare' texture programmatically if missing
+        if (!this.textures.exists('flare')) {
+            const graphics = this.make.graphics({ x: 0, y: 0 });
+            graphics.fillStyle(0xffffff, 1);
+            graphics.fillCircle(16, 16, 16);
+            graphics.generateTexture('flare', 32, 32);
+        }
+    }
+
     create() {
+        console.log("🚀 [MainScene] Creating Scene...");
         this.physics.world.setBounds(0, 0, this.worldWidth, this.worldHeight);
 
         // Groups

@@ -56,16 +56,23 @@ class PersistenceService {
 
     // 自動匿名登入
     async initCloudSync() {
-        const { data: { session } } = await supabase.auth.getSession();
+        try {
+            const { data: { session } } = await supabase.auth.getSession();
 
-        if (!session) {
-            // 如果沒登入，就匿名登入 (降低玩家門檻)
-            console.log("☁️ [Cloud] Signing in anonymously...");
-            const { error } = await supabase.auth.signInAnonymously();
-            if (error) console.error("Cloud Error:", error);
+            if (!session) {
+                // 如果沒登入，就匿名登入 (降低玩家門檻)
+                console.log("☁️ [Cloud] Signing in anonymously...");
+                const { error } = await supabase.auth.signInAnonymously();
+                if (error) {
+                    console.warn("Cloud Auth Warning (Offline Mode):", error.message);
+                    return; // Fail gracefully, use local profile
+                }
+            }
+
+            this.syncDown();
+        } catch (e) {
+            console.warn("Cloud Sync Failed (Offline Mode)", e);
         }
-
-        this.syncDown();
     }
 
     // 取得檔案

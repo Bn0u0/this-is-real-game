@@ -46,6 +46,7 @@ export const PhaserGame: React.FC = () => {
 
     const game = new Phaser.Game(config);
     gameRef.current = game;
+    (window as any).phaserGame = game; // [DEBUG] Expose to Global
 
     return () => {
       if (gameRef.current) {

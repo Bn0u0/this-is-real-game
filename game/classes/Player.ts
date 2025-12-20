@@ -5,6 +5,7 @@ import { ItemInstance, ItemDef, ItemRarity } from '../../types';
 import { ItemLibrary } from '../data/library/items';
 import { ClassConfig } from '../factories/PlayerFactory';
 import { WeaponSystem } from '../systems/WeaponSystem';
+import { inventoryService } from '../../services/InventoryService'; // [NEW]
 // import { cardSystem } from '../systems/CardSystem'; // [VOID]
 // import { WeaponInstance } from '../../types'; // [VOID]
 
@@ -59,7 +60,10 @@ export class Player extends Phaser.GameObjects.Container {
         cooldown: 0,
         sizeMod: 1.0,
         projectileCount: 1,
-        dodge: 0
+        dodge: 0,
+        defense: 0,
+        fireRate: 400,
+        range: 300
     };
 
     // Systems
@@ -267,34 +271,47 @@ export class Player extends Phaser.GameObjects.Container {
     public recalculateStats() {
         if (!this.classConfig) return;
 
-        // 1. Base Stats
-        const base = {
-            hpMaxMod: 1,
-            sizeMod: 1,
-            dmgMod: 1,
-            projectileCount: 1,
-            dodge: 0,
-            speed: this.classConfig.stats.speed,
-            atk: this.classConfig.stats.atk
-        };
+        // 1. Get Loadout Stats from Inventory Service
+        // We assume the player uses the global singleton state for local player
+        // For remote players, we might need to sync this data differently, but for MVP local:
+        const loadout = inventoryService.getState().loadout;
+        const totalStats = inventoryService.calculateTotalStats(loadout, this.classId);
 
-        // 2. [VOID] Card System Removed
-        // TODO: Re-integrate Symbiosis Modifiers here
-        const modified = base;
+        // 2. Base Config
+        // Map Class Config to Stats (if not already covered)
+        // classConfig.stats.speed is Base, Items add to it
+        const baseHp = this.classConfig.stats.hp;
+        const baseSpeed = this.classConfig.stats.speed;
 
-        // 3. Apply Loot Weight (Encumbrance)
-        const weightPenalty = Math.pow(0.95, this.lootBag.length);
+        // 3. Apply
+        this.currentStats.maxHp = Math.floor(baseHp + totalStats.hpMax);
+        this.currentStats.atk = Math.floor(this.classConfig.stats.atk + totalStats.damage); // Add item damage to base atk? Or replace? 
+        // WeaponSystem uses 'currentStats.damage' usually? 
+        // Let's assume WEAPON DAMAGE is the main source, and we add Class ATK as bonus?
+        // Actually, logic: Weapon Base + Stats.
+        // If totalStats.damage includes Weapon Damage, then we use that.
+        this.currentStats.atk = Math.max(1, totalStats.damage);
 
-        // 4. Finalize
-        this.currentStats.maxHp = Math.floor(this.classConfig.stats.hp * modified.hpMaxMod);
-        this.currentStats.atk = Math.floor(base.atk * modified.dmgMod);
-        this.currentStats.speed = base.speed * weightPenalty;
-        this.currentStats.sizeMod = modified.sizeMod;
-        this.currentStats.projectileCount = modified.projectileCount;
-        this.currentStats.dodge = modified.dodge;
+        // Speed: Base * (1 + speed/1000?) or Base + Speed?
+        // Let's treat item speed as flat addition for now or multiplier?
+        // T3 legs gives "30". Base speed is 1.0 (approx 200px/s).
+        // Let's say 100 speed = +1.0 base speed.
+        this.currentStats.speed = baseSpeed + (totalStats.speed / 200);
 
-        this.setScale(this.currentStats.sizeMod);
+        this.currentStats.defense = totalStats.defense;
+        this.currentStats.crit = ((this.classConfig.stats as any).crit || 5) + (totalStats.critChance * 100);
+        this.currentStats.fireRate = totalStats.fireRate;
+        this.currentStats.range = totalStats.range;
+
+        // 4. Update Physics
+        this.updateMaxSpeed();
         this.drawLootStack();
+
+        // Update Fire Rate
+        this.fireRate = this.currentStats.fireRate > 0 ? this.currentStats.fireRate : 400;
+
+        // Visual Scale
+        this.setScale(this.currentStats.sizeMod);
     }
 
     private drawLootStack() {

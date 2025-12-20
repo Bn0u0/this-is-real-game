@@ -4,6 +4,7 @@ import { HapticService } from '../services/HapticService';
 import { CLASSES } from '../game/factories/PlayerFactory';
 import { PlayerClassID } from '../types';
 import { persistence } from '../services/PersistenceService';
+import { languageService } from '../services/LanguageService';
 
 interface MainMenuProps {
     onStartGame: (role: string) => void;
@@ -90,6 +91,11 @@ export const MainMenu: React.FC<MainMenuProps> = ({ onStartGame, onOpenHideout }
         return <p className="text-center text-xl font-bold text-[#00FFFF] my-8">{modal.msg}</p>;
     };
 
+    const t = (key: any) => languageService.t(key);
+    // Subscribe to language change
+    const [_, setTick] = useState(0);
+    React.useEffect(() => languageService.subscribe(() => setTick(t => t + 1)), []);
+
     return (
         <div className="fixed inset-0 flex flex-col items-center justify-center bg-black/90 backdrop-blur-sm z-50 animate-in fade-in duration-500">
             {/* Custom Modal with Dynamic Content support */}
@@ -123,9 +129,9 @@ export const MainMenu: React.FC<MainMenuProps> = ({ onStartGame, onOpenHideout }
                 <div className="mb-8 text-center transform transition-transform duration-300">
                     {/* Pastel Title */}
                     <h1 className="text-5xl md:text-6xl font-black text-[#00FFFF] tracking-tighter drop-shadow-[2px_2px_0px_#FF00FF]" style={{ fontFamily: 'sans-serif' }}>
-                        這才較割草
+                        {t('MM_TITLE_1')} {t('MM_TITLE_2')}
                     </h1>
-                    <p className="text-[#FF00FF] font-black tracking-widest mt-2">就3分鐘 別貪!快撤</p>
+                    <p className="text-[#FF00FF] font-black tracking-widest mt-2">{t('MM_SUBTITLE')}</p>
                 </div>
 
                 {/* Character Selector */}
@@ -163,7 +169,7 @@ export const MainMenu: React.FC<MainMenuProps> = ({ onStartGame, onOpenHideout }
                 >
                     <div className="absolute inset-0 bg-[#FFD700] rounded-3xl border-4 border-white transition-colors shadow-[0_8px_0_#d4b200]"></div>
                     <span className="relative z-10 text-3xl font-black text-[#241e3b] tracking-widest block" style={{ fontFamily: '"Varela Round", sans-serif' }}>
-                        立即出擊! 🚀
+                        {t('MM_BTN_START')}
                     </span>
                 </button>
 
@@ -176,7 +182,7 @@ export const MainMenu: React.FC<MainMenuProps> = ({ onStartGame, onOpenHideout }
                         }}
                         style={{ fontFamily: '"Varela Round", sans-serif' }}
                     >
-                        HIDEOUT (倉庫) 📦
+                        {t('MM_BTN_HIDEOUT')}
                     </button>
 
                     <button
@@ -184,7 +190,7 @@ export const MainMenu: React.FC<MainMenuProps> = ({ onStartGame, onOpenHideout }
                         onClick={() => showModal("創始股東 ✨", "感謝每一位支持這場派對的傳奇！\n\n(名單募集中)")}
                         style={{ fontFamily: '"Varela Round", sans-serif' }}
                     >
-                        武器庫 / HIDEOUT
+                        {t('MM_BTN_ARSENAL')}
                     </button>
 
                     <button
@@ -195,18 +201,18 @@ export const MainMenu: React.FC<MainMenuProps> = ({ onStartGame, onOpenHideout }
                         }}
                         style={{ fontFamily: '"Varela Round", sans-serif' }}
                     >
-                        數位資產 / BACKUP
+                        {t('MM_BTN_BACKUP')}
                     </button>
                 </div>
 
                 <div className="mt-8 text-[10px] text-gray-500 font-mono">
-                    <p>PROTOCOL: ZERO-BACKEND ENABLED</p>
-                    <p>VER: 0.12.0 // MOUSE_SUPPORTED</p>
+                    <p>{t('MM_PROTOCOL')}</p>
+                    <p>{t('MM_VERSION')}</p>
                 </div>
             </div>
 
             <div className="absolute bottom-6 text-[12px] text-[#00FFFF]/60 tracking-widest font-mono">
-                VER 3.0.0 // NEON_POP_PLATINUM
+                {t('MM_FOOTER')}
             </div>
         </div >
     );

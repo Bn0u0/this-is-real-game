@@ -2,7 +2,7 @@ import { Utils } from 'phaser';
 import { ItemInstance, ItemDef, ItemRarity, ItemStats, Loadout, Backpack, PlayerProfile, TutorialStep } from '../types';
 import { ItemLibrary } from '../game/data/library/items';
 
-const STORAGE_KEY_V4 = 'SYNAPSE_NEO_INVENTORY_V4';
+const STORAGE_KEY_V4 = 'SYNAPSE_NEO_INVENTORY_V5';
 
 class InventoryService {
     private state: PlayerProfile;
@@ -86,8 +86,9 @@ class InventoryService {
             name: 'Unknown',
             type: 'MATERIAL',
             tier: 0,
-            baseStats: { damage: 0, range: 0, fireRate: 0 },
-            rarity: 'COMMON'
+            baseStats: { damage: 0, range: 0, fireRate: 0, speed: 0, critChance: 0, defense: 0, hpMax: 0 },
+            rarity: 'COMMON',
+            slot: 'mainWeapon'
         };
 
         return {
@@ -102,6 +103,56 @@ class InventoryService {
     }
 
     public getState() { return this.state; }
+
+    // --- Logic Engine ---
+
+    public calculateTotalStats(loadout: Loadout, classId: string): ItemStats {
+        const total: ItemStats = {
+            damage: 0, range: 0, fireRate: 0, speed: 0, critChance: 0, defense: 0, hpMax: 0
+        };
+
+        Object.values(loadout).forEach(item => {
+            if (!item) return;
+
+            // 1. Base + RNG (Computed)
+            const stats = item.computedStats;
+            total.damage += stats.damage || 0;
+            total.range += stats.range || 0; // Range might not stack linearly? For now sum it.
+            // FireRate: Usually lower is faster delay. Summing delays = bad. 
+            // Logic: Take Main Weapon FireRate, ignore others? Or modifiers?
+            // For now: Only Main Weapon contributes FL/Range/Dmg base? Armor gives stats?
+            // Let's sum everything for stats like Def/HP/Speed. 
+            // For Weapons stats, maybe we need to be smarter.
+
+            if (item.def.type === 'WEAPON') {
+                total.fireRate = stats.fireRate; // Weapons override FR
+                total.range = stats.range; // Weapons override Range
+                // Damage? 
+                total.damage = Math.max(total.damage, stats.damage); // Take max damage? Or sum?
+                // Actually, if we have only 1 weapon slot, this is easy.
+            } else {
+                // Armor grants bonuses
+                total.damage += stats.damage || 0; // % bonus converted to flat in RNG?
+            }
+
+            total.speed += stats.speed || 0;
+            total.critChance += stats.critChance || 0;
+            total.defense += stats.defense || 0;
+            total.hpMax += stats.hpMax || 0;
+
+            // 2. Affinity Bonus
+            if (item.def.affinity && item.def.affinity.classes.includes(classId as any)) {
+                const bonus = item.def.affinity.bonusStats || {};
+                if (bonus.damage) total.damage += bonus.damage;
+                if (bonus.defense) total.defense += bonus.defense;
+                if (bonus.hpMax) total.hpMax += bonus.hpMax;
+                if (bonus.speed) total.speed += bonus.speed;
+                if (bonus.critChance) total.critChance += bonus.critChance;
+            }
+        });
+
+        return total;
+    }
 
     // --- Core Loop Items ---
 

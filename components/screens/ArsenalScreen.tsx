@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { TacticalLayout } from '../layout/TacticalLayout';
 import { inventoryService } from '../../services/InventoryService';
-import { ItemInstance, ItemRarity } from '../../types';
+import { ItemInstance, ItemRarity, Loadout, EquipmentSlot } from '../../types';
 import { metaGame } from '../../services/MetaGameService';
 import { languageService } from '../../services/LanguageService';
 
@@ -16,17 +16,19 @@ const getRarityColor = (rarity: ItemRarity) => {
     }
 };
 
-const ItemCard = ({ item, onClick }: { item: ItemInstance, onClick: () => void }) => (
+const ItemCard = ({ item, onClick, isSelected }: { item: ItemInstance, onClick: () => void, isSelected?: boolean }) => (
     <div
         onClick={onClick}
-        className={`relative p-2 border bg-black/40 hover:bg-white/5 cursor-pointer transition-all group ${getRarityColor(item.rarity)}`}
+        className={`relative p-2 border bg-black/40 hover:bg-white/5 cursor-pointer transition-all group 
+        ${getRarityColor(item.rarity)} ${isSelected ? 'bg-white/10 ring-1 ring-white' : ''}`}
     >
         <div className="flex justify-between items-center">
-            <span className="font-bold tracking-wider truncate">{item.displayName}</span>
-            <span className="text-xs opacity-50">{item.rarity}</span>
+            <span className="font-bold tracking-wider truncate text-sm">{item.displayName}</span>
+            <span className="text-[10px] opacity-70 uppercase">{item.def?.slot || 'ITEM'}</span>
         </div>
-        <div className="text-xs mt-1 text-amber-dim group-hover:text-white truncate">
-            DMG: {item.computedStats.damage} | SPD: {item.computedStats.fireRate}
+        <div className="text-xs mt-1 text-amber-dim group-hover:text-white truncate flex gap-2">
+            {item.computedStats.damage > 0 && <span>DMG: {item.computedStats.damage}</span>}
+            {item.computedStats.defense > 0 && <span>DEF: {item.computedStats.defense}</span>}
         </div>
     </div>
 );
@@ -40,12 +42,14 @@ const StatRow = ({ label, value, current, inverse = false }: { label: string, va
         diff = value - current;
         if (diff !== 0) {
             const isGood = inverse ? diff < 0 : diff > 0;
-            // Round to 1 decimal
             const valView = Math.abs(diff) < 1 && Math.abs(diff) > 0 ? diff.toFixed(1) : Math.floor(diff);
             diffStr = diff > 0 ? `(+${valView})` : `(${valView})`;
             diffColor = isGood ? 'text-green-400' : 'text-red-400';
         }
     }
+
+    // Only show if relevant (has value or diff)
+    if (value === 0 && (current === 0 || current === undefined)) return null;
 
     return (
         <div className="flex justify-between border-b border-white/10 pb-1 text-sm">
@@ -62,31 +66,63 @@ const StatRow = ({ label, value, current, inverse = false }: { label: string, va
     );
 };
 
+// Slot Config
+const SLOTS: { id: keyof Loadout, label: string, icon: string }[] = [
+    { id: 'head', label: 'SLOT_HEAD', icon: '🪖' }, // Keys for trans
+    { id: 'body', label: 'SLOT_BODY', icon: '🦺' },
+    { id: 'legs', label: 'SLOT_LEGS', icon: '👖' },
+    { id: 'feet', label: 'SLOT_FEET', icon: '🥾' },
+    { id: 'mainWeapon', label: 'SLOT_MAIN_WEAPON', icon: '🔫' },
+];
+
 export const ArsenalScreen: React.FC = () => {
     const [profile, setProfile] = useState(inventoryService.getState());
     const [selectedItem, setSelectedItem] = useState<ItemInstance | null>(null);
+    const [activeSlot, setActiveSlot] = useState<keyof Loadout>('mainWeapon');
     const [lang, setLang] = useState(languageService.current);
 
-    // Sync Profile
+    // Sync Profile & Language
     useEffect(() => {
         const unsubInv = inventoryService.subscribe(setProfile);
         const unsubLang = languageService.subscribe(setLang);
         return () => {
             unsubInv();
-            unsubLang(); // Unsubscribe language
+            unsubLang();
         };
     }, []);
 
     const t = (key: any) => languageService.t(key);
 
     const handleEquip = (item: ItemInstance) => {
-        // Simple swap logic for MVP
-        inventoryService.equipFromStash(item.uid, 'mainWeapon');
+        // Equip to the slot defined by the item, or fallback to activeSlot if matches
+        const targetSlot = item.def?.slot || activeSlot;
+
+        // Safety check: Don't equip a helmet to mainWeapon
+        // Cast as any because TS might complain about dynamic key access logic safety, but at runtime it's safe if slots match
+        if (targetSlot !== activeSlot) {
+            console.warn(`Mismatch slot: Item is ${targetSlot}, active is ${activeSlot}`);
+            // Auto-switch slot? Or just reject?
+            // For better UX, let's auto-equip to correct slot
+            inventoryService.equipFromStash(item.uid, targetSlot as any);
+            setActiveSlot(targetSlot as any);
+        } else {
+            inventoryService.equipFromStash(item.uid, activeSlot);
+        }
+        setSelectedItem(null);
     };
 
-    const handleUnequip = () => {
-        inventoryService.unequipToStash('mainWeapon');
+    const handleUnequip = (slot: keyof Loadout) => {
+        inventoryService.unequipToStash(slot);
     };
+
+    // Filter Stash by Active Slot
+    const filteredStash = profile.stash.filter(item => {
+        // If item.def.slot matches activeSlot
+        if (!item.def?.slot) return false; // Invalid item
+        return item.def.slot === activeSlot;
+    });
+
+    const currentEquipped = profile.loadout[activeSlot];
 
     return (
         <TacticalLayout>
@@ -94,53 +130,95 @@ export const ArsenalScreen: React.FC = () => {
 
                 {/* 1. STASH (Left - 3 Cols) */}
                 <div className="col-span-3 flex flex-col gap-4 border-r border-amber-dim/30 pr-4">
-                    <div className="text-xl font-bold tracking-widest text-amber-neon mb-2">
-                        {t('STASH_HEADER')} // {profile.stash.length}
+                    <div className="text-xl font-bold tracking-widest text-amber-neon mb-2 flex justify-between">
+                        <span>{t('STASH_HEADER')} // {t(`SLOT_${activeSlot.toUpperCase()}`)}</span>
+                        <span className="text-sm self-end opacity-50">{filteredStash.length}</span>
                     </div>
                     <div className="flex-1 overflow-y-auto flex flex-col gap-2 custom-scrollbar">
-                        {profile.stash.map(item => (
-                            <ItemCard key={item.uid} item={item} onClick={() => setSelectedItem(item)} />
+                        {filteredStash.map(item => (
+                            <ItemCard
+                                key={item.uid}
+                                item={item}
+                                isSelected={selectedItem?.uid === item.uid}
+                                onClick={() => setSelectedItem(item)}
+                            />
                         ))}
-                        {profile.stash.length === 0 && (
-                            <div className="text-amber-dim text-center py-10 italic">{t('NO_ITEMS')}</div>
+                        {filteredStash.length === 0 && (
+                            <div className="text-amber-dim text-center py-10 italic">
+                                {t('NO_ITEMS')} <br /> <span className="text-xs opacity-50">{t('FOR')} {t(`SLOT_${activeSlot.toUpperCase()}`)}</span>
+                            </div>
                         )}
                     </div>
                 </div>
 
-                {/* 2. LOADOUT (Center - 5 Cols) */}
-                <div className="col-span-5 flex flex-col items-center justify-center relative">
+                {/* 2. PAPER DOLL (Center - 5 Cols) */}
+                <div className="col-span-5 flex flex-col items-center relative">
                     {/* Header */}
-                    <div className="absolute top-0 w-full text-center border-b border-amber-dim/20 pb-2">
+                    <div className="w-full text-center border-b border-amber-dim/20 pb-2 mb-8">
                         <span className="text-2xl font-black tracking-[0.5em] text-white/20">{t('LOADOUT_HEADER')}</span>
                     </div>
 
-                    {/* Main Weapon Slot */}
-                    <div className="relative group">
-                        <div className={`w-64 h-64 border-2 flex flex-col items-center justify-center bg-black/60 relative overflow-hidden transition-all ${profile.loadout.mainWeapon ? getRarityColor(profile.loadout.mainWeapon.rarity) : 'border-amber-dim/30 border-dashed'}`}>
-                            {profile.loadout.mainWeapon ? (
-                                <>
-                                    <div className="text-4xl mb-4">🔫</div>
-                                    <div className="font-bold tracking-widest text-center px-4">
-                                        {profile.loadout.mainWeapon.displayName}
-                                    </div>
-                                    <button
-                                        onClick={handleUnequip}
-                                        className="absolute bottom-4 text-xs px-2 py-1 bg-red-900/50 hover:bg-red-500 text-white opacity-0 group-hover:opacity-100 transition-opacity"
-                                    >
-                                        {t('UNEQUIP')}
-                                    </button>
-                                </>
-                            ) : (
-                                <div className="text-amber-dim text-center animate-pulse">
-                                    <div className="text-4xl mb-2">⚠️</div>
-                                    <div>{t('NO_WEAPON')}</div>
-                                    <div className="text-xs mt-1">{t('EMERGENCY_PROTOCOL')}</div>
-                                </div>
-                            )}
+                    {/* Doll Layout */}
+                    <div className="relative w-full h-[500px] flex items-center justify-center">
+                        {/* Humanoid Outline (Abstract) */}
+                        <div className="absolute inset-0 flex items-center justify-center opacity-10 pointer-events-none">
+                            {/* Placeholder for SVG Body Outline */}
+                            <div className="w-64 h-full border border-amber-dim/30 rounded-full"></div>
                         </div>
-                        {/* Label */}
-                        <div className="absolute -left-8 top-1/2 -rotate-90 text-xs tracking-widest text-amber-dim">
-                            {t('SLOT_MAIN_WEAPON')}
+
+                        {/* Slots */}
+                        <div className="grid grid-cols-2 gap-x-20 gap-y-8 relative z-10">
+                            {/* Head (Top Center) - Absolute positioning hack or grid tweak */}
+                            <div className="col-span-2 flex justify-center pb-8">
+                                <SlotNode
+                                    slot={t('SLOT_HEAD')}
+                                    item={profile.loadout.head}
+                                    icon="🪖"
+                                    isActive={activeSlot === 'head'}
+                                    onClick={() => setActiveSlot('head')}
+                                    onUnequip={() => handleUnequip('head')}
+                                />
+                            </div>
+
+                            {/* Body (Left) */}
+                            <SlotNode
+                                slot={t('SLOT_BODY')}
+                                item={profile.loadout.body}
+                                icon="🦺"
+                                isActive={activeSlot === 'body'}
+                                onClick={() => setActiveSlot('body')}
+                                onUnequip={() => handleUnequip('body')}
+                            />
+
+                            {/* Main Weapon (Right) */}
+                            <SlotNode
+                                slot={t('SLOT_MAIN_WEAPON')}
+                                item={profile.loadout.mainWeapon}
+                                icon="🔫"
+                                isActive={activeSlot === 'mainWeapon'}
+                                onClick={() => setActiveSlot('mainWeapon')}
+                                onUnequip={() => handleUnequip('mainWeapon')}
+                            />
+
+                            {/* Legs (Left) */}
+                            <SlotNode
+                                slot={t('SLOT_LEGS')}
+                                item={profile.loadout.legs}
+                                icon="👖"
+                                isActive={activeSlot === 'legs'}
+                                onClick={() => setActiveSlot('legs')}
+                                onUnequip={() => handleUnequip('legs')}
+                            />
+
+                            {/* Feet (Right) */}
+                            <SlotNode
+                                slot={t('SLOT_FEET')}
+                                item={profile.loadout.feet}
+                                icon="🥾"
+                                isActive={activeSlot === 'feet'}
+                                onClick={() => setActiveSlot('feet')}
+                                onUnequip={() => handleUnequip('feet')}
+                            />
                         </div>
                     </div>
                 </div>
@@ -157,25 +235,43 @@ export const ArsenalScreen: React.FC = () => {
                                 {selectedItem.displayName}
                             </div>
                             <div className={`text-sm tracking-widest font-bold ${getRarityColor(selectedItem.rarity)}`}>
-                                // {selectedItem.rarity}_CLASS
+                                // {selectedItem.rarity}_{selectedItem.def?.type}
+                            </div>
+                            <div className="text-xs text-justify opacity-80 font-mono my-2 text-amber-dim/80">
+                                {selectedItem.def?.description}
                             </div>
 
                             <div className="flex flex-col gap-2 mt-4 text-amber-dim">
                                 <StatRow
                                     label={t('STAT_DAMAGE')}
                                     value={selectedItem.computedStats.damage}
-                                    current={profile.loadout.mainWeapon?.computedStats.damage}
+                                    current={currentEquipped?.computedStats.damage}
+                                />
+                                <StatRow
+                                    label={t('STAT_DEFENSE')}
+                                    value={selectedItem.computedStats.defense}
+                                    current={currentEquipped?.computedStats.defense}
+                                />
+                                <StatRow
+                                    label={t('STAT_HP_MAX')}
+                                    value={selectedItem.computedStats.hpMax}
+                                    current={currentEquipped?.computedStats.hpMax}
+                                />
+                                <StatRow
+                                    label={t('STAT_CRIT')}
+                                    value={(selectedItem.computedStats.critChance || 0) * 100}
+                                    current={(currentEquipped?.computedStats.critChance || 0) * 100}
+                                />
+                                <StatRow
+                                    label={t('STAT_SPEED')}
+                                    value={selectedItem.computedStats.speed || 0}
+                                    current={currentEquipped?.computedStats.speed || 0}
                                 />
                                 <StatRow
                                     label={t('STAT_FIRE_RATE')}
                                     value={selectedItem.computedStats.fireRate}
-                                    current={profile.loadout.mainWeapon?.computedStats.fireRate}
+                                    current={currentEquipped?.computedStats.fireRate}
                                     inverse={true}
-                                />
-                                <StatRow
-                                    label={t('STAT_RANGE')}
-                                    value={selectedItem.computedStats.range}
-                                    current={profile.loadout.mainWeapon?.computedStats.range}
                                 />
                             </div>
 
@@ -185,16 +281,15 @@ export const ArsenalScreen: React.FC = () => {
                                     onClick={() => handleEquip(selectedItem)}
                                     className="flex-1 py-3 bg-glitch-cyan/20 border border-glitch-cyan hover:bg-glitch-cyan hover:text-black font-bold tracking-widest transition-all"
                                 >
-                                    {t('BTN_EQUIP')}
-                                </button>
-                                <button className="flex-1 py-3 border border-red-500/50 text-red-400 hover:bg-red-500 hover:text-black font-bold tracking-widest transition-all">
-                                    {t('BTN_SELL')}
+                                    {t('BTN_EQUIP')} {t('TO')} {t(`SLOT_${selectedItem.def?.slot?.toUpperCase()}`)}
                                 </button>
                             </div>
                         </>
                     ) : (
-                        <div className="text-amber-dim italic h-full flex items-center justify-center">
-                            {t('SELECT_ITEM')}
+                        <div className="text-amber-dim italic h-full flex flex-col items-center justify-center opacity-50">
+                            <div className="text-4xl mb-4">🔍</div>
+                            <div>{t('SELECT_ITEM')}</div>
+                            <div className="text-xs mt-2">{t('FILTER_LOCKED')} {t(`SLOT_${activeSlot.toUpperCase()}`)}</div>
                         </div>
                     )}
                 </div>
@@ -208,5 +303,38 @@ export const ArsenalScreen: React.FC = () => {
                 </button>
             </div>
         </TacticalLayout>
+    );
+};
+
+const SlotNode = ({ slot, item, icon, isActive, onClick, onUnequip }: any) => {
+    return (
+        <div className="flex flex-col items-center gap-2 group cursor-pointer" onClick={onClick}>
+            <div className={`w-24 h-24 border-2 flex items-center justify-center bg-black/80 relative transition-all
+                ${isActive ? 'border-amber-neon shadow-[0_0_15px_rgba(255,166,0,0.5)] scale-105' : 'border-amber-dim/30 hover:border-amber-dim'}
+                ${item ? getRarityColor(item.rarity) : ''}
+             `}>
+                {item ? (
+                    <div className="flex flex-col items-center">
+                        <div className="text-2xl">{icon}</div> {/* Fallback Icon */}
+                        <div className="text-[10px] text-center px-1 truncate w-20 leading-tight mt-1">{item.displayName}</div>
+                    </div>
+                ) : (
+                    <div className="text-amber-dim/20 text-4xl grayscale opacity-50">{icon}</div>
+                )}
+
+                {/* Unequip Hover (Only if has item) */}
+                {item && (
+                    <button
+                        onClick={(e) => { e.stopPropagation(); onUnequip(); }}
+                        className="absolute -top-2 -right-2 w-6 h-6 bg-red-900 border border-red-500 rounded-full text-white text-xs flex items-center justify-center opacity-0 group-hover:opacity-100 hover:scale-110 transition-all z-20"
+                    >
+                        ✕
+                    </button>
+                )}
+            </div>
+            <div className={`text-xs tracking-widest font-mono ${isActive ? 'text-amber-neon' : 'text-amber-dim/50'}`}>
+                {slot.toUpperCase()}
+            </div>
+        </div>
     );
 };

@@ -13,6 +13,18 @@ const DICTIONARY = {
         DEPLOY_BUTTON: 'DEPLOY LINK',
         HOME_BTN_ARSENAL: 'ARSENAL',
 
+        // Main Menu
+        MM_TITLE_1: 'THIS IS CALLED',
+        MM_TITLE_2: 'GRASS CUTTING',
+        MM_SUBTITLE: 'JUST 3 MINUTES. DONT BE GREEDY. EXTRACT FAST.',
+        MM_BTN_START: 'DEPLOY NOW! 🚀',
+        MM_BTN_HIDEOUT: 'HIDEOUT (WAREHOUSE) 📦',
+        MM_BTN_ARSENAL: 'ARSENAL / ARMORY',
+        MM_BTN_BACKUP: 'DIGITAL ASSET / BACKUP',
+        MM_PROTOCOL: 'PROTOCOL: ZERO-BACKEND ENABLED',
+        MM_VERSION: 'VER: 0.12.0 // MOUSE_SUPPORTED',
+        MM_FOOTER: 'VER 3.0.0 // NEON_POP_PLATINUM',
+
         // Hideout
         ROOT_ACCESS: '// ROOT_ACCESS',
         NEURO_LINK_STATUS: 'NEURO-LINK STATUS: STABLE',
@@ -31,7 +43,6 @@ const DICTIONARY = {
         STASH_HEADER: 'STASH',
         NO_ITEMS: 'NO ITEMS IN STASH',
         LOADOUT_HEADER: 'AGENT LOADOUT',
-        SLOT_MAIN_WEAPON: 'MAIN_WEAPON',
         NO_WEAPON: 'NO WEAPON',
         EMERGENCY_PROTOCOL: 'EMERGENCY PROTOCOL ACTIVE',
         UNEQUIP: '[ UNEQUIP ]',
@@ -45,7 +56,22 @@ const DICTIONARY = {
         STAT_DAMAGE: 'DAMAGE',
         STAT_FIRE_RATE: 'FIRE RATE',
         STAT_RANGE: 'RANGE',
-        STAT_SPEED: 'SPEED'
+        STAT_SPEED: 'SPEED',
+        STAT_DEFENSE: 'DEFENSE',
+        STAT_HP_MAX: 'HP MAX',
+        STAT_CRIT: 'CRIT %',
+
+        // Slots
+        SLOT_HEAD: 'HEAD',
+        SLOT_BODY: 'BODY',
+        SLOT_LEGS: 'LEGS',
+        SLOT_FEET: 'FEET',
+        SLOT_MAIN_WEAPON: 'MAIN WEAPON',
+
+        // Misc
+        FOR: 'FOR',
+        TO: 'TO',
+        FILTER_LOCKED: 'FILTER LOCKED_TO'
     },
     ZH: {
         // Layout
@@ -71,6 +97,18 @@ const DICTIONARY = {
         EXECUTE: '執行',
         CANCEL: '[ 取消 ]',
 
+        // Main Menu
+        MM_TITLE_1: '這才叫',
+        MM_TITLE_2: '割草',
+        MM_SUBTITLE: '就3分鐘 別貪!快撤',
+        MM_BTN_START: '立即出擊! 🚀',
+        MM_BTN_HIDEOUT: 'HIDEOUT (倉庫) 📦',
+        MM_BTN_ARSENAL: '武器庫 / HIDEOUT',
+        MM_BTN_BACKUP: '數位資產 / BACKUP',
+        MM_PROTOCOL: 'PROTOCOL: ZERO-BACKEND ENABLED',
+        MM_VERSION: 'VER: 0.12.0 // MOUSE_SUPPORTED',
+        MM_FOOTER: 'VER 3.0.0 // NEON_POP_PLATINUM',
+
         // Arsenal
         STASH_HEADER: '倉庫',
         NO_ITEMS: '倉庫空無一物',
@@ -89,7 +127,22 @@ const DICTIONARY = {
         STAT_DAMAGE: '傷害',
         STAT_FIRE_RATE: '射速',
         STAT_RANGE: '射程',
-        STAT_SPEED: '彈速'
+        STAT_SPEED: '彈速',
+        STAT_DEFENSE: '防禦',
+        STAT_HP_MAX: '最大生命',
+        STAT_CRIT: '暴擊率',
+
+        // Slots
+        SLOT_HEAD: '頭部',
+        SLOT_BODY: '身體',
+        SLOT_LEGS: '腿部',
+        SLOT_FEET: '腳部',
+        // SLOT_MAIN_WEAPON defined above
+
+        // Misc
+        FOR: '用於',
+        TO: '至',
+        FILTER_LOCKED: '篩選鎖定:'
     }
 };
 

@@ -5,6 +5,7 @@ import { T2_WEAPONS } from './weapons/t2_industrial';
 import { T3_WEAPONS } from './weapons/t3_tactical';
 import { T4_WEAPONS } from './weapons/t4_hitech';
 import { T5_WEAPONS } from './weapons/t5_glitch';
+import { ARMOR_COLLECTION } from './armor';
 
 // 1. Aggregate
 const ALL_ITEMS: ItemDef[] = [
@@ -14,6 +15,7 @@ const ALL_ITEMS: ItemDef[] = [
     ...T3_WEAPONS,
     ...T4_WEAPONS,
     ...T5_WEAPONS,
+    ...ARMOR_COLLECTION
 ];
 
 // 2. Registry Map

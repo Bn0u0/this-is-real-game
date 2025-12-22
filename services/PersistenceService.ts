@@ -81,16 +81,28 @@ class PersistenceService {
                 try {
                     const { error } = await supabase.auth.signInAnonymously();
                     if (error) {
-                        // Suppress 422 error for Disabled Anonymous Auth (Offline Mode)
-                        if (error.status === 422 || error.message.includes('Anonymous sign-ins are disabled')) {
-                            console.log("⚠️ [Cloud] Anonymous Auth disabled. Running in OFFLINE GUEST MODE.");
-                            return;
+                        // [OFFLINE MODE FALLBACK]
+                        // Supabase sends 422 if Anonymous Sign-ins are disabled.
+                        // We strictly suppress this to prevent user panic.
+                        // We check status 422 OR message content.
+                        const isDisabled = error.status === 422 ||
+                            (error.message && error.message.includes('Anonymous sign-ins are disabled'));
+
+                        if (isDisabled) {
+                            console.log("⚠️ [Cloud] Guest Access Disabled. Continuing in OFFLINE MODE.");
+                        } else {
+                            console.warn("⚠️ [Cloud] Auth Warning:", error.message);
                         }
-                        console.warn("Cloud Auth Warning:", error.message);
+                        // Do NOT return error, just proceed as Guest (Offline)
                         return;
                     }
-                } catch (innerError) {
-                    console.warn("Cloud Auth Ex:", innerError);
+                } catch (innerError: any) {
+                    // Catch network errors or unhandled rejections
+                    if (innerError?.status === 422 || innerError?.message?.includes('422')) {
+                        console.log("⚠️ [Cloud] Guest Access Disabled (Caught). Continuing in OFFLINE MODE.");
+                        return;
+                    }
+                    console.warn("⚠️ [Cloud] Auth Exception:", innerError);
                 }
             }
 

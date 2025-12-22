@@ -122,7 +122,7 @@ export const ArsenalOverlay: React.FC<Props> = ({ currentWeapon, inventory }) =>
                             {/* Selection Highlight */}
                             <div className="absolute inset-0 border-2 border-[#FFAA00] opacity-0 group-hover:opacity-100 transition-opacity" />
                             {/* Background Noise/Texture */}
-                            <div className="absolute inset-0 opacity-10 bg-[url('/assets/noise.png')] mix-blend-overlay pointer-events-none" />
+                            <div className="absolute inset-0 opacity-10 bg-[url('/assets/ui/noise.png')] mix-blend-overlay pointer-events-none" />
                         </div>
                     ))}
 

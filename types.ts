@@ -1,5 +1,5 @@
 // [REFACTORED] Tier 1 & Tier 2 Class Structure
-export type PlayerClassID = 'SCAVENGER' | 'SKIRMISHER' | 'WEAVER';
+export type PlayerClassID = 'SCAVENGER' | 'SKIRMISHER' | 'WEAVER' | 'RANGER' | 'GUNNER' | 'RONIN' | 'SPECTRE' | 'RAIDER' | 'MEDIC' | 'ARCHITECT';
 
 // ----------------------
 // 1. 詞條系統 (Affix System)

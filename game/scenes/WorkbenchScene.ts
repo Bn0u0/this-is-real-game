@@ -4,13 +4,13 @@ import { CameraDirector } from '../utils/CameraDirector';
 import { sessionService } from '../../services/SessionService';
 
 export class WorkbenchScene extends Phaser.Scene {
-    private cameraDirector: CameraDirector;
+    private cameraDirector!: CameraDirector;
 
     // Interactive Zones
-    private weaponCrate: Phaser.GameObjects.Container;
-    private heroStand: Phaser.GameObjects.Container;
-    private deployTerminal: Phaser.GameObjects.Container;
-    private blueprints: Phaser.GameObjects.Container;
+    private weaponCrate!: Phaser.GameObjects.Container;
+    private heroStand!: Phaser.GameObjects.Container;
+    private deployTerminal!: Phaser.GameObjects.Container;
+    private blueprints!: Phaser.GameObjects.Container;
 
     // State
     private currentFocus: 'NONE' | 'CRATE' | 'HERO' | 'DEPLOY' | 'BLUEPRINTS' = 'NONE';
@@ -78,7 +78,7 @@ export class WorkbenchScene extends Phaser.Scene {
         this.heroStand.setSize(200, 400);
         this.heroStand.setInteractive(new Phaser.Geom.Rectangle(-100, -200, 200, 400), Phaser.Geom.Rectangle.Contains);
 
-        this.heroStand.on('pointerdown', (pointer) => {
+        this.heroStand.on('pointerdown', (pointer: Phaser.Input.Pointer) => {
             this.focusOn(this.heroStand, 'HERO', 2.0);
             pointer.event.stopPropagation();
         });
@@ -96,7 +96,7 @@ export class WorkbenchScene extends Phaser.Scene {
         this.weaponCrate.setSize(300, 200);
         this.weaponCrate.setInteractive();
 
-        this.weaponCrate.on('pointerdown', (pointer) => {
+        this.weaponCrate.on('pointerdown', (pointer: Phaser.Input.Pointer) => {
             this.focusOn(this.weaponCrate, 'CRATE', 2.5);
             pointer.event.stopPropagation();
         });
@@ -123,7 +123,7 @@ export class WorkbenchScene extends Phaser.Scene {
         this.deployTerminal.setSize(250, 180);
         this.deployTerminal.setInteractive();
 
-        this.deployTerminal.on('pointerdown', (pointer) => {
+        this.deployTerminal.on('pointerdown', (pointer: Phaser.Input.Pointer) => {
             // Deploy Logic
             this.playDeploySequence();
             pointer.event.stopPropagation();
@@ -142,7 +142,7 @@ export class WorkbenchScene extends Phaser.Scene {
         this.blueprints.setSize(200, 50);
         this.blueprints.setInteractive();
 
-        this.blueprints.on('pointerdown', (pointer) => {
+        this.blueprints.on('pointerdown', (pointer: Phaser.Input.Pointer) => {
             this.focusOn(this.blueprints, 'BLUEPRINTS', 1.5);
             pointer.event.stopPropagation();
         });

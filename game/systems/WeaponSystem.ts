@@ -25,7 +25,15 @@ export class WeaponSystem {
                 slot: 'mainWeapon',
                 tier: 0,
                 rarity: 'COMMON',
-                baseStats: { damage: 5, range: 250, fireRate: 800, speed: 600 },
+                baseStats: {
+                    damage: 5,
+                    range: 250,
+                    fireRate: 800,
+                    speed: 600,
+                    critChance: 0,
+                    defense: 0,
+                    hpMax: 0
+                },
                 description: 'Auto Sentry',
                 icon: 'tex_orb',
                 behavior: 'PISTOL_SHOT'

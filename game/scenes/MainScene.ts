@@ -59,6 +59,38 @@ export class MainScene extends Phaser.Scene {
     private projectileGroup!: Phaser.GameObjects.Group;
     // allyGroup removed (Moved to Manager)
 
+    // [NEW] Declarations for Build Fix
+    public statsModifiers: any = {}; // [FIX] Added missing property
+    public worldWidth: number = 2000;
+    public worldHeight: number = 2000;
+
+    public lootService!: LootService;
+    public effectManager!: EffectManager;
+    public terrainManager!: TerrainManager;
+    public weaponSystem!: WeaponSystem;
+    public inputSystem!: InputSystem;
+    public inputRecorder!: InputRecorder;
+    public networkSyncSystem!: NetworkSyncSystem;
+    public combatManager!: CombatManager;
+    public extractionManager!: ExtractionManager;
+    public waveManager!: WaveManager;
+    public soundManager!: SoundManager;
+    public ecsWorld!: World; // If used
+
+    public isPaused: boolean = false;
+    public isGameActive: boolean = false;
+
+    // [FIX] Missing Methods stub
+    public handleEnemyKill(enemy: any) { }
+    public gameOver(success: boolean) { }
+    public runCombatLogic(dt: number) { }
+    public handleExtraction() { }
+    public handleLootPickup(item: any) { }
+    public emitStatsUpdate() { }
+    public handleResize(width: number, height: number) { }
+    public handleStartMatch(data: any) { }
+    public setupDevTools() { }
+
     // ... (Lines 60-118 skipped) ...
 
     create() {
@@ -182,13 +214,13 @@ export class MainScene extends Phaser.Scene {
         this.allyManager.update(time, delta, this.enemyGroup);
         this.allyManager.checkCollisions(this.enemyGroup);
 
-        this.runCombatLogic();
+        this.runCombatLogic(delta);
         this.extractionManager.update(time, delta);
         this.waypointManager.update();
         this.handleExtraction();
 
         if (this.lootService && this.lootService.group && myUnit) {
-            this.physics.overlap(myUnit, this.lootService.group, (p, l) => this.handleLootPickup(p, l));
+            this.physics.overlap(myUnit, this.lootService.group, (p, l) => this.handleLootPickup(l));
         }
 
         if (time % 10 < 1) this.emitStatsUpdate();

@@ -3,9 +3,9 @@ import { EventBus } from '../../services/EventBus';
 import { COLORS } from '../../constants';
 
 export class BootScene extends Phaser.Scene {
-    private terminalText: Phaser.GameObjects.Text;
-    private scanline: Phaser.GameObjects.Rectangle;
-    private progressFill: Phaser.GameObjects.Rectangle; // [NEW]
+    private terminalText!: Phaser.GameObjects.Text;
+    private scanline!: Phaser.GameObjects.Rectangle;
+    private progressFill!: Phaser.GameObjects.Rectangle; // [NEW]
     private bootLines: string[] = [
         "SYNAPSE OS v4.0.1 (c) 2142",
         "INITIALIZING CORE SYSTEMS...",

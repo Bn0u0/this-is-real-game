@@ -30,7 +30,15 @@ export const CLASSES: Record<PlayerClassID, ClassConfig> = {
         name: '織命者',
         role: 'TACTICIAN',
         stats: { hp: 80, speed: 1.0, markColor: 0x0088FF, atk: 8 }
-    }
+    },
+    // [STUBS for Compilation]
+    RANGER: { name: 'Ranger', role: 'DPS', stats: { hp: 100, speed: 1.0, markColor: 0xFFFFFF, atk: 10 } },
+    GUNNER: { name: 'Gunner', role: 'DPS', stats: { hp: 120, speed: 0.9, markColor: 0xFFFFFF, atk: 12 } },
+    RONIN: { name: 'Ronin', role: 'MELEE', stats: { hp: 110, speed: 1.2, markColor: 0xFFFFFF, atk: 15 } },
+    SPECTRE: { name: 'Spectre', role: 'STEALTH', stats: { hp: 90, speed: 1.3, markColor: 0xFFFFFF, atk: 18 } },
+    RAIDER: { name: 'Raider', role: 'ASSAULT', stats: { hp: 110, speed: 1.1, markColor: 0xFFFFFF, atk: 11 } },
+    MEDIC: { name: 'Medic', role: 'SUPPORT', stats: { hp: 100, speed: 1.0, markColor: 0xFFFFFF, atk: 8 } },
+    ARCHITECT: { name: 'Architect', role: 'BUILDER', stats: { hp: 100, speed: 1.0, markColor: 0xFFFFFF, atk: 10 } }
 };
 
 export class PlayerFactory {

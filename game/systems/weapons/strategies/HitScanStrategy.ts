@@ -55,7 +55,15 @@ export class HitScanStrategy implements WeaponStrategy {
         );
         scene.physics.add.existing(beamBody);
         const body = beamBody.body as Phaser.Physics.Arcade.Body;
-        body.setRotation(source.rotation * (180 / Math.PI)); // Body rotation is degrees usually? Check Phaser docs. 
+        // Physics Body alignment
+        if (beamBody.body) { // Changed 'beam' to 'beamBody' to match variable name
+            // Phaser Arcade Physics body doesn't have rotation usually, usually managed by GameObject
+            // But if we need to rotate body hitbox:
+            // (beam.body as Phaser.Physics.Arcade.Body).rotation = angle; // Error?
+            // Actually Arcade Body is AABB unless circular. Can't rotate rect body easily.
+            // Just rely on visuals for Beam.
+        }
+        // body.setRotation(source.rotation * (180 / Math.PI)); // Body rotation is degrees usually? Check Phaser docs. 
         // Actually, Phaser Arcade Bodies (AABB) don't rotate well. 
         // This is the classic "Laser Hit" problem in Arcade Physics.
 

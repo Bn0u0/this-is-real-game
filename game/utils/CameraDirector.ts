@@ -31,9 +31,6 @@ export class CameraDirector {
         this.scene.tweens.add({
             targets: this.camera,
             zoom: this.defaultZoom,
-            scrollX: - (this.camera.width / 2), // Re-center if 0,0 is origin
-            // Actually, let's consistency check coordinate space. 
-            // If BG is centered at 0,0.
             scrollX: - (this.camera.width / 2),
             scrollY: - (this.camera.height / 2),
             duration: duration,

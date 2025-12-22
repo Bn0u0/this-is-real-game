@@ -3,9 +3,9 @@ import { EventBus } from '../../services/EventBus';
 import { WeaponSystem } from '../systems/WeaponSystem';
 
 export class SentryTurret extends Phaser.GameObjects.Container {
-    private head: Phaser.GameObjects.Graphics;
-    private base: Phaser.GameObjects.Graphics;
-    private shadow: Phaser.GameObjects.Ellipse;
+    private head!: Phaser.GameObjects.Graphics;
+    private base!: Phaser.GameObjects.Graphics;
+    private shadow!: Phaser.GameObjects.Ellipse;
 
     // Logic
     private range: number = 250;
@@ -28,7 +28,7 @@ export class SentryTurret extends Phaser.GameObjects.Container {
         // Physics (Hard Collision)
         this.scene.physics.add.existing(this);
         const body = this.body as Phaser.Physics.Arcade.Body;
-        body.setCircle(20, -20, -20);
+        body.setCircle(20, -20, -20); // Adjust offset if needed
         body.setImmovable(true); // Wall-like
 
         // Visuals
@@ -109,7 +109,7 @@ export class SentryTurret extends Phaser.GameObjects.Container {
         this.target = this.findTarget(enemies);
         if (this.target) {
             // Face Target
-            const angle = Phaser.Math.Angle.Between(this.x, this.y, this.target.x, (this.target as any).y);
+            const angle = Phaser.Math.Angle.Between(this.x, this.y, (this.target as any).x, (this.target as any).y);
             this.head.rotation = angle;
 
             // Shoot
@@ -154,7 +154,10 @@ export class SentryTurret extends Phaser.GameObjects.Container {
                 damage: 5,
                 range: this.range,
                 speed: 600,
-                projectileCount: 1
+                fireRate: 0, // One shot
+                critChance: 0,
+                defense: 0,
+                hpMax: 0
             }
         };
 
@@ -172,8 +175,9 @@ export class SentryTurret extends Phaser.GameObjects.Container {
         this.hp -= amount;
 
         // Flash White
-        this.base.setTintFill(0xFFFFFF);
-        this.scene.time.delayedCall(50, () => this.base.clearTint());
+        // Flash White (Alpha logic because Graphics don't support tintFill)
+        this.base.alpha = 0.5;
+        this.scene.time.delayedCall(50, () => this.base.alpha = 1);
 
         if (this.hp <= 0) {
             this.die();

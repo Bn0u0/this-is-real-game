@@ -15,6 +15,8 @@ export class WaveManager {
 
     private spawnTimer: number = 0;
 
+    public get currentWave(): number { return this.wave; }
+
     constructor(scene: Phaser.Scene, enemyGroup: Phaser.GameObjects.Group) {
         this.scene = scene;
         this.enemyGroup = enemyGroup;
@@ -29,6 +31,10 @@ export class WaveManager {
             },
             50, 200
         );
+    }
+
+    public start(waveNumber: number) {
+        this.startWave(waveNumber);
     }
 
     public startWave(waveNumber: number) {
@@ -71,6 +77,10 @@ export class WaveManager {
         this.scene.events.on('update', updateListener);
 
         console.log(`🚁 [WaveManager] Supply Drone deployed at ${x},${y}`);
+    }
+
+    public onEnemyKilled(enemy: any) {
+        // Handle score or wave progress here
     }
 
     public update(time: number, delta: number) {

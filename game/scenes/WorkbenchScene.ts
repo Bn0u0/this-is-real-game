@@ -35,6 +35,9 @@ export class WorkbenchScene extends Phaser.Scene {
 
         // 3. Input Setup
         this.input.on('pointerdown', (pointer: Phaser.Input.Pointer, gameObjects: any[]) => {
+            console.log(`🖱️ [WorkbenchScene] Clicked at Screen(${pointer.x}, ${pointer.y}) World(${pointer.worldX}, ${pointer.worldY})`);
+            console.log(`   - GameObjects Hit: ${gameObjects.length}`);
+
             if (gameObjects.length === 0 && this.currentFocus !== 'NONE') {
                 // Clicked empty space -> Back
                 this.resetView();
@@ -216,13 +219,10 @@ export class WorkbenchScene extends Phaser.Scene {
     }
 
     private playDeploySequence() {
-        // Simulating the "Enter Matrix" effect
-        this.cameras.main.pan(500, 100, 1000, 'Power2');
-        this.cameras.main.zoomTo(10, 1000, 'Expo.In', true, (camera, progress) => {
-            if (progress === 1) {
-                // Trigger Actual Start
-                sessionService.startMatch('SCAVENGER');
-            }
-        });
+        console.log("🚀 [WorkbenchScene] Deploy Sequence Initiated!");
+        // [DEBUG] Skip Camera Tween to verify functionality first
+        sessionService.startMatch('SCAVENGER');
+        console.log("🚀 [WorkbenchScene] Switching to MainScene NOW");
+        this.scene.start('MainScene');
     }
 }

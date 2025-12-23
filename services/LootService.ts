@@ -105,6 +105,10 @@ export class LootService {
         };
     }
 
+    public tryDropLoot(x: number, y: number) {
+        this.trySpawnLoot(x, y);
+    }
+
     public trySpawnLoot(x: number, y: number, chanceMod: number = 1.0) {
         const roll = Math.random();
 

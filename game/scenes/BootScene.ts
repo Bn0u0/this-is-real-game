@@ -28,11 +28,17 @@ export class BootScene extends Phaser.Scene {
         // [CLEANUP] Assets removed.
         // this.load.image('bg_hideout_papercut', 'assets/bg/bg_hideout_papercut.png');
 
-        // [FIX] Generate 'flare' texture programmatically (since we don't have the file yet)
+        // [FIX] Generate 'flare' texture programmatically
         const graphics = this.make.graphics({ x: 0, y: 0 }, false);
         graphics.fillStyle(0xffffff, 1);
         graphics.fillCircle(4, 4, 4);
         graphics.generateTexture('flare', 8, 8);
+
+        // [FIX] Generate 'tex_orb' (Projectile)
+        graphics.clear();
+        graphics.fillStyle(0xffffff, 1);
+        graphics.fillCircle(8, 8, 8);
+        graphics.generateTexture('tex_orb', 16, 16);
     }
 
     create() {

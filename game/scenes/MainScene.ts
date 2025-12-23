@@ -80,16 +80,103 @@ export class MainScene extends Phaser.Scene {
     public isPaused: boolean = false;
     public isGameActive: boolean = false;
 
+    constructor() {
+        super('MainScene');
+    }
+
     // [FIX] Missing Methods stub
-    public handleEnemyKill(enemy: any) { }
-    public gameOver(success: boolean) { }
-    public runCombatLogic(dt: number) { }
-    public handleExtraction() { }
-    public handleLootPickup(item: any) { }
-    public emitStatsUpdate() { }
-    public handleResize(width: number, height: number) { }
-    public handleStartMatch(data: any) { }
-    public setupDevTools() { }
+    public handleStartMatch(data: any) {
+        console.log("⚔️ [MainScene] START_MATCH Received:", data);
+        this.isGameActive = true;
+        this.isPaused = false;
+        this.cleanStart();
+
+        // 1. Spawn Player
+        const role = data.hero || 'SCAVENGER';
+        const startX = this.worldWidth / 2;
+        const startY = this.worldHeight / 2;
+
+        const player = this.playerManager.spawnPlayer(role, this.worldWidth, this.worldHeight, this.networkSyncSystem, this.waveManager);
+
+        // 2. Setup Camera
+        this.cameraDirector.follow(player);
+        this.cameras.main.setZoom(1.0);
+        this.cameras.main.fadeIn(1000);
+
+        // 3. Start Systems
+        this.waveManager.start(1); // Start Wave 1
+
+        // 4. UI Notification
+        EventBus.emit('MATCH_STARTED', { hero: role });
+    }
+
+    public runCombatLogic(dt: number) {
+        if (!this.playerManager.myUnit) return;
+
+        // Player Updates (Collision, Stats) handled in Player class mostly
+        // Here we could handle global combat rules or objectives
+    }
+
+    public handleEnemyKill(enemy: any) {
+        this.waveManager.onEnemyKilled(enemy);
+        this.lootService.tryDropLoot(enemy.x, enemy.y);
+
+        // Score/XP
+        EventBus.emit('ADD_SCORE', 100);
+    }
+
+    public gameOver(success: boolean) {
+        this.isGameActive = false;
+        this.physics.pause();
+
+        console.log(`🏁 [MainScene] GAME OVER. Success: ${success}`);
+        EventBus.emit('GAME_OVER', { success, score: 0, wave: this.waveManager.currentWave });
+
+        // Visuals
+        this.cameras.main.shake(500, 0.01);
+        this.cameras.main.fade(2000, 0x000000);
+    }
+
+    public handleExtraction() {
+        if (!this.playerManager.myUnit) return;
+
+        // Check overlap with extraction zones
+        // (Handled by ExtractionManager mostly, but we trigger the end here)
+        // this.extractionManager.checkExtraction(this.playerManager.myUnit);
+    }
+
+    public handleLootPickup(item: any) {
+        if (this.playerManager.myUnit) {
+            // Apply item effect or add to inventory
+            // For now, destroy visuals
+            item.destroy();
+            // Play Sound
+        }
+    }
+
+    public emitStatsUpdate() {
+        if (this.playerManager.myUnit) {
+            const p = this.playerManager.myUnit;
+            EventBus.emit('STATS_UPDATE', {
+                hp: p.stats.hp,
+                maxHp: p.stats.maxHp,
+                xp: 0,
+                level: p.level
+            });
+        }
+    }
+
+    public handleResize(width: number, height: number) {
+        this.cameras.main.setViewport(0, 0, width, height);
+        this.cameraDirector?.resize(width, height);
+    }
+
+    public setupDevTools() {
+        // Optional key bindings
+        this.input.keyboard?.on('keydown-K', () => {
+            this.enemyGroup.clear(true, true);
+        });
+    }
 
     // ... (Lines 60-118 skipped) ...
 
@@ -230,7 +317,16 @@ export class MainScene extends Phaser.Scene {
 
     cleanup() {
         this.scale.off('resize', this.handleResize, this);
+
+        // [FIX] Clean up ALL EventBus Listeners
         EventBus.off('START_MATCH', this.handleStartMatch, this);
+        EventBus.off('JOYSTICK_MOVE');
+        EventBus.off('JOYSTICK_AIM');
+        EventBus.off('JOYSTICK_SKILL');
+        EventBus.off('ENEMY_KILLED');
+        EventBus.off('GAME_OVER_SYNC', this.gameOver, this);
+        EventBus.off('RESUME_GAME');
+
         if (this.allyManager) this.allyManager.destroy(); // [NEW]
     }
 }

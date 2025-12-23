@@ -97,10 +97,6 @@ const App: React.FC = () => {
 
                     {appState === 'COMBAT' && (
                         <>
-                            <div className="absolute inset-0 pointer-events-none" style={{ zIndex: HTML_LAYER.HUD }}>
-                                <GameOverlay />
-                            </div>
-
                             <div className="absolute inset-0" style={{ zIndex: HTML_LAYER.JOYSTICK }}>
                                 <VirtualJoystick
                                     onMove={(x, y) => EventBus.emit('JOYSTICK_MOVE', { x, y })}
@@ -111,6 +107,10 @@ const App: React.FC = () => {
                                         if (skill === 'E') EventBus.emit('TRIGGER_SKILL', 'skill2');
                                     }}
                                 />
+                            </div>
+
+                            <div className="absolute inset-0 pointer-events-none" style={{ zIndex: HTML_LAYER.HUD }}>
+                                <GameOverlay />
                             </div>
                         </>
                     )}

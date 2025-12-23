@@ -103,7 +103,7 @@ export const VirtualJoystick: React.FC<VirtualJoystickProps> = ({ onMove, onSkil
 
     return (
         <div
-            className="absolute bottom-0 left-0 w-full h-[40%] z-[9999] touch-none pointer-events-auto"
+            className="absolute inset-0 z-[9999] touch-none pointer-events-auto"
             style={{ touchAction: 'none' }} // [FIX] Force no-scroll
             onPointerDown={handlePointerDown}
             onPointerMove={handlePointerMove}

@@ -17,14 +17,14 @@ export class CameraDirector {
         this.updateZoomBasedOnScreen();
     }
 
-    public setupFollow(target: Phaser.GameObjects.GameObject) {
+    public follow(target: Phaser.GameObjects.GameObject) {
         this.camera.startFollow(target, true, 0.1, 0.1);
         this.camera.setBounds(0, 0, this.worldWidth, this.worldHeight);
         console.log(`🎥 [CameraDirector] Following target at ${target.body?.position.x}, ${target.body?.position.y}`);
     }
 
-    public handleResize(gameSize: Phaser.Structs.Size) {
-        this.camera.setViewport(0, 0, gameSize.width, gameSize.height);
+    public resize(width: number, height: number) {
+        this.camera.setViewport(0, 0, width, height);
         this.updateZoomBasedOnScreen();
     }
 

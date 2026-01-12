@@ -9,30 +9,29 @@ export const PhaserGame: React.FC = () => {
   const gameRef = useRef<Phaser.Game | null>(null);
 
   useEffect(() => {
-    // We target the external 'game-container' div defined in index.html
-    const container = document.getElementById('game-container');
-    if (!container) return;
+    // We target the internal div ref
+    // const container = document.getElementById('game-container'); // REMOVED
 
     // Ensure we don't pass 0 dimensions to config
-    const initialWidth = Math.max(window.innerWidth, 320);
-    const initialHeight = Math.max(window.innerHeight, 240);
+    // const initialWidth = Math.max(window.innerWidth, 320); // Not needed with Resize?
+    // const initialHeight = Math.max(window.innerHeight, 240);
 
     const config: Phaser.Types.Core.GameConfig = {
       type: Phaser.AUTO,
-      parent: 'game-container', // Direct ID reference to the z-0 container
-      backgroundColor: 0x000000, // [FIX] Pure Black Void (Prevents confusion with Menu BG)
+      parent: 'phaser-container', // [FIX] Target the internal React div
+      backgroundColor: 0x000000,
       width: '100%',
       height: '100%',
       scale: {
-        mode: Phaser.Scale.RESIZE,
-        autoCenter: Phaser.Scale.CENTER_BOTH,
+        mode: Phaser.Scale.RESIZE, // Will fill the 'phaser-container' div
+        autoCenter: Phaser.Scale.NO_CENTER, // CSS handles centering
       },
       render: {
         powerPreference: 'high-performance',
         antialias: false,
         pixelArt: true,
         roundPixels: true,
-        maxLights: 20 // Module A: Deferred Lighting Prerequisite
+        maxLights: 20
       },
       physics: {
         default: 'arcade',
@@ -40,15 +39,15 @@ export const PhaserGame: React.FC = () => {
           debug: false,
         },
       },
-      scene: [BootScene, WorkbenchScene, MainScene], // [UPDATED] Boot -> Workbench -> Main
+      scene: [BootScene, WorkbenchScene, MainScene],
       input: {
-        activePointers: 3, // Support Multitouch
+        activePointers: 3,
       }
     };
 
     const game = new Phaser.Game(config);
     gameRef.current = game;
-    (window as any).phaserGame = game; // [DEBUG] Expose to Global
+    (window as any).phaserGame = game;
 
     return () => {
       if (gameRef.current) {
@@ -58,6 +57,6 @@ export const PhaserGame: React.FC = () => {
     };
   }, []);
 
-  // Render nothing, as the game is attached to #game-container outside the React tree
-  return null;
+  // [FIX] Render a container for Phaser to attach to
+  return <div id="phaser-container" className="w-full h-full" />;
 };

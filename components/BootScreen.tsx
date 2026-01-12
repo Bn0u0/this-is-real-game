@@ -24,7 +24,7 @@ export const BootScreen: React.FC<BootScreenProps> = ({ onStart }) => {
 
     return (
         <div
-            className="fixed inset-0 bg-black flex flex-col items-center justify-center z-[99999] cursor-pointer"
+            className="absolute inset-0 bg-black flex flex-col items-center justify-center z-[99999] cursor-pointer"
             onClick={() => {
                 console.log("BootScreen Clicked. Loaded:", loaded);
                 if (loaded) onStart();

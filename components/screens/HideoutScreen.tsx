@@ -57,7 +57,7 @@ export const HideoutScreen: React.FC = () => {
     const t = (key: any) => languageService.t(key);
 
     return (
-        <div className="absolute inset-0 bg-black text-amber-500 font-mono flex flex-col items-center justify-center pointer-events-auto">
+        <div className="absolute inset-0 bg-black text-amber-500 font-mono flex flex-col items-center justify-center pointer-events-auto overflow-hidden">
 
             {/* --- TOP BAR (Only visible if unlocked?) --- */}
             {isArsenalUnlocked && (

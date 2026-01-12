@@ -59,7 +59,7 @@ export const ArsenalOverlay: React.FC<Props> = ({ currentWeapon, inventory }) =>
     );
 
     return (
-        <div className="absolute inset-0 z-50 flex flex-col pointer-events-none overflow-hidden">
+        <div className="absolute inset-0 z-50 flex flex-col pointer-events-none overflow-hidden bg-black/80 backdrop-blur-sm">
             {/* ... (Zone A) ... */}
 
             <div className={classNames(/* ... */)}>

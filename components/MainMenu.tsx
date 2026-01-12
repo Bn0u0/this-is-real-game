@@ -97,9 +97,9 @@ export const MainMenu: React.FC<MainMenuProps> = ({ onStartGame, onOpenHideout }
     React.useEffect(() => languageService.subscribe(() => setTick(t => t + 1)), []);
 
     return (
-        <div className="fixed inset-0 flex flex-col items-center justify-center bg-black/90 backdrop-blur-sm z-50 animate-in fade-in duration-500">
+        <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/90 backdrop-blur-sm z-50 animate-in fade-in duration-500">
             {/* Custom Modal with Dynamic Content support */}
-            <div className={`fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm transition-opacity ${modal.isOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
+            <div className={`absolute inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm transition-opacity ${modal.isOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
                 <div className="bg-[#0f0418] border-2 border-[#00FFFF] p-1 w-full max-w-sm m-4 shadow-[0_0_50px_rgba(0,255,255,0.3)] transform transition-transform scale-100">
                     <div className="border border-[#00FFFF]/30 p-6 relative overflow-hidden">
                         <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-[#00FFFF] to-transparent animate-scan" />

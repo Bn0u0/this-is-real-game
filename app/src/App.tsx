@@ -1,17 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import './App.css';
 import { PhaserGame } from './game/PhaserGame';
-import { GameOverlay } from './components/GameOverlay';
-import { VirtualJoystick } from './components/VirtualJoystick';
 import { BootScreen } from './components/BootScreen';
+import { CombatInterface } from './components/combat/CombatInterface';
 import { HideoutScreen } from './components/screens/HideoutScreen';
-import { ArsenalScreen } from './components/screens/ArsenalScreen';
+// import { ArsenalScreen } from './components/screens/ArsenalScreen'; // DEAD
 import { ArsenalOverlay } from './components/workbench/ArsenalOverlay';
 import { BlueprintOverlay } from './components/workbench/BlueprintOverlay';
 import { GameOverScreen } from './components/screens/GameOverScreen';
 import { HTML_LAYER } from './game/constants/Depth';
 import { EventBus } from './services/EventBus';
 import { sessionService, AppState } from './services/SessionService';
+import { SceneMonitor } from './components/SceneMonitor';
 
 const App: React.FC = () => {
     // Single Source of Truth
@@ -77,29 +77,13 @@ const App: React.FC = () => {
 
                 {/* State: PHASER GAME LAYER */}
                 <div
-                    className={`absolute inset-0 transition-opacity duration-1000 ${['BOOT', 'MAIN_MENU', 'HIDEOUT', 'COMBAT'].includes(appState) ? 'opacity-100' : 'opacity-0'}`}
+                    className={`absolute inset-0 ${['BOOT', 'MAIN_MENU', 'HIDEOUT', 'COMBAT'].includes(appState) ? 'opacity-100' : 'opacity-0'}`}
                     style={{ visibility: ['BOOT', 'MAIN_MENU', 'HIDEOUT', 'COMBAT'].includes(appState) ? 'visible' : 'hidden', zIndex: HTML_LAYER.PHASER_DOM }}
                 >
                     <PhaserGame />
 
                     {appState === 'COMBAT' && (
-                        <>
-                            <div className="absolute inset-0" style={{ zIndex: HTML_LAYER.JOYSTICK }}>
-                                <VirtualJoystick
-                                    onMove={(x, y) => EventBus.emit('JOYSTICK_MOVE', { x, y })}
-                                    onAim={(x, y, firing) => { /* Auto-aim handling */ }}
-                                    onSkill={(skill) => {
-                                        if (skill === 'DASH') EventBus.emit('TRIGGER_SKILL', 'dash');
-                                        if (skill === 'Q') EventBus.emit('TRIGGER_SKILL', 'skill1');
-                                        if (skill === 'E') EventBus.emit('TRIGGER_SKILL', 'skill2');
-                                    }}
-                                />
-                            </div>
-
-                            <div className="absolute inset-0 pointer-events-none" style={{ zIndex: HTML_LAYER.HUD }}>
-                                <GameOverlay />
-                            </div>
-                        </>
+                        <CombatInterface />
                     )}
                 </div>
 
@@ -123,6 +107,9 @@ const App: React.FC = () => {
 
                 {/* State: GAME_OVER */}
                 {appState === 'GAME_OVER' && <GameOverScreen />}
+
+                {/* DEV TOOLS */}
+                <SceneMonitor />
             </div>
         </div>
     );

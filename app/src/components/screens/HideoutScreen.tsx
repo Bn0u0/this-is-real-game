@@ -24,57 +24,64 @@ export const HideoutScreen: React.FC = () => {
     return (
         <div className="absolute inset-0 pointer-events-none flex flex-col justify-between p-4 md:p-6 overflow-hidden">
 
-            {/* === TOP LEFT: PROFILE (COMPACT) === */}
-            <div className="pointer-events-auto flex items-center gap-3">
-                {/* Avatar Box (Smaller) */}
-                <div className="w-12 h-12 bg-black/80 border border-amber-500/30 flex items-center justify-center overflow-hidden">
-                    <span className="text-xl">😎</span>
+            {/* === HEADER ROW (Profile + System) === */}
+            <div className="w-full flex justify-between items-start pointer-events-none">
+
+                {/* TOP LEFT: PROFILE */}
+                <div className="pointer-events-auto flex items-center gap-3">
+                    {/* Avatar Box */}
+                    <div className="w-12 h-12 bg-black/80 border border-amber-500/30 flex items-center justify-center overflow-hidden">
+                        <span className="text-xl">😎</span>
+                    </div>
+
+                    {/* Info Text */}
+                    <div className="flex flex-col">
+                        <div className="flex items-baseline gap-2">
+                            <h2 className="text-lg font-bold text-white tracking-wider">
+                                {t('ROOT_ACCESS').replace('// ', '')} 8842
+                            </h2>
+                            <span className="text-xs text-amber-500 font-mono bg-amber-500/10 px-1 rounded">
+                                LV.{profile.level || 1}
+                            </span>
+                        </div>
+                    </div>
                 </div>
 
-                {/* Info Text (Compact) */}
-                <div className="flex flex-col">
-                    <div className="flex items-baseline gap-2">
-                        <h2 className="text-lg font-bold text-white tracking-wider">
-                            {t('ROOT_ACCESS').replace('// ', '')} 8842
-                        </h2>
-                        <span className="text-xs text-amber-500 font-mono bg-amber-500/10 px-1 rounded">
-                            LV.{profile.level || 1}
-                        </span>
+                {/* TOP RIGHT: UTILITY STACK */}
+                <div className="flex flex-col items-end gap-2 pointer-events-auto">
+                    {/* Currencies */}
+                    <div className="flex flex-col items-end gap-1">
+                        <div className="flex items-center gap-2">
+                            <span className="text-amber-500 font-mono text-base">{profile.wallet?.gold || 0}</span>
+                            <div className="w-2 h-2 bg-amber-500 rounded-full" title={t('CREDITS')} />
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <span className="text-cyan-400 font-mono text-sm">{profile.wallet?.gems || 0}</span>
+                            <div className="w-1.5 h-1.5 bg-cyan-400 rotate-45" title={t('SHARDS')} />
+                        </div>
+                    </div>
+
+                    {/* System Menu (Moved from Bottom Left) */}
+                    <div className="flex items-center gap-1 opacity-50 hover:opacity-100 transition-opacity">
+                        <button className="p-1 text-white/30 hover:text-white transition-colors">
+                            <span className="text-lg">⚙️</span>
+                        </button>
+                        <button className="p-1 text-white/30 hover:text-white transition-colors">
+                            <span className="text-lg">✉️</span>
+                        </button>
                     </div>
                 </div>
             </div>
 
-            {/* === TOP RIGHT: CURRENCIES (Compact) === */}
-            <div className="pointer-events-auto flex flex-col items-end gap-1">
-                <div className="flex items-center gap-2">
-                    <span className="text-amber-500 font-mono text-base">{profile.wallet?.gold || 0}</span>
-                    <div className="w-2 h-2 bg-amber-500 rounded-full" title={t('CREDITS')} />
-                </div>
-                <div className="flex items-center gap-2">
-                    <span className="text-cyan-400 font-mono text-sm">{profile.wallet?.gems || 0}</span>
-                    <div className="w-1.5 h-1.5 bg-cyan-400 rotate-45" title={t('SHARDS')} />
-                </div>
-            </div>
-
-            {/* === CENTER RIGHT: REMOVED (Immersive Mode) === */}
-            {/* User Interaction relies on 3D Scene Clicks (Crate / Hero) */}
-
-            {/* === BOTTOM LEFT: SYSTEM MENU (Subtle) === */}
-            <div className="pointer-events-auto flex items-end gap-2 opacity-50 hover:opacity-100 transition-opacity">
-                <button className="p-2 text-white/30 hover:text-white transition-colors">
-                    <span className="text-xl">⚙️</span>
-                </button>
-                <button className="p-2 text-white/30 hover:text-white transition-colors">
-                    <span className="text-xl">✉️</span>
-                </button>
-            </div>
+            {/* === BOTTOM LEFT: CLEARED For Arsenal === */}
+            <div />
 
             {/* === BOTTOM RIGHT: DEPLOY (Restored) === */}
             {/* Only show when NO overlay is open (Immersive Mode) */}
             <div className="pointer-events-auto">
                 <button
                     onClick={() => metaGame.startMatch()}
-                    className="absolute bottom-6 right-6 group bg-amber-500 hover:scale-105 active:scale-95 transition-all duration-200"
+                    className="absolute bottom-6 right-6 group bg-amber-500 hover:scale-105 active:scale-95 transition-all"
                 >
                     {/* Yellow Block */}
                     <div className="px-12 py-6 flex items-center gap-4 skew-x-[-12deg] shadow-[0_0_20px_rgba(245,158,11,0.5)] group-hover:shadow-[0_0_40px_rgba(245,158,11,0.8)] border-2 border-white/20">

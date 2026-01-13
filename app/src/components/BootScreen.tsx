@@ -9,19 +9,10 @@ export const BootScreen: React.FC<BootScreenProps> = ({ onStart }) => {
     const [progress, setProgress] = useState(0);
 
     useEffect(() => {
-        const interval = setInterval(() => {
-            setProgress(prev => {
-                if (prev >= 100) {
-                    clearInterval(interval);
-                    setLoaded(true);
-                    // [FIX] Defer state update to next tick to avoid React warning
-                    setTimeout(() => onStart(), 0);
-                    return 100;
-                }
-                return prev + 25;
-            });
-        }, 30);
-        return () => clearInterval(interval);
+        // [INSTANT BOOT]
+        // User requested no entrance animation.
+        // We trigger completion immediately.
+        onStart();
     }, [onStart]);
 
     return (

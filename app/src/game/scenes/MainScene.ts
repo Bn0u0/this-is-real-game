@@ -245,9 +245,12 @@ export class MainScene extends Phaser.Scene {
 
         // ... (Skipping Test Entity & Lighting & Glitch & Events) ...
 
-        EventBus.on('JOYSTICK_MOVE', (vec: { x: number, y: number }) => this.inputSystem.setVirtualAxis(vec.x, vec.y));
-        EventBus.on('JOYSTICK_AIM', (data: { x: number, y: number, isFiring: boolean }) => this.inputSystem.setVirtualAim(data.x, data.y, data.isFiring));
-        EventBus.on('JOYSTICK_SKILL', (skill: string) => this.inputSystem.triggerSkill(skill));
+        // ... (Skipping Test Entity & Lighting & Glitch & Events) ...
+
+        EventBus.on('JOYSTICK_MOVE', (vec: { x: number, y: number }) => {
+            this.inputSystem.setVirtualAxis(vec.x, vec.y);
+        });
+        EventBus.on('TRIGGER_SKILL', (skill: string) => this.inputSystem.triggerSkill(skill));
 
         console.log("🔊 [MainScene] Registering START_MATCH Listener...");
         EventBus.on('START_MATCH', this.handleStartMatch, this);
@@ -263,6 +266,12 @@ export class MainScene extends Phaser.Scene {
 
         this.setupDevTools();
         EventBus.emit('SCENE_READY');
+
+        // [FIX] Listen for Return to Base
+        EventBus.once('RETURN_TO_BASE', () => {
+            console.log("🏠 [MainScene] Returning to Workbench...");
+            this.scene.start('WorkbenchScene');
+        });
     }
 
     // ... (Handles & CleanStart) ...

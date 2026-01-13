@@ -11,7 +11,6 @@ export class WorkbenchScene extends Phaser.Scene {
     // Interactive Zones
     private weaponCrate!: Phaser.GameObjects.Container;
     private heroStand!: Phaser.GameObjects.Container;
-    private deployTerminal!: Phaser.GameObjects.Container;
     private blueprints!: Phaser.GameObjects.Container;
 
     // State
@@ -55,11 +54,19 @@ export class WorkbenchScene extends Phaser.Scene {
 
         // 4. Initial Camera
         this.cameras.main.setZoom(0.6); // Slightly closer for mobile feel
-        this.cameraDirector.reset(1500);
+        this.cameraDirector.reset(0);
 
         // 5. Listen for External Events
         EventBus.on('WORKBENCH_ACTION', (action: string) => {
             if (action === 'BACK') this.resetView();
+        });
+
+        // [FIX] Listen for React SCENE_SWITCH command
+        EventBus.on('SCENE_SWITCH', (sceneName: string) => {
+            console.log(`🔀 [WorkbenchScene] Switching to ${sceneName}...`);
+            if (sceneName === 'MainScene') {
+                this.scene.start('MainScene');
+            }
         });
 
         // No resize listener needed if container is fixed, but harmless to keep if we supported dynamic resizing later.
@@ -78,8 +85,9 @@ export class WorkbenchScene extends Phaser.Scene {
     private createInteractionZone(x: number, y: number, w: number, h: number, color: number, label: string, focusType: any) {
         const container = this.add.container(x, y);
 
-        // 1. The Block (Clean Shape)
-        const shape = this.add.rectangle(0, 0, w, h, color, 0.2);
+        // 1. The Block (Clean Shape - Wireframe Style)
+        // Make it very subtle dark fill with colored border
+        const shape = this.add.rectangle(0, 0, w, h, 0x000000, 0.5);
         shape.setStrokeStyle(2, color);
 
         // 2. The Text (Centered, Clear)
@@ -104,21 +112,17 @@ export class WorkbenchScene extends Phaser.Scene {
 
         // Hover Effect
         container.on('pointerover', () => {
-            this.tweens.add({ targets: shape, fillAlpha: 0.5, duration: 200 });
-            container.setScale(1.05);
+            this.tweens.add({ targets: shape, fillAlpha: 0.8, duration: 100 }); // Light up background
+            container.setScale(1.02);
         });
         container.on('pointerout', () => {
-            this.tweens.add({ targets: shape, fillAlpha: 0.2, duration: 200 });
+            this.tweens.add({ targets: shape, fillAlpha: 0.5, duration: 100 });
             container.setScale(1.0);
         });
 
         // Click Logic
         container.on('pointerdown', (pointer: Phaser.Input.Pointer) => {
-            if (focusType === 'DEPLOY') {
-                this.playDeploySequence();
-            } else {
-                this.focusOn(focusType);
-            }
+            this.focusOn(focusType);
             pointer.event.stopPropagation();
         });
 
@@ -173,12 +177,5 @@ export class WorkbenchScene extends Phaser.Scene {
         // Just reset state
         this.currentFocus = 'NONE';
         EventBus.emit('WORKBENCH_FOCUS', 'NONE');
-    }
-
-    private playDeploySequence() {
-        console.log("🚀 [WorkbenchScene] Deploy Sequence Initiated!");
-        sessionService.startMatch('SCAVENGER');
-        console.log("🚀 [WorkbenchScene] Switching to MainScene NOW");
-        this.scene.start('MainScene');
     }
 }

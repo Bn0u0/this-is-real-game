@@ -1,158 +1,161 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
+
+/**
+ * VIRTUAL JOYSTICK (Native Events Version)
+ * 
+ * Uses native DOM events via addEventListener to bypass React's Synthetic Event system
+ * and potential pointer-events issues at the root level.
+ */
 
 interface VirtualJoystickProps {
     onMove: (x: number, y: number) => void;
-    onAim: (x: number, y: number, firing: boolean) => void;
-    onSkill: (skill: 'DASH' | 'Q' | 'E') => void;
+    onSkill?: (skill: 'DASH') => void;
 }
 
 export const VirtualJoystick: React.FC<VirtualJoystickProps> = ({ onMove, onSkill }) => {
-    // Dynamic Joystick State
+    // VISUAL STATE
     const [isVisible, setIsVisible] = useState(false);
-    const originRef = useRef({ x: 0, y: 0 }); // [FIX] Use Ref for synchronous access
-    const [visualOrigin, setVisualOrigin] = useState({ x: 0, y: 0 }); // For Render only
-    const [visualCurrent, setVisualCurrent] = useState({ x: 0, y: 0 }); // For Render only
+    const [position, setPosition] = useState({ x: 0, y: 0 });     // The Stick (Red Dot)
+    const [origin, setOrigin] = useState({ x: 0, y: 0 });         // The Base (Circle)
 
-    // Siege Mode State
-    const [isSiege, setIsSiege] = useState(false);
+    // LOGIC STATE (Refs for speed)
+    const originRef = useRef({ x: 0, y: 0 });
+    const dragStartRef = useRef(0);
+    const maxDistRef = useRef(0);
+    const containerRef = useRef<HTMLDivElement>(null);
 
-    // Config
-    const RADIUS = 75; // Max drag radius
+    // CONFIG
+    const RADIUS = 75; // Max pull radius
 
-    // Flick Detection State
-    const startTimeRef = useRef(0);
-    const maxMagRef = useRef(0);
+    useEffect(() => {
+        const container = containerRef.current;
+        if (!container) return;
 
-    // Unified Pointer Handlers (Mouse + Touch)
-    const handlePointerDown = (e: React.PointerEvent) => {
-        const clientX = e.clientX;
-        const clientY = e.clientY;
+        console.log("🎮 VirtualJoystick (Native) MOUNTED!");
 
-        e.currentTarget.setPointerCapture(e.pointerId);
+        const onPointerDown = (e: PointerEvent) => {
+            console.log("🚨 NATIVE POINTER DOWN!", e.clientX, e.clientY);
+            // Crucial: Stop default behavior
+            e.preventDefault();
+            e.stopPropagation();
 
-        originRef.current = { x: clientX, y: clientY };
-        setVisualOrigin({ x: clientX, y: clientY });
-        setVisualCurrent({ x: clientX, y: clientY });
+            container.setPointerCapture(e.pointerId);
 
-        setIsVisible(true);
-        setIsSiege(false); // Reset
-        onMove(0, 0);
+            const rect = container.getBoundingClientRect();
+            const localX = e.clientX - rect.left;
+            const localY = e.clientY - rect.top;
 
-        // Flick Init
-        startTimeRef.current = Date.now();
-        maxMagRef.current = 0;
-    };
+            originRef.current = { x: localX, y: localY };
+            setOrigin({ x: localX, y: localY });
+            setPosition({ x: localX, y: localY });
 
-    const handlePointerMove = (e: React.PointerEvent) => {
-        if (!isVisible) return;
-        const clientX = e.clientX;
-        const clientY = e.clientY;
+            setIsVisible(true);
+            dragStartRef.current = Date.now();
+            maxDistRef.current = 0;
+            onMove(0, 0);
+        };
 
-        // Use Ref for calculation to ensure freshness
-        const originX = originRef.current.x;
-        const originY = originRef.current.y;
+        const onPointerMove = (e: PointerEvent) => {
+            if (!container.hasPointerCapture(e.pointerId)) return;
+            e.preventDefault();
+            e.stopPropagation();
 
-        let dx = clientX - originX;
-        let dy = clientY - originY;
-        const dist = Math.sqrt(dx * dx + dy * dy);
+            const rect = container.getBoundingClientRect();
+            const localX = e.clientX - rect.left;
+            const localY = e.clientY - rect.top;
 
-        if (dist > maxMagRef.current) maxMagRef.current = dist;
+            let dx = localX - originRef.current.x;
+            let dy = localY - originRef.current.y;
+            const dist = Math.sqrt(dx * dx + dy * dy);
 
-        // Force Calculation (0.0 to 1.0+)
-        const force = dist / RADIUS;
+            if (dist > maxDistRef.current) maxDistRef.current = dist;
 
-        // [SIEGE MODE] Visual Feedback
-        if (force > 0.9) {
-            if (!isSiege) {
-                setIsSiege(true);
-                if (navigator.vibrate) navigator.vibrate(30);
+            if (dist > RADIUS) {
+                const ratio = RADIUS / dist;
+                dx *= ratio;
+                dy *= ratio;
             }
-        } else {
-            if (isSiege) setIsSiege(false);
-        }
 
-        if (dist > RADIUS) {
-            const ratio = RADIUS / dist;
-            dx *= ratio; // Clamp Vector
-            dy *= ratio;
-        }
+            setPosition({
+                x: originRef.current.x + dx,
+                y: originRef.current.y + dy
+            });
 
-        // Update Visuals
-        setVisualCurrent({ x: originX + dx, y: originY + dy });
+            onMove(dx / RADIUS, dy / RADIUS);
+        };
 
-        // Emit Normalized Vector
-        onMove(dx / RADIUS, dy / RADIUS);
-    };
+        const onPointerUp = (e: PointerEvent) => {
+            if (!container.hasPointerCapture(e.pointerId)) return;
+            e.preventDefault();
+            container.releasePointerCapture(e.pointerId);
 
-    const handlePointerUp = (e: React.PointerEvent) => {
-        setIsVisible(false);
-        setIsSiege(false);
-        onMove(0, 0);
+            setIsVisible(false);
+            onMove(0, 0);
 
-        if (e.currentTarget.hasPointerCapture(e.pointerId)) {
-            e.currentTarget.releasePointerCapture(e.pointerId);
-        }
+            // FLICK
+            const duration = Date.now() - dragStartRef.current;
+            if (onSkill && duration < 200 && maxDistRef.current > 40) {
+                console.log("⚡ [Joystick] Flick Detected!");
+                onSkill('DASH');
+            }
+        };
 
-        // Flick Check
-        const duration = Date.now() - startTimeRef.current;
-        // [V5 TUNING] Snappier Dash (Must be fast < 200ms, and significant movement > 40px)
-        if (duration < 200 && maxMagRef.current > 40) {
-            onSkill('DASH');
-        }
-    };
+        // Attach Native Listeners
+        // checking for 'true' as third arg (capture phase) might be even stronger, but bubbling is usually fine if we are top z-index.
+        container.addEventListener('pointerdown', onPointerDown);
+        container.addEventListener('pointermove', onPointerMove);
+        container.addEventListener('pointerup', onPointerUp);
+        container.addEventListener('pointercancel', onPointerUp);
+
+        return () => {
+            container.removeEventListener('pointerdown', onPointerDown);
+            container.removeEventListener('pointermove', onPointerMove);
+            container.removeEventListener('pointerup', onPointerUp);
+            container.removeEventListener('pointercancel', onPointerUp);
+        };
+    }, [onMove, onSkill]);
 
     return (
         <div
-            className="absolute inset-0 z-[9999] touch-none pointer-events-auto"
-            style={{ touchAction: 'none' }} // [FIX] Force no-scroll
-            onPointerDown={handlePointerDown}
-            onPointerMove={handlePointerMove}
-            onPointerUp={handlePointerUp}
-            onPointerCancel={handlePointerUp}
-            onPointerLeave={handlePointerUp}
+            ref={containerRef}
+            className="absolute inset-0 z-[100] touch-none cursor-crosshair select-none"
+            style={{ touchAction: 'none' }}
         >
+            {/* RENDER JOYSTICK ONLY WHEN ACTIVE */}
             {isVisible && (
                 <div
-                    className="pointer-events-none"
+                    className="absolute pointer-events-none"
                     style={{
-                        position: 'absolute',
-                        left: visualOrigin.x,
-                        top: visualOrigin.y,
-                        width: '0px', height: '0px',
-                        overflow: 'visible'
+                        left: origin.x,
+                        top: origin.y
                     }}
                 >
-                    {/* Base Circle */}
-                    <div style={{
-                        position: 'absolute',
-                        top: -RADIUS, left: -RADIUS,
-                        width: RADIUS * 2, height: RADIUS * 2,
-                        borderRadius: '50%',
-                        border: '2px solid rgba(255, 255, 255, 0.1)',
-                        background: 'rgba(0, 0, 0, 0.2)',
-                        backdropFilter: 'blur(2px)'
-                    }} />
+                    {/* BASE CIRCLE (Centered on Origin) */}
+                    <div
+                        className="absolute rounded-full border-2 border-white/20 bg-black/20 backdrop-blur-sm"
+                        style={{
+                            width: RADIUS * 2,
+                            height: RADIUS * 2,
+                            transform: 'translate(-50%, -50%)'
+                        }}
+                    />
 
-                    {/* Stick - Dynamic Color */}
-                    <div style={{
-                        position: 'absolute',
-                        top: visualCurrent.y - visualOrigin.y - 25,
-                        left: visualCurrent.x - visualOrigin.x - 25,
-                        width: 50, height: 50,
-                        borderRadius: '50%',
-                        background: isSiege ? 'rgba(0, 255, 255, 0.8)' : 'rgba(255, 0, 85, 0.8)',
-                        boxShadow: isSiege ? '0 0 20px #00FFFF' : '0 0 15px #FF0055',
-                        border: '2px solid rgba(255, 255, 255, 0.5)',
-                        transition: 'background 0.1s, box-shadow 0.1s'
-                    }} />
+                    {/* STICK (Relative to Origin) */}
+                    <div
+                        className="absolute rounded-full bg-cyan-400/80 shadow-[0_0_15px_rgba(34,211,238,0.8)]"
+                        style={{
+                            width: 50,
+                            height: 50,
+                            transform: `translate(calc(-50% + ${position.x - origin.x}px), calc(-50% + ${position.y - origin.y}px))`
+                        }}
+                    />
                 </div>
             )}
 
-            {/* Visual Hint for New Users */}
+            {/* HINT TEXT */}
             {!isVisible && (
-                <div className="absolute bottom-20 left-1/2 -translate-x-1/2 text-white/20 text-sm tracking-widest animate-pulse font-mono pointer-events-none text-center">
-                    TOUCH ANYWHERE TO MOVE<br />
-                    <span className="text-xs opacity-50">(WASD ENABLED)</span>
+                <div className="absolute bottom-20 w-full text-center pointer-events-none opacity-30 text-white font-mono text-xs animate-pulse">
+                    CLICK & DRAG TO MOVE (NATIVE)
                 </div>
             )}
         </div>

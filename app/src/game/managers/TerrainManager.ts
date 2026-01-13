@@ -83,7 +83,7 @@ export class TerrainManager {
         // -- NEON GLITCH PALETTE --
         // -- NEON GLITCH PALETTE [REVISED] --
         const COL_GROUND = 0x111111; // Dark Asphalt (Not Purple)
-        const COL_HEX = 0x00FFCC;    // Cyber Cyan Grid (High Contrast)
+        const COL_HEX = 0xFFFFFF;    // [DEV] Pure White Grid for Visibility
         const COL_WALL_SIDE = 0x0f0518; // Obsidian
         const COL_WALL_TOP = 0x222222;  // Dark Grey
         const COL_GLOW = 0x00ff9d;      // Cyber Green Glow

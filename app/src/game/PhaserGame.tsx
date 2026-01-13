@@ -49,7 +49,26 @@ export const PhaserGame: React.FC = () => {
     gameRef.current = game;
     (window as any).phaserGame = game;
 
+    // [FIX] Audio Context Unlocker
+    // Modern browsers block audio until user interaction.
+    // Since we auto-boot, we must listen for the first click to unlock audio.
+    const unlockAudio = () => {
+      const soundManager = game.sound as Phaser.Sound.WebAudioSoundManager;
+      if (soundManager && soundManager.context && soundManager.context.state === 'suspended') {
+        soundManager.context.resume().then(() => {
+          console.log("🔊 [System] Audio Context Resumed!");
+        });
+      }
+      document.removeEventListener('pointerdown', unlockAudio);
+      document.removeEventListener('keydown', unlockAudio);
+    };
+
+    document.addEventListener('pointerdown', unlockAudio);
+    document.addEventListener('keydown', unlockAudio);
+
     return () => {
+      document.removeEventListener('pointerdown', unlockAudio);
+      document.removeEventListener('keydown', unlockAudio);
       if (gameRef.current) {
         gameRef.current.destroy(true);
         gameRef.current = null;

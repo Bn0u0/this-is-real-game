@@ -117,11 +117,15 @@ class SessionService {
 
     private transitionToCombat(heroId: string) {
         console.log("⚡ [Session] Combat Sequence Initiated.");
+
+        // [FIX] Force Phaser to Switch Scene
+        EventBus.emit('SCENE_SWITCH', 'MainScene');
+
         setTimeout(() => {
             EventBus.emit('START_MATCH', { mode: 'SINGLE', hero: heroId });
-            // Double tap
-            setTimeout(() => EventBus.emit('START_MATCH', { mode: 'SINGLE', hero: heroId }), 300);
-        }, 100);
+            // Double tap to ensure MainScene is ready
+            setTimeout(() => EventBus.emit('START_MATCH', { mode: 'SINGLE', hero: heroId }), 500);
+        }, 300); // Increased delay to allow scene load
     }
 
     private handleMissionEnd(data: any) {
@@ -164,6 +168,8 @@ class SessionService {
     public enterHideout() {
         this.updateState({ appState: 'HIDEOUT' });
         this.refreshProfile();
+        // [FIX] Ensure Phaser switches back to Workbench
+        EventBus.emit('RETURN_TO_BASE');
     }
 
     public returnToMainMenu() {

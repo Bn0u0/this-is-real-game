@@ -12,7 +12,7 @@ import { Transform, Velocity, Health, EnemyTag, SpriteConfig } from '../ecs/Comp
 export class WaveManager {
     private scene: Phaser.Scene;
     private enemyGroup: Phaser.GameObjects.Group;
-    private pool: ObjectPool<Enemy>;
+    // private pool: ObjectPool<Enemy>; // [REMOVED]
     private world: any; // ECS World
 
     public wave: number = 1;
@@ -26,16 +26,13 @@ export class WaveManager {
         this.enemyGroup = enemyGroup;
         this.world = world;
 
-        // Initialize Pool
+        // [REMOVED] OOP Pool Initialization
+        /*
         this.pool = new ObjectPool<Enemy>(
-            () => {
-                const enemy = new Enemy(scene, 0, 0);
-                this.enemyGroup.add(enemy);
-                enemy.setActive(false).setVisible(false);
-                return enemy;
-            },
+            () => { ... },
             50, 200
         );
+        */
     }
 
     public start(waveNumber: number) {
@@ -98,20 +95,20 @@ export class WaveManager {
             this.spawnTimer = time + 500; // 500ms
         }
 
-        // Return dead enemies to pool
+        // [REMOVED] OOP Update Loop
+        // ECS handles movement/rendering now.
+        /*
         const children = this.enemyGroup.getChildren() as Enemy[];
         for (let i = children.length - 1; i >= 0; i--) {
             const enemy = children[i];
-
-            // Logic Update
             if (enemy.active) {
-                // HACK: Pass player (commander)
                 const player = (this.scene as any).commander;
                 if (player) enemy.update(time, delta, player);
             } else {
                 this.pool.release(enemy);
             }
         }
+        */
     }
 
     private spawnEnemy() {

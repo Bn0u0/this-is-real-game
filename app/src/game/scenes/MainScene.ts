@@ -21,6 +21,7 @@ import { createMovementSystem } from '../ecs/systems/MovementSystem';
 import { createRenderSystem } from '../ecs/systems/RenderSystem';
 import { createCollisionSystem } from '../ecs/systems/CollisionSystem';
 import { createLifetimeSystem } from '../ecs/systems/LifetimeSystem';
+import { createChaseSystem } from '../ecs/systems/ChaseSystem';
 import { Transform, Velocity, SpriteConfig } from '../ecs/Components';
 
 // [NEW MANAGERS]
@@ -248,10 +249,11 @@ export class MainScene extends Phaser.Scene {
 
         // 初始化系統
         this.systems = [
-            createMovementSystem(this.world),
-            createRenderSystem(this, this.world),
-            createCollisionSystem(this, this.world),
-            createLifetimeSystem(this.world)
+            createChaseSystem(this.world), // [NEW] 先思考(追蹤)
+            createMovementSystem(this.world), // 再行動(移動)
+            createCollisionSystem(this, this.world), // 再碰撞
+            createLifetimeSystem(this.world), // 檢查壽命
+            createRenderSystem(this, this.world) // 最後畫出來
         ];
 
         // 🧪 測試：生成 100 個 ECS 實體
@@ -405,7 +407,46 @@ export class MainScene extends Phaser.Scene {
         this.world.dt = delta;
         this.world.time = time;
 
+        // [NEW] 告訴 ECS 玩家在哪裡
+        if (this.playerManager.myUnit) {
+            this.world.playerX = this.playerManager.myUnit.x;
+            this.world.playerY = this.playerManager.myUnit.y;
+        }
+
         // 執行所有系統
         this.systems.forEach(system => system(this.world));
+
+        // [CLEANUP] Remove old Manager updates that drive OOP objects
+        // this.waveManager.update(...) -> Removed
+        // this.enemyGroup.update(...) -> Removed
+        // this.ecsWorld.update(...) -> Removed
+
+        // Managers that still need update (Logic only, no Heavy Loop)
+        this.progression.update(delta);
+
+        const myUnit = this.playerManager.myUnit;
+        if (myUnit) {
+            this.inputSystem.processInput(this.input, this.cameras, myUnit, this.statsModifiers);
+            this.cameraDirector.updateLookahead(this.inputSystem.getVirtualAxis().x, this.inputSystem.getVirtualAxis().y);
+            if (this.enemyGroup) myUnit.autoFire(time, this.enemyGroup);
+        }
+
+        // Keep WaveManager only for spawning timer
+        this.waveManager.update(time, delta);
+
+        // Ally Manager?
+        this.allyManager.update(time, delta, this.enemyGroup);
+        // this.allyManager.checkCollisions(...); // OOP Collision Disabled
+
+        this.runCombatLogic(delta);
+        this.extractionManager.update(time, delta);
+        this.waypointManager.update();
+        this.handleExtraction();
+
+        if (this.lootService && this.lootService.group && myUnit) {
+            this.physics.overlap(myUnit, this.lootService.group, (p, l) => this.handleLootPickup(l));
+        }
+
+        if (time % 10 < 1) this.emitStatsUpdate();
     }
 }

@@ -5,6 +5,7 @@ import { CLASSES } from '../game/factories/PlayerFactory';
 import { PlayerClassID } from '../types';
 import { persistence } from '../services/PersistenceService';
 import { languageService } from '../services/LanguageService';
+import { CharacterSelector } from './workbench/CharacterSelector';
 
 interface MainMenuProps {
     onStartGame: (role: string) => void;
@@ -135,30 +136,17 @@ export const MainMenu: React.FC<MainMenuProps> = ({ onStartGame, onOpenHideout }
                 </div>
 
                 {/* Character Selector */}
-                <div className="w-full mb-8 flex items-center justify-between bg-black/40 backdrop-blur-md rounded-2xl p-4 border-2 border-white/10">
-                    <button onClick={prevClass} className="p-4 text-[#00FFFF] text-2xl hover:scale-125 transition-transform">
-                        ◀
-                    </button>
-
-                    <div className="flex flex-col items-center text-center">
-                        <h2 className="text-3xl font-black text-white tracking-widest mb-1" style={{ textShadow: `0 0 10px #${currentClass.stats.markColor.toString(16)}` }}>
-                            {currentClass.name}
-                        </h2>
-                        <div className="text-xs text-gray-400 font-mono tracking-widest mb-2">
-                            {'TODO: Weapon Info'}
-                        </div>
-                        {/* Simple Stats Display */}
-                        <div className="flex gap-2 text-[10px] text-gray-300">
-                            <span className="bg-white/10 px-2 py-1 rounded">HP {currentClass.stats.hp}</span>
-                            <span className="bg-white/10 px-2 py-1 rounded">ATK {currentClass.stats.atk}</span>
-                            <span className="bg-white/10 px-2 py-1 rounded">SPD {currentClass.stats.speed}</span>
-                        </div>
-                    </div>
-
-                    <button onClick={nextClass} className="p-4 text-[#00FFFF] text-2xl hover:scale-125 transition-transform">
-                        ▶
-                    </button>
-                </div>
+                <CharacterSelector
+                    onSelect={(classId) => {
+                        // MainMenu handles local state for "GO" button context
+                        // But we can just update the index or rely on prop
+                        // Let's simplified local map
+                        const keys = Object.keys(CLASSES);
+                        const idx = keys.indexOf(classId);
+                        setSelectedIdx(idx);
+                    }}
+                    initialClass={classKeys[selectedIdx]}
+                />
 
                 <button
                     className="group relative w-full py-6 mb-6 overflow-hidden rounded-3xl bg-transparent border-none cursor-pointer active:scale-95 transition-transform"

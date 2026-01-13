@@ -1,165 +1,95 @@
 import React, { useState, useEffect } from 'react';
 import { metaGame } from '../../services/MetaGameService';
+import { sessionService } from '../../services/SessionService';
 import { inventoryService } from '../../services/InventoryService';
 import { languageService } from '../../services/LanguageService';
-import { CLASSES, PlayerFactory } from '../../game/factories/PlayerFactory';
-import { PlayerClassID, TutorialStep } from '../../types';
+import { PlayerClassID } from '../../types';
 
 export const HideoutScreen: React.FC = () => {
-    // 1. Character Selection State
-    const classKeys = Object.keys(CLASSES) as PlayerClassID[];
-    const [selectedClass, setSelectedClass] = useState<PlayerClassID>('SCAVENGER');
-
-    // 2. State Headers
-    const [hasWeapon, setHasWeapon] = useState(true);
-    const [isArsenalUnlocked, setIsArsenalUnlocked] = useState(false);
-    // tutorialStep is used implicitly for logic, but we track it
-    const [tutorialStep, setTutorialStep] = useState<TutorialStep>('VOID');
+    // 1. Data Subscriptions
+    const [profile, setProfile] = useState(inventoryService.getState());
+    const [langTick, setLangTick] = useState(0);
 
     useEffect(() => {
-        const checkState = () => {
-            const profile = inventoryService.getState();
-            setHasWeapon(!!profile.loadout.mainWeapon);
-            setIsArsenalUnlocked(profile.tutorialStep === 'COMPLETE');
-            setTutorialStep(profile.tutorialStep);
+        const unsubInv = inventoryService.subscribe(setProfile);
+        const unsubLang = languageService.subscribe(() => setLangTick(t => t + 1));
+        return () => {
+            unsubInv();
+            unsubLang();
         };
-        // Initial check
-        if (inventoryService.getState()) {
-            checkState();
-        }
-
-        const unsub = inventoryService.subscribe(checkState);
-        metaGame.selectHero(selectedClass as any);
-        return unsub;
-    }, [selectedClass]);
-
-    // Handlers
-    const rotateClass = (direction: 1 | -1) => {
-        const currentIndex = classKeys.indexOf(selectedClass);
-        let newIndex = (currentIndex + direction + classKeys.length) % classKeys.length;
-        const newClass = classKeys[newIndex];
-        setSelectedClass(newClass);
-        metaGame.selectHero(newClass);
-    };
-
-    const handleDeploy = () => {
-        // Always start match. MainScene manages the tutorial flow (Void -> Select -> Trial).
-        metaGame.startMatch();
-    };
-
-    // Subscribe to language change to force re-render
-    const [_, setTick] = useState(0);
-    useEffect(() => {
-        const unsub = languageService.subscribe(() => setTick(t => t + 1));
-        return unsub;
     }, []);
 
     const t = (key: any) => languageService.t(key);
 
     return (
-        <div className="absolute inset-0 bg-black text-amber-500 font-mono flex flex-col items-center justify-center pointer-events-auto overflow-hidden">
+        <div className="absolute inset-0 pointer-events-none flex flex-col justify-between p-4 md:p-6 overflow-hidden">
 
-            {/* --- TOP BAR (Only visible if unlocked?) --- */}
-            {isArsenalUnlocked && (
-                <div className="absolute top-0 left-0 w-full p-4 flex justify-between items-start z-10">
-                    <div className="flex flex-col">
-                        <h1 className="text-4xl font-bold tracking-widest animate-pulse">
-                            {t('HIDEOUT_HEADER')}
-                        </h1>
-                        <span className="text-xs opacity-50">UNIT_ID: 8842-ALPHA</span>
+            {/* === TOP LEFT: PROFILE (COMPACT) === */}
+            <div className="pointer-events-auto flex items-center gap-3">
+                {/* Avatar Box (Smaller) */}
+                <div className="w-12 h-12 bg-black/80 border border-amber-500/30 flex items-center justify-center overflow-hidden">
+                    <span className="text-xl">😎</span>
+                </div>
+
+                {/* Info Text (Compact) */}
+                <div className="flex flex-col">
+                    <div className="flex items-baseline gap-2">
+                        <h2 className="text-lg font-bold text-white tracking-wider">
+                            {t('ROOT_ACCESS').replace('// ', '')} 8842
+                        </h2>
+                        <span className="text-xs text-amber-500 font-mono bg-amber-500/10 px-1 rounded">
+                            LV.{profile.level || 1}
+                        </span>
                     </div>
                 </div>
-            )}
-
-            {/* --- MAIN CONTENT AREA --- */}
-            <div className="relative w-full max-w-6xl h-full flex flex-col items-center justify-center">
-
-                {/* --- CENTER: CHARACTER DISPLAY (Only if Unlocked) --- */}
-                {isArsenalUnlocked ? (
-                    <div className="flex flex-col items-center z-10 mb-8">
-                        {/* CAROUSEL */}
-                        <div className="flex items-center gap-8 mb-6">
-                            <button
-                                onClick={() => rotateClass(-1)}
-                                className="text-4xl opacity-50 hover:opacity-100 hover:scale-125 transition-all"
-                            >
-                                &lt;
-                            </button>
-
-                            <div className="relative group w-64 h-96 border-2 border-amber-900 bg-amber-950/20 p-2 flex flex-col items-center justify-between hover:border-amber-400 transition-colors cursor-pointer">
-                                {/* ASCII ART / PORTRAIT */}
-                                <div className="flex-1 w-full flex items-center justify-center opacity-80 group-hover:opacity-100 transition-opacity whitespace-pre font-mono text-xs leading-[10px] overflow-hidden">
-                                    {/* Placeholder for Character ASCII */}
-                                    {CLASSES[selectedClass as PlayerClassID].role === 'MELEE' &&
-                                        `  O  
- /|\\ 
- / \\ `}
-                                    {CLASSES[selectedClass as PlayerClassID].role === 'RANGED' &&
-                                        `  O_ 
- /| 
- / \\ `}
-                                    {CLASSES[selectedClass as PlayerClassID].role === 'SUMMONER' &&
-                                        `  O  
- /M\\ 
- / \\ `}
-                                </div>
-
-                                <div className="w-full border-t border-amber-900/50 pt-2 text-center">
-                                    <h2 className="text-2xl font-bold text-amber-400">{selectedClass}</h2>
-                                    <p className="text-xs text-amber-600">{CLASSES[selectedClass as PlayerClassID].role}</p>
-                                </div>
-                            </div>
-
-                            <button
-                                onClick={() => rotateClass(1)}
-                                className="text-4xl opacity-50 hover:opacity-100 hover:scale-125 transition-all"
-                            >
-                                &gt;
-                            </button>
-                        </div>
-                    </div>
-                ) : (
-                    /* --- ROOKIE MODE: THE VOID UI --- */
-                    <div className="flex flex-col items-center justify-center z-10 mb-16 animate-pulse">
-                        <div className="text-6xl font-black text-amber-500 tracking-[0.5em] mb-4 blur-[1px]">
-                            {t('MM_TITLE_1')}
-                        </div>
-                        <div className="text-sm text-amber-700 tracking-widest">
-                            {t('ROOT_ACCESS')} // {t('ONLINE')}...
-                        </div>
-                    </div>
-                )}
-
-                {/* --- BOTTOM: DEPLOY BUTTON --- */}
-                <button
-                    onClick={handleDeploy}
-                    className="group relative px-12 py-6 bg-amber-900/10 border-2 border-amber-500 hover:bg-amber-500 hover:text-black transition-all duration-100 overflow-hidden"
-                >
-                    <div className="absolute inset-0 bg-amber-500/0 group-hover:bg-amber-500/10 animate-scanline pointer-events-none" />
-                    <span className="relative text-4xl font-black tracking-widest z-10">
-                        {isArsenalUnlocked ? t('DEPLOY_BUTTON') : t('CMD_DEPLOY')}
-                    </span>
-                    {/* DECO LINES */}
-                    <div className="absolute top-0 left-0 w-2 h-2 border-t-2 border-l-2 border-amber-500" />
-                    <div className="absolute bottom-0 right-0 w-2 h-2 border-b-2 border-r-2 border-amber-500" />
-                </button>
-
-                {/* --- BOTTOM RIGHT: ARSENAL (Locked for Rookies) --- */}
-                {isArsenalUnlocked && (
-                    <div className="absolute bottom-8 right-8">
-                        <button
-                            onClick={() => metaGame.navigateTo('ARSENAL')}
-                            className="bg-black border border-amber-800 px-4 py-2 text-sm text-amber-700 hover:text-amber-400 hover:border-amber-400 transition-colors flex items-center gap-2"
-                        >
-                            <span>[ {t('HOME_BTN_ARSENAL')} ]</span>
-                        </button>
-                    </div>
-                )}
-
             </div>
 
-            {/* Background Grid */}
-            <div className="absolute inset-0 bg-[linear-gradient(rgba(180,83,9,0.1)_1px,transparent_1px),linear-gradient(90deg,rgba(180,83,9,0.1)_1px,transparent_1px)] bg-[size:40px_40px] pointer-events-none opacity-20" />
+            {/* === TOP RIGHT: CURRENCIES (Compact) === */}
+            <div className="pointer-events-auto flex flex-col items-end gap-1">
+                <div className="flex items-center gap-2">
+                    <span className="text-amber-500 font-mono text-base">{profile.wallet?.gold || 0}</span>
+                    <div className="w-2 h-2 bg-amber-500 rounded-full" title={t('CREDITS')} />
+                </div>
+                <div className="flex items-center gap-2">
+                    <span className="text-cyan-400 font-mono text-sm">{profile.wallet?.gems || 0}</span>
+                    <div className="w-1.5 h-1.5 bg-cyan-400 rotate-45" title={t('SHARDS')} />
+                </div>
+            </div>
+
+            {/* === CENTER RIGHT: REMOVED (Immersive Mode) === */}
+            {/* User Interaction relies on 3D Scene Clicks (Crate / Hero) */}
+
+            {/* === BOTTOM LEFT: SYSTEM MENU (Subtle) === */}
+            <div className="pointer-events-auto flex items-end gap-2 opacity-50 hover:opacity-100 transition-opacity">
+                <button className="p-2 text-white/30 hover:text-white transition-colors">
+                    <span className="text-xl">⚙️</span>
+                </button>
+                <button className="p-2 text-white/30 hover:text-white transition-colors">
+                    <span className="text-xl">✉️</span>
+                </button>
+            </div>
+
+            {/* === BOTTOM RIGHT: DEPLOY (Restored) === */}
+            {/* Only show when NO overlay is open (Immersive Mode) */}
+            <div className="pointer-events-auto">
+                <button
+                    onClick={() => metaGame.startMatch()}
+                    className="absolute bottom-6 right-6 group bg-amber-500 hover:scale-105 active:scale-95 transition-all duration-200"
+                >
+                    {/* Yellow Block */}
+                    <div className="px-12 py-6 flex items-center gap-4 skew-x-[-12deg] shadow-[0_0_20px_rgba(245,158,11,0.5)] group-hover:shadow-[0_0_40px_rgba(245,158,11,0.8)] border-2 border-white/20">
+                        <span className="text-4xl font-black text-black tracking-widest italic skew-x-[12deg]">
+                            {t('WB_GO')}
+                        </span>
+                        <span className="text-2xl animate-pulse delay-75 skew-x-[12deg] text-black/50">
+                            ►►
+                        </span>
+                    </div>
+                </button>
+            </div>
+
+            {/* === DECORATIVE OVERLAY LINES === */}
+            <div className="absolute inset-x-0 bottom-8 h-[1px] bg-gradient-to-r from-transparent via-white/20 to-transparent pointer-events-none" />
         </div>
     );
 };

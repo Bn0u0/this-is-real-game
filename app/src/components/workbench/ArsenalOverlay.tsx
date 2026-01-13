@@ -2,6 +2,7 @@ import React, { useState, useRef } from 'react';
 import { ItemInstance } from '../../types';
 import { sessionService } from '../../services/SessionService';
 import { EventBus } from '../../services/EventBus';
+import { languageService } from '../../services/LanguageService';
 import classNames from 'classnames';
 
 // Mock Data for UI Dev (Simulating "Loading" state possibility)
@@ -69,8 +70,8 @@ export const ArsenalOverlay: React.FC<Props> = ({ currentWeapon, inventory }) =>
                 </div>
 
                 <div className="flex justify-between items-end mb-4 px-2 border-b border-[#FFAA00]/20 pb-2">
-                    <h2 className="text-[#FFAA00] font-black text-xl italic tracking-tighter drop-shadow-md">
-                        ARSENAL STORAGE
+                    <h2 className="text-[#FFAA00] font-black text-xl italic tracking-tighter drop-shadow-md" style={{ fontFamily: 'Microsoft JhengHei' }}>
+                        {languageService.t('ARSENAL_STORAGE')}
                     </h2>
 
                     {/* [NEW] SELL TOGGLE */}
@@ -81,7 +82,15 @@ export const ArsenalOverlay: React.FC<Props> = ({ currentWeapon, inventory }) =>
                             sellingMode ? "bg-red-500 text-white border-red-500 animate-pulse" : "bg-transparent text-[#FFAA00] border-[#FFAA00]"
                         )}
                     >
-                        {sellingMode ? "SELL MODE ACTIVE" : "SELL ITEMS"}
+                        {sellingMode ? languageService.t('BTN_SELL_ACTIVE') : languageService.t('BTN_SELL_MODE')}
+                    </button>
+
+                    {/* [NEW] CLOSE BUTTON */}
+                    <button
+                        onClick={handleBack}
+                        className="ml-2 px-3 py-1 text-xs font-bold border border-red-500/50 text-red-500 hover:bg-red-500 hover:text-white transition-all pointer-events-auto"
+                    >
+                        [{languageService.t('BTN_CLOSE')}]
                     </button>
                 </div>
 

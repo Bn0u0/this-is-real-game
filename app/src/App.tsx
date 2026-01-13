@@ -7,6 +7,7 @@ import { BootScreen } from './components/BootScreen';
 import { HideoutScreen } from './components/screens/HideoutScreen';
 import { ArsenalScreen } from './components/screens/ArsenalScreen';
 import { ArsenalOverlay } from './components/workbench/ArsenalOverlay';
+import { BlueprintOverlay } from './components/workbench/BlueprintOverlay';
 import { GameOverScreen } from './components/screens/GameOverScreen';
 import { HTML_LAYER } from './game/constants/Depth';
 import { EventBus } from './services/EventBus';
@@ -56,12 +57,16 @@ const App: React.FC = () => {
                 {/* State: MAIN_MENU / HIDEOUT */}
                 {(appState === 'MAIN_MENU' || appState === 'HIDEOUT') && (
                     <div className="absolute inset-0 pointer-events-none" style={{ zIndex: HTML_LAYER.HUD }}>
+                        {/* Always show Main HUD when in Menu/Hideout */}
+                        <HideoutScreen />
+
                         {session.workbenchView === 'CRATE' && (
                             <ArsenalOverlay
                                 currentWeapon={session.profile.loadout.mainWeapon}
                                 inventory={session.profile.inventory}
                             />
                         )}
+                        {session.workbenchView === 'BLUEPRINTS' && <BlueprintOverlay />}
                     </div>
                 )}
 

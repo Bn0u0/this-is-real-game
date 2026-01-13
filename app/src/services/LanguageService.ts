@@ -12,6 +12,15 @@ const DICTIONARY = {
         HIDEOUT_HEADER: 'HIDEOUT',
         DEPLOY_BUTTON: 'DEPLOY LINK',
         HOME_BTN_ARSENAL: 'ARSENAL',
+        ARSENAL_STORAGE: 'ARSENAL STORAGE',
+        BTN_SELL_MODE: 'SELL ITEMS',
+        BTN_SELL_ACTIVE: 'SELL MODE ACTIVE',
+        BTN_CLOSE: 'CLOSE',
+        BTN_BACK_MENU: 'RETURN TO MENU',
+        WB_GO: 'GO',
+        WB_GEAR: 'GEAR',
+        WB_HERO: 'HERO',
+        WB_CLASS_SELECT: 'CLASS SELECT',
 
         // Main Menu
         MM_TITLE_1: 'THIS IS CALLED',
@@ -82,6 +91,15 @@ const DICTIONARY = {
         HIDEOUT_HEADER: '藏身處',
         DEPLOY_BUTTON: '啟動連結',
         HOME_BTN_ARSENAL: '軍械庫',
+        ARSENAL_STORAGE: '軍械庫存',
+        BTN_SELL_MODE: '販售模式',
+        BTN_SELL_ACTIVE: '販售中',
+        BTN_CLOSE: '關閉',
+        BTN_BACK_MENU: '返回主選單',
+        WB_GO: '出擊',
+        WB_GEAR: '裝備',
+        WB_HERO: '特工',
+        WB_CLASS_SELECT: '職業選擇',
 
         // Hideout
         ROOT_ACCESS: '// 根目錄權限',
@@ -139,6 +157,10 @@ const DICTIONARY = {
         SLOT_FEET: '腳部',
         // SLOT_MAIN_WEAPON defined above
 
+        // Boot
+        BOOT_INIT: '系統初始化中...',
+        BOOT_SYSTEM: '神經網絡連接中',
+
         // Misc
         FOR: '用於',
         TO: '至',
@@ -147,7 +169,7 @@ const DICTIONARY = {
 };
 
 class LanguageServiceImpl {
-    private currentLang: Language = 'ZH'; // Default to Chinese as requested
+    private currentLang: Language = 'ZH'; // Default to Chinese
     private listeners: ((lang: Language) => void)[] = [];
 
     public get current() {

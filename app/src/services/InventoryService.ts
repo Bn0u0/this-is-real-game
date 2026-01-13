@@ -32,7 +32,12 @@ class InventoryService {
     private createDefaultProfile(): PlayerProfile {
         return {
             id: 'DEV_USER_V5', // [DEV] Force New ID
-            credits: 9999,  // [DEV] Rich
+            credits: 9999,  // [LEGACY]
+            wallet: {
+                gold: 9999, // [DEV] Rich
+                gems: 100
+            },
+            level: 1,
             inventory: ['W_T1_PISTA_01'],
             stash: [],
             loadout: {
@@ -247,7 +252,9 @@ class InventoryService {
         this.state.stash.splice(idx, 1);
 
         // Add Credits
-        this.state.credits += value;
+        this.state.credits += value; // Legacy
+        if (!this.state.wallet) this.state.wallet = { gold: 0, gems: 0 }; // Safety
+        this.state.wallet.gold += value;
 
         this.save();
         console.log(`💰 [Inventory] Sold ${item.name} for ${value} credits.`);

@@ -169,7 +169,12 @@ export type TutorialStep = 'VOID' | 'TRIAL' | 'COMPLETE';
 
 export interface PlayerProfile {
   id: string; // [RESTORED]
-  credits: number;
+  credits: number; // [LEGACY] - use wallet.gold
+  wallet: {
+    gold: number;
+    gems: number;
+  };
+  level: number; // Player Account Level
   inventory: string[]; // Item IDs
   stash: ItemInstance[]; // [RESTORED]
   loadout: Loadout;

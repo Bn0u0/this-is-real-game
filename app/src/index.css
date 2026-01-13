@@ -6,7 +6,7 @@
 @tailwind utilities;
 
 :root {
-  font-family: 'Inter', system-ui, Avenir, Helvetica, Arial, sans-serif;
+  font-family: 'Inter', 'Microsoft JhengHei', 'PingFang TC', system-ui, sans-serif;
   line-height: 1.5;
   font-weight: 400;
 

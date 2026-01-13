@@ -35,6 +35,12 @@ class SessionService {
 
     // --- Initialization ---
     public async init() {
+        // [FIX] Register Critical Listeners EARLY (Before Async)
+        EventBus.on('BOOT_COMPLETE', () => {
+            console.log("🔥 [Session] BOOT_COMPLETE received! Transitioning to MAIN_MENU.");
+            this.updateState({ appState: 'MAIN_MENU' });
+        });
+
         // [SYSTEM] 1. Auth Callback
         const restored = await persistence.handleAuthCallback();
         if (restored) {
@@ -55,17 +61,17 @@ class SessionService {
         // [SYSTEM] 4. Gift Code Protocol
         this.checkGiftCode();
 
-        // [SYSTEM] 5. Event Listeners
+        // [SYSTEM] 5. Event Listeners (Runtime)
         EventBus.on('GAME_OVER', this.handleMissionEnd);
         EventBus.on('EXTRACTION_SUCCESS', this.handleExtraction);
 
         // [FIX] Listen for FTUE triggers
         EventBus.on('SHOW_CLASS_SELECTION', () => { /* Handled elsewhere? */ });
 
-        // [NEW] Boot Sequence Listener
-        EventBus.on('BOOT_COMPLETE', () => {
-            console.log("🔥 [Session] BOOT_COMPLETE received! Transitioning to MAIN_MENU.");
-            this.updateState({ appState: 'MAIN_MENU' });
+        // [NEW] Workbench Focus Listener
+        EventBus.on('WORKBENCH_FOCUS', (view: WorkbenchView) => {
+            console.log(`🎥 [Session] Workbench Focus: ${view}`);
+            this.updateState({ workbenchView: view });
         });
     }
 
@@ -160,6 +166,10 @@ class SessionService {
         this.refreshProfile();
     }
 
+    public returnToMainMenu() {
+        this.updateState({ appState: 'MAIN_MENU' });
+    }
+
     public startMatch(role: string) {
         const step = inventoryService.getTutorialStep();
         metaGame.startMatch(); // Determines state -> 'GAME_LOOP'
@@ -181,6 +191,7 @@ class SessionService {
         this.listeners = [];
         EventBus.off('GAME_OVER', this.handleMissionEnd);
         EventBus.off('EXTRACTION_SUCCESS', this.handleExtraction);
+        EventBus.off('WORKBENCH_FOCUS');
         // metagame unsubscribe?
     }
 

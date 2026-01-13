@@ -14,22 +14,18 @@ export const BootScreen: React.FC<BootScreenProps> = ({ onStart }) => {
                 if (prev >= 100) {
                     clearInterval(interval);
                     setLoaded(true);
+                    // [FIX] Defer state update to next tick to avoid React warning
+                    setTimeout(() => onStart(), 0);
                     return 100;
                 }
-                return prev + 5;
+                return prev + 25;
             });
-        }, 50);
+        }, 30);
         return () => clearInterval(interval);
-    }, []);
+    }, [onStart]);
 
     return (
-        <div
-            className="absolute inset-0 bg-black flex flex-col items-center justify-center z-[99999] cursor-pointer"
-            onClick={() => {
-                console.log("BootScreen Clicked. Loaded:", loaded);
-                if (loaded) onStart();
-            }}
-        >
+        <div className="absolute inset-0 bg-black flex flex-col items-center justify-center z-[99999] pointer-events-none">
             {/* <div className="text-6xl mb-8 animate-pulse">🐰</div> - REMOVED LEGACY RABBIT */}
             <h1 className="text-4xl mb-8 font-black text-[#00FFFF] tracking-tighter animate-pulse drop-shadow-[0_0_10px_#00FFFF] text-center">
                 這才較割草<br />
@@ -43,11 +39,11 @@ export const BootScreen: React.FC<BootScreenProps> = ({ onStart }) => {
                 />
             </div>
             <div className="mt-4 font-mono text-[#00FFFF] tracking-widest text-xs">
-                {loaded ? '>> CLICK TO INITIALIZE <<' : `LOADING NEURAL LINK... ${progress}%`}
+                系統初始化中... {progress}%
             </div>
 
             {/* Amber Glitch Grid Background */}
-            <div className="absolute inset-0 pointer-events-none -z-10" style={{
+            <div className="absolute inset-0 -z-10" style={{
                 background: `
                     linear-gradient(rgba(18, 16, 35, 0.9), rgba(18, 16, 35, 0.9)),
                     repeating-linear-gradient(0deg, transparent, transparent 19px, #00FFFF 20px),

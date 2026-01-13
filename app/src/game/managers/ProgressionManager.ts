@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
 import { EventBus } from '../../services/EventBus';
-import { Enemy } from '../classes/Enemy';
+// import { Enemy } from '../classes/Enemy'; // [REMOVED]
 import { Player } from '../classes/Player';
 
 export class ProgressionManager {
@@ -26,7 +26,7 @@ export class ProgressionManager {
         this.score += this.doubleScoreActive ? amount * 2 : amount;
     }
 
-    public handleEnemyKill(enemy: Enemy) {
+    public handleEnemyKill(enemy: any) {
         const val = enemy.value || 10;
         this.addScore(val);
         // Add XP logic if needed, currently only Level Up via specific events?
@@ -63,8 +63,9 @@ export class ProgressionManager {
 
         // Logic: Knockback
         const range = 500;
+        /* [DEPRECATED] Physics Knockback not supported in Phase 3 yet
         enemies.getChildren().forEach((child) => {
-            const e = child as Enemy;
+            const e = child as any;
             if (!e.active || !e.body) return;
 
             const dist = Phaser.Math.Distance.Between(player.x, player.y, e.x, e.y);
@@ -73,9 +74,10 @@ export class ProgressionManager {
                 const force = 400;
                 e.body.velocity.x += Math.cos(angle) * force;
                 e.body.velocity.y += Math.sin(angle) * force;
-                e.takeDamage(5);
+                if (e.takeDamage) e.takeDamage(5);
             }
         });
+        */
 
         EventBus.emit('SHOW_FLOATING_TEXT', {
             x: player.x,

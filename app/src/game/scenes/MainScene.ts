@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
 import { Player } from '../classes/Player';
-import { Enemy } from '../classes/Enemy';
+// import { Enemy } from '../classes/Enemy'; // [REMOVED]
 import { COLORS, PHYSICS } from '../../constants';
 import { EventBus } from '../../services/EventBus';
 import { LootService } from '../../services/LootService';
@@ -364,9 +364,8 @@ export class MainScene extends Phaser.Scene {
         this.waveManager.update(time, delta);
         // this.ecsWorld.update(delta); // [REMOVED] Old ECS
 
-        this.enemyGroup?.getChildren().forEach((child) => {
-            if (child.active) (child as Enemy).update(time, delta, myUnit!);
-        });
+        // [REMOVED] Residual OOP Update Loop
+        // this.enemyGroup?.getChildren().forEach((child) => { ... });
 
         // [NEW] Ally Manager Update
         this.allyManager.update(time, delta, this.enemyGroup);

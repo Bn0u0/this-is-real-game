@@ -1,8 +1,9 @@
 import Phaser from 'phaser';
 import { EventBus } from '../../services/EventBus';
-import { Enemy } from '../classes/Enemy';
-// import { EnemyFactory } from '../factories/EnemyFactory'; // Deprecated
-import { ObjectPool } from '../core/ObjectPool';
+// [REMOVED] Imports
+// import { Enemy } from '../classes/Enemy';
+// import { EnemyFactory } from '../factories/EnemyFactory';
+// import { ObjectPool } from '../core/ObjectPool';
 import { LootDrone } from '../entities/LootDrone';
 import { ENEMY_LIBRARY } from '../data/library/enemies';
 

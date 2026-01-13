@@ -155,7 +155,7 @@ export const UnifiedJoystick: React.FC<UnifiedJoystickProps> = ({ onMove, onSkil
         <div
             ref={containerRef}
             id="joystick-surface"
-            className="absolute inset-0 touch-none select-none cursor-crosshair z-0"
+            className="absolute inset-0 touch-none select-none cursor-crosshair z-0 pointer-events-auto"
         // z-0 ensures it is the baseline. HUD will be higher.
         >
             {isVisible && (

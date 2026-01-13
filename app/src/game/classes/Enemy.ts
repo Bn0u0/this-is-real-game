@@ -1,3 +1,4 @@
+// [DEPRECATED] FOR PHASE 2 MIGRATION. DO NOT USE NEW INSTANCES.
 import Phaser from 'phaser';
 import { Player } from './Player';
 import { IPoolable } from '../core/ObjectPool';

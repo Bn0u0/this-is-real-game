@@ -361,39 +361,7 @@ export class MainScene extends Phaser.Scene {
 
     // ... (StartMatch) ...
 
-    fixedUpdate(time: number, delta: number) {
-        if (!this.isGameActive || this.isPaused) return;
-
-        this.progression.update(delta);
-        const myUnit = this.playerManager.myUnit;
-
-        if (myUnit) {
-            this.inputSystem.processInput(this.input, this.cameras, myUnit, this.statsModifiers);
-            this.cameraDirector.updateLookahead(this.inputSystem.getVirtualAxis().x, this.inputSystem.getVirtualAxis().y);
-            if (this.enemyGroup) myUnit.autoFire(time, this.enemyGroup);
-        }
-
-        this.waveManager.update(time, delta);
-        // this.ecsWorld.update(delta); // [REMOVED] Old ECS
-
-        // [REMOVED] Residual OOP Update Loop
-        // this.enemyGroup?.getChildren().forEach((child) => { ... });
-
-        // [NEW] Ally Manager Update
-        this.allyManager.update(time, delta, this.enemyGroup);
-        this.allyManager.checkCollisions(this.enemyGroup);
-
-        this.runCombatLogic(delta);
-        this.extractionManager.update(time, delta);
-        this.waypointManager.update();
-        this.handleExtraction();
-
-        if (this.lootService && this.lootService.group && myUnit) {
-            this.physics.overlap(myUnit, this.lootService.group, (p, l) => this.handleLootPickup(l));
-        }
-
-        if (time % 10 < 1) this.emitStatsUpdate();
-    }
+    // [REMOVED] fixedUpdate (Logic merged into update)
 
     // ... (Rest of file) ...
 

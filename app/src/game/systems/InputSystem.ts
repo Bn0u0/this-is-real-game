@@ -32,6 +32,7 @@ export class InputSystem {
     }
 
     public setVirtualAxis(x: number, y: number) {
+        console.log(`🕹️ [InputSystem] Axis: ${x.toFixed(2)}, ${y.toFixed(2)}`);
         this.virtualAxis.set(x, y);
         this.moveVector.x = x;
         this.moveVector.y = y;

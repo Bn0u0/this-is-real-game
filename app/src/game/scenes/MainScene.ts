@@ -22,6 +22,8 @@ import { createRenderSystem } from '../ecs/systems/RenderSystem';
 import { createCollisionSystem } from '../ecs/systems/CollisionSystem';
 import { createLifetimeSystem } from '../ecs/systems/LifetimeSystem';
 import { createChaseSystem } from '../ecs/systems/ChaseSystem';
+import { createDeathSystem } from '../ecs/systems/DeathSystem';
+import { createPlayerCollisionSystem } from '../ecs/systems/PlayerCollisionSystem';
 import { Transform, Velocity, SpriteConfig } from '../ecs/Components';
 
 // [NEW MANAGERS]
@@ -251,10 +253,20 @@ export class MainScene extends Phaser.Scene {
         this.systems = [
             createChaseSystem(this.world), // [NEW] 先思考(追蹤)
             createMovementSystem(this.world), // 再行動(移動)
+            createPlayerCollisionSystem(this.world), // [NEW] 檢測玩家被撞
             createCollisionSystem(this, this.world), // 再碰撞
+            createDeathSystem(this.world),           // [NEW] 檢測死亡並掉寶
             createLifetimeSystem(this.world), // 檢查壽命
             createRenderSystem(this, this.world) // 最後畫出來
         ];
+
+        // 監聽 ECS 發出的死亡事件
+        EventBus.on('ENEMY_KILLED_AT', (data: { x: number, y: number, tier: number }) => {
+            // 觸發掉寶
+            if (this.lootService) this.lootService.trySpawnLoot(data.x, data.y);
+            // 加分
+            EventBus.emit('ADD_SCORE', 10 * data.tier);
+        });
 
         // 🧪 測試：生成 100 個 ECS 實體
         // 確保有 'tex_orb' 圖片，如果沒有，請用你專案現有的圖片 key 替換
@@ -414,6 +426,16 @@ export class MainScene extends Phaser.Scene {
 
         // 執行所有系統
         this.systems.forEach(system => system(this.world));
+
+        // [NEW] 處理玩家受傷累積
+        if (this.world.playerDamageAccumulator && this.world.playerDamageAccumulator > 1 && this.playerManager.myUnit) {
+            // 只有累積超過 1 點傷害才執行，避免過於頻繁呼叫
+            const damage = Math.floor(this.world.playerDamageAccumulator);
+            this.playerManager.myUnit.takeDamage(damage);
+
+            // 扣除已處理的傷害 (保留小數點部分)
+            this.world.playerDamageAccumulator -= damage;
+        }
 
         // [CLEANUP] Remove old Manager updates that drive OOP objects
         // this.waveManager.update(...) -> Removed

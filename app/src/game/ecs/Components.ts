@@ -21,6 +21,16 @@ export const PlayerTag = defineComponent();
 export const EnemyTag = defineComponent();
 export const ProjectileTag = defineComponent();
 
+export const Damage = defineComponent({
+    value: Types.f32,
+    ownerId: Types.ui8 // 0: Enemy, 1: Player (Simplified)
+});
+
+export const Lifetime = defineComponent({
+    remaining: Types.f32,
+    total: Types.f32
+});
+
 // --- View Components (渲染設定) ---
 // 注意：我們用 textureId (整數) 來映射實際的字串 key，以保持陣列純淨
 export const SpriteConfig = defineComponent({

@@ -131,6 +131,9 @@ export class CombatManager {
         onPlayerDamaged: (amount: number) => void,
         externalProjectiles?: Phaser.GameObjects.Group // [FIX] Support WeaponSystem
     ) {
+        // [ADAPTER] Disabling OOP Collision
+        // Logic moved to ECS CollisionSystem.
+        /*
         // 1. Internal Pool -> Enemy
         this.scene.physics.overlap(this.projectiles, enemyGroup, (proj: any, enemy: any) => {
             this.handleHit(proj, enemy);
@@ -142,6 +145,7 @@ export class CombatManager {
                 this.handleHit(proj, enemy);
             });
         }
+        */
     }
 
     private handleHit(projectile: any, enemy: any) {

@@ -38,7 +38,8 @@ export class WeaponPipeline {
             fireRate: weapon.computedStats.fireRate,
             speed: spd,
             projectileCount: 1, // Default
-            spreadMod: source.isSiege ? 0.5 : 1.0
+            spreadMod: source.isSiege ? 0.5 : 1.0,
+            duration: (rng / spd) * 1000 // duration from range and speed
         };
     }
 }

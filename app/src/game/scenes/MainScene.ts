@@ -19,6 +19,8 @@ import { SoundManager } from '../managers/SoundManager';
 import { createWorld, addEntity, addComponent, System } from 'bitecs';
 import { createMovementSystem } from '../ecs/systems/MovementSystem';
 import { createRenderSystem } from '../ecs/systems/RenderSystem';
+import { createCollisionSystem } from '../ecs/systems/CollisionSystem';
+import { createLifetimeSystem } from '../ecs/systems/LifetimeSystem';
 import { Transform, Velocity, SpriteConfig } from '../ecs/Components';
 
 // [NEW MANAGERS]
@@ -220,7 +222,7 @@ export class MainScene extends Phaser.Scene {
         this.terrainManager = new TerrainManager(this);
         this.terrainManager.generateWorld();
 
-        this.weaponSystem = new WeaponSystem(this);
+        this.weaponSystem = new WeaponSystem(this, this.world);
         this.inputSystem = new InputSystem(this);
         this.inputRecorder = new InputRecorder();
         this.networkSyncSystem = new NetworkSyncSystem(this);
@@ -237,7 +239,7 @@ export class MainScene extends Phaser.Scene {
             });
         });
 
-        this.waveManager = new WaveManager(this, this.enemyGroup);
+        this.waveManager = new WaveManager(this, this.enemyGroup, this.world);
         this.soundManager = new SoundManager();
 
         // ECS (Phase 1: bitecs)
@@ -247,7 +249,9 @@ export class MainScene extends Phaser.Scene {
         // 初始化系統
         this.systems = [
             createMovementSystem(this.world),
-            createRenderSystem(this, this.world)
+            createRenderSystem(this, this.world),
+            createCollisionSystem(this, this.world),
+            createLifetimeSystem(this.world)
         ];
 
         // 🧪 測試：生成 100 個 ECS 實體

@@ -6,10 +6,14 @@ import { ObjectPool } from '../core/ObjectPool';
 import { LootDrone } from '../entities/LootDrone';
 import { ENEMY_LIBRARY } from '../data/library/enemies';
 
+import { addEntity, addComponent } from 'bitecs';
+import { Transform, Velocity, Health, EnemyTag, SpriteConfig } from '../ecs/Components';
+
 export class WaveManager {
     private scene: Phaser.Scene;
     private enemyGroup: Phaser.GameObjects.Group;
     private pool: ObjectPool<Enemy>;
+    private world: any; // ECS World
 
     public wave: number = 1;
 
@@ -17,9 +21,10 @@ export class WaveManager {
 
     public get currentWave(): number { return this.wave; }
 
-    constructor(scene: Phaser.Scene, enemyGroup: Phaser.GameObjects.Group) {
+    constructor(scene: Phaser.Scene, enemyGroup: Phaser.GameObjects.Group, world: any) {
         this.scene = scene;
         this.enemyGroup = enemyGroup;
+        this.world = world;
 
         // Initialize Pool
         this.pool = new ObjectPool<Enemy>(
@@ -135,12 +140,38 @@ export class WaveManager {
         const sy = player.y + Math.sin(angle) * radius;
 
         // 3. Pool
-        const enemy = this.pool.get();
-        if (enemy) {
-            enemy.setPosition(sx, sy);
-            enemy.configure(def); // Inject Data
-            enemy.onEnable();
-        }
+        // [ADAPTER] ECS Spawn
+        const eid = addEntity(this.world);
+
+        // Components
+        addComponent(this.world, Transform, eid);
+        addComponent(this.world, Velocity, eid);
+        addComponent(this.world, Health, eid);
+        addComponent(this.world, SpriteConfig, eid);
+        addComponent(this.world, EnemyTag, eid);
+
+        // Init Data
+        Transform.x[eid] = sx;
+        Transform.y[eid] = sy;
+
+        // Simple chasing logic needs to be in a System, 
+        // for now just give it a nudge towards player to verify spawn
+        const angleToPlayer = Math.atan2(player.y - sy, player.x - sx);
+        const speed = 50;
+        Velocity.x[eid] = Math.cos(angleToPlayer) * speed;
+        Velocity.y[eid] = Math.sin(angleToPlayer) * speed;
+
+        Health.current[eid] = 50;
+        Health.max[eid] = 50;
+
+        // View
+        SpriteConfig.textureId[eid] = 2; // 'tex_enemy_01'? Need to Map
+        SpriteConfig.scale[eid] = 1.0;
+        SpriteConfig.tint[eid] = 0xFF0000; // Red Enemy
+
+        // OOP Pool Fallback (Optional: Keep it for logic update if we still use update loop?)
+        // For now, only ECS to test pure ECS.
+        // const enemy = this.pool.get(); ... [DISABLED]
     }
 
     public cleanup() {

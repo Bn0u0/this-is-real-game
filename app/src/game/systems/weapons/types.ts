@@ -8,6 +8,7 @@ export interface CombatStats {
     projectileCount: number;
     spreadMod: number;
     sizeMod?: number; // Visual scale
+    duration?: number; // Projectile lifetime in ms
 }
 
 export interface WeaponContext {

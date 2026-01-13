@@ -18,6 +18,7 @@ import { WeaverLogic } from '../mechanics/WeaverLogic';
 export class Player extends Phaser.GameObjects.Container {
     public id: string;
     public isLocal: boolean;
+    // @ts-ignore: Suppress implementation override error
     declare public body: Phaser.Physics.Arcade.Body;
 
     // Logic
@@ -96,7 +97,7 @@ export class Player extends Phaser.GameObjects.Container {
         }
         this.emitter = scene.add.particles(0, 0, 'flare', {
             speed: 10, scale: { start: 0.6, end: 0 }, alpha: { start: 0.5, end: 0 },
-            lifespan: 800, blendMode: 'ADD', frequency: 50, follow: this,
+            lifespan: 800, blendMode: Phaser.BlendModes.ADD, frequency: 50, follow: this,
             tint: COLORS.primary
         });
         this.emitter.setDepth(-1);

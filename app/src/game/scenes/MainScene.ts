@@ -16,10 +16,10 @@ import { NetworkSyncSystem } from '../systems/NetworkSyncSystem';
 import { GlitchPipeline } from '../pipelines/GlitchPipeline';
 import { InputRecorder } from '../systems/InputRecorder';
 import { SoundManager } from '../managers/SoundManager';
-import { World } from '../ecs/ECS';
-import { PhysicsSystem } from '../ecs/systems/PhysicsSystem';
-import { RenderSystem } from '../ecs/systems/RenderSystem';
-import { Position, Velocity, Renderable } from '../ecs/Components';
+import { createWorld, addEntity, addComponent, System } from 'bitecs';
+import { createMovementSystem } from '../ecs/systems/MovementSystem';
+import { createRenderSystem } from '../ecs/systems/RenderSystem';
+import { Transform, Velocity, SpriteConfig } from '../ecs/Components';
 
 // [NEW MANAGERS]
 import { CameraDirector } from '../managers/CameraDirector';
@@ -75,7 +75,9 @@ export class MainScene extends Phaser.Scene {
     public extractionManager!: ExtractionManager;
     public waveManager!: WaveManager;
     public soundManager!: SoundManager;
-    public ecsWorld!: World; // If used
+    // public ecsWorld!: World; // [REMOVED] Old ECS
+    private world: any;
+    private systems: System[] = [];
 
     public isPaused: boolean = false;
     public isGameActive: boolean = false;
@@ -238,10 +240,47 @@ export class MainScene extends Phaser.Scene {
         this.waveManager = new WaveManager(this, this.enemyGroup);
         this.soundManager = new SoundManager();
 
-        // ECS
-        this.ecsWorld = new World();
-        this.ecsWorld.addSystem(new PhysicsSystem(this.ecsWorld));
-        this.ecsWorld.addSystem(new RenderSystem(this.ecsWorld));
+        // ECS (Phase 1: bitecs)
+        console.log("🚀 [ECS] Initializing Phase 1...");
+        this.world = createWorld();
+
+        // 初始化系統
+        this.systems = [
+            createMovementSystem(this.world),
+            createRenderSystem(this, this.world)
+        ];
+
+        // 🧪 測試：生成 100 個 ECS 實體
+        // 確保有 'tex_orb' 圖片，如果沒有，請用你專案現有的圖片 key 替換
+        if (!this.textures.exists('tex_orb')) {
+            // 創建一個臨時的白色圓形紋理作為 fallback
+            const graphics = this.make.graphics({ x: 0, y: 0, add: false } as any);
+            graphics.fillStyle(0xffffff);
+            graphics.fillCircle(10, 10, 10);
+            graphics.generateTexture('tex_orb', 20, 20);
+        }
+
+        for (let i = 0; i < 100; i++) {
+            const eid = addEntity(this.world);
+
+            // 添加組件
+            addComponent(this.world, Transform, eid);
+            addComponent(this.world, Velocity, eid);
+            addComponent(this.world, SpriteConfig, eid);
+
+            // 初始化數據
+            Transform.x[eid] = this.worldWidth / 2;
+            Transform.y[eid] = this.worldHeight / 2;
+
+            // 隨機爆炸速度
+            Velocity.x[eid] = (Math.random() - 0.5) * 400;
+            Velocity.y[eid] = (Math.random() - 0.5) * 400;
+
+            // 視覺設定
+            SpriteConfig.textureId[eid] = 1; // 對應 'tex_orb'
+            SpriteConfig.scale[eid] = 0.5 + Math.random() * 0.5;
+            SpriteConfig.tint[eid] = 0x00FF00; // 綠色粒子
+        }
 
         // ... (Skipping Test Entity & Lighting & Glitch & Events) ...
 
@@ -317,7 +356,7 @@ export class MainScene extends Phaser.Scene {
         }
 
         this.waveManager.update(time, delta);
-        this.ecsWorld.update(delta);
+        // this.ecsWorld.update(delta); // [REMOVED] Old ECS
 
         this.enemyGroup?.getChildren().forEach((child) => {
             if (child.active) (child as Enemy).update(time, delta, myUnit!);
@@ -354,5 +393,15 @@ export class MainScene extends Phaser.Scene {
         EventBus.off('RESUME_GAME');
 
         if (this.allyManager) this.allyManager.destroy(); // [NEW]
+    }
+    update(time: number, delta: number) {
+        if (!this.world) return;
+
+        // 更新 ECS Context
+        this.world.dt = delta;
+        this.world.time = time;
+
+        // 執行所有系統
+        this.systems.forEach(system => system(this.world));
     }
 }

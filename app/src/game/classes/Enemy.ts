@@ -6,6 +6,8 @@ import { EnemyDef, EnemyBehavior } from '../../types';
 
 export class Enemy extends Phaser.GameObjects.Container implements IPoolable {
     public id: string;
+
+    // @ts-ignore: Suppress implementation override error
     declare public body: Phaser.Physics.Arcade.Body;
     public isDead: boolean = false;
 

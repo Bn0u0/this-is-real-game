@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.88.0",
+    "bitecs": "^0.3.40",
     "canvas-confetti": "^1.9.4",
     "classnames": "^2.5.1",
     "eventemitter3": "^5.0.1",

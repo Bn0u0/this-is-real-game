@@ -1,6 +1,0 @@
-﻿game/classes/Enemy.ts(7,10): error TS2612: Property 'body' will overwrite the base property in 'Container'. If this is intentional, add an initializer. Otherwise, add a 'declare' modifier or remove the redundant declaration.
-game/classes/Enemy.ts(143,55): error TS2353: Object literal may only specify known properties, and 'add' does not exist in type 'Options'.
-game/classes/Player.ts(7,10): error TS2612: Property 'body' will overwrite the base property in 'Container'. If this is intentional, add an initializer. Otherwise, add a 'declare' modifier or remove the redundant declaration.
-game/classes/Player.ts(31,60): error TS2353: Object literal may only specify known properties, and 'add' does not exist in type 'Options'.
-game/scenes/MainScene.ts(291,21): error TS2339: Property 'tilePositionX' does not exist on type 'Grid'.
-game/scenes/MainScene.ts(292,21): error TS2339: Property 'tilePositionY' does not exist on type 'Grid'.

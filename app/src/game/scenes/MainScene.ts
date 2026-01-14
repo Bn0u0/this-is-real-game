@@ -65,7 +65,7 @@ export class MainScene extends Phaser.Scene {
     // allyGroup removed (Moved to Manager)
 
     // [NEW] Declarations for Build Fix
-    public statsModifiers: any = {}; // [FIX] Added missing property
+    public statsModifiers: { playerSpeed: number } = { playerSpeed: 1.0 }; // [FIX] Added default
     public worldWidth: number = 2000;
     public worldHeight: number = 2000;
 

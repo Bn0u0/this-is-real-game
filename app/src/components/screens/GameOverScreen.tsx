@@ -10,7 +10,7 @@ export const GameOverScreen: React.FC = () => {
         <div className="absolute inset-0 flex h-full w-full items-center justify-center bg-black/95 flex-col overflow-hidden pointer-events-auto z-[100]">
 
             {/* 背景特效 (可選) */}
-            <div className="absolute inset-0 bg-[url('/assets/ui/noise.png')] opacity-10 animate-pulse pointer-events-none"></div>
+            <div className="absolute inset-0 bg-black opacity-10 animate-pulse pointer-events-none"></div>
 
             {/* 核心文字 */}
             <div className="z-10 text-center space-y-6">

@@ -67,8 +67,11 @@ export class InputSystem {
         const current = this.moveVector;
         if (current.x === 0 && current.y === 0) {
             // 2. Check history (Did we have high velocity recently?)
-            if (this.vectorHistory.length > 0) {
-                const lastInput = this.vectorHistory[this.vectorHistory.length - 1];
+            // 2. Check history (Did we have high velocity recently?)
+            // Note: trackHistory() is called BEFORE checkFlick(), so the last entry is the current (0,0).
+            // We need the one before that.
+            if (this.vectorHistory.length >= 2) {
+                const lastInput = this.vectorHistory[this.vectorHistory.length - 2];
                 const lastTime = lastInput.time;
                 const now = this.scene.time.now;
 
@@ -127,7 +130,7 @@ export class InputSystem {
         }
 
         // 4. Default Base Speed
-        const baseSpeed = 1200 * modifiers.playerSpeed;
+        const baseSpeed = 1200 * (modifiers.playerSpeed ?? 1.0);
 
         // 5. Apply Movement Rule
         if (force > 0.1) {
@@ -139,6 +142,11 @@ export class InputSystem {
 
             body.setDrag(600);
             body.setAcceleration(moveX * baseSpeed * speedMult, moveY * baseSpeed * speedMult);
+
+            // [DEBUG] Physics State
+            if (Math.random() < 0.05) { // Sample logs 5% to avoid spam
+                console.log(`🚀 [Physics] Accel: ${body.acceleration.x.toFixed(0)}, ${body.acceleration.y.toFixed(0)} | Vel: ${body.velocity.x.toFixed(0)}, ${body.velocity.y.toFixed(0)} | Drag: ${body.drag.x}`);
+            }
 
             // Rotation: Face Move Direction
             const targetRotation = inputVector.angle() + Math.PI / 2;

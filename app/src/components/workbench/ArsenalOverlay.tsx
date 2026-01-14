@@ -118,7 +118,7 @@ export const ArsenalOverlay: React.FC<Props> = ({ currentWeapon, inventory }) =>
                             )}
 
                             {/* Background Noise */}
-                            <div className="absolute inset-0 opacity-10 bg-[url('/assets/ui/noise.png')] mix-blend-overlay pointer-events-none" />
+                            <div className="absolute inset-0 opacity-10 bg-black mix-blend-overlay pointer-events-none" />
                         </div>
                     ))}
 

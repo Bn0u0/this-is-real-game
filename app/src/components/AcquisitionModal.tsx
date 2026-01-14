@@ -31,10 +31,10 @@ export const AcquisitionModal: React.FC<Props> = ({ item, onAccept, title, subti
 
     // Image logic: specific icons or defaults
     const getIconPath = () => {
-        if (item.defId.includes('crowbar')) return '/assets/icons/icon_scrap_metal.png'; // Placeholder
-        if (item.defId.includes('pistol')) return '/assets/icons/ammo_pip.png'; // Placeholder
-        if (item.defId.includes('drone')) return '/assets/icons/icon_scrap_metal.png'; // Placeholder
-        return '/assets/icons/icon_scrap_metal.png';
+        if (item.defId.includes('crowbar')) return ''; // Placeholder
+        if (item.defId.includes('pistol')) return ''; // Placeholder
+        if (item.defId.includes('drone')) return ''; // Placeholder
+        return '';
     };
 
     return (
@@ -45,7 +45,7 @@ export const AcquisitionModal: React.FC<Props> = ({ item, onAccept, title, subti
                 style={{ borderColor: borderColor }}
             >
                 {/* 掃描線背景 */}
-                <div className="absolute inset-0 pointer-events-none opacity-10 bg-[url('/assets/ui/bg_hld_ruins.png')] bg-cover mix-blend-overlay"></div>
+                <div className="absolute inset-0 pointer-events-none opacity-10 bg-black mix-blend-overlay"></div>
                 <div className="absolute inset-0 pointer-events-none bg-gradient-to-b from-transparent to-black/80"></div>
 
                 {/* 內容區 */}

@@ -15,6 +15,9 @@ import { ScavengerLogic } from '../mechanics/ScavengerLogic';
 import { SkirmisherLogic } from '../mechanics/SkirmisherLogic';
 import { WeaverLogic } from '../mechanics/WeaverLogic';
 
+import { defineQuery } from 'bitecs';
+import { Transform, EnemyTag } from '../ecs/Components';
+
 export class Player extends Phaser.GameObjects.Container {
     public id: string;
     public isLocal: boolean;
@@ -478,9 +481,11 @@ export class Player extends Phaser.GameObjects.Container {
     // Auto-Fire System (WeaponSystem Hook)
     private lastFireTime: number = 0;
     private fireRate: number = 400; // Base fire rate
+    private static enemyQuery: any = null; // [FIX] Static ECS Query
 
-    public autoFire(time: number, enemies: Phaser.GameObjects.Group) {
+    public autoFire(time: number, world: any) {
         if (this.isDashing || !this.classConfig) return;
+        if (!world) return; // [FIX] Safety check
 
         // [SIEGE MODE] Logic
         const isSiege = this.isSiegeMode;
@@ -488,11 +493,11 @@ export class Player extends Phaser.GameObjects.Container {
         // Stop to Shoot Rule (Relaxed in Siege)
         const speed = (this.body as Phaser.Physics.Arcade.Body).velocity.length();
 
-        // Allow fire if: Stopped OR Siege Mode (Run & Gun / Moonwalk)
-        const canFire = (!this.isMoving && speed < 50) || isSiege;
+        // Allow fire if: Slow/Stopped OR Siege Mode
+        const canFire = (speed < 150) || isSiege; // [FIX] Relax condition - allow slow-move shooting
 
         if (canFire) {
-            const target = this.scanForTarget(enemies) as any;
+            const target = this.scanForECSTarget(world);
             // If Hybrid/Manual Siege, aim is fixed by InputSystem usually? 
             // InputSystem sets rotation. 
             // Whatever, we scan for target to Lock On or just fire forward if no target?
@@ -557,15 +562,29 @@ export class Player extends Phaser.GameObjects.Container {
         }
     }
 
-    private scanForTarget(enemies: Phaser.GameObjects.Group): Phaser.GameObjects.GameObject | null {
-        let closest = null;
-        let minDist = 400;
-        enemies.getChildren().forEach((e: any) => {
-            if (!e.active) return; // e.isDead check might be custom, rely on active
-            // Cast to Enemy to check isDead if needed, or assume active means alive
-            const d = Phaser.Math.Distance.Between(this.x, this.y, e.x, e.y);
-            if (d < minDist) { minDist = d; closest = e; }
-        });
+    private scanForECSTarget(world: any): { x: number, y: number } | null {
+        // [FIX] ECS-based target scanning
+        if (!Player.enemyQuery) {
+            Player.enemyQuery = defineQuery([Transform, EnemyTag]);
+        }
+
+        const enemies = Player.enemyQuery(world);
+        let closest: { x: number, y: number } | null = null;
+        let minDistSq = 600 * 600; // Range squared (increased from 400)
+
+        for (let i = 0; i < enemies.length; i++) {
+            const eid = enemies[i];
+            const ex = Transform.x[eid];
+            const ey = Transform.y[eid];
+            const dx = ex - this.x;
+            const dy = ey - this.y;
+            const distSq = dx * dx + dy * dy;
+
+            if (distSq < minDistSq) {
+                minDistSq = distSq;
+                closest = { x: ex, y: ey };
+            }
+        }
         return closest;
     }
 
@@ -584,7 +603,9 @@ export class Player extends Phaser.GameObjects.Container {
             EventBus.emit('SHOW_FLOATING_TEXT', { x: this.x, y: this.y, text: `-${Math.floor(amount)}`, color: '#FF0000' });
 
             if (this.stats.hp <= 0) {
-                // Die Logic (Handled in Scene normally)
+                // [FIX] Player Death
+                this.stats.hp = 0;
+                EventBus.emit('PLAYER_DEATH');
             }
         }
     }

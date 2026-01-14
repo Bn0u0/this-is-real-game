@@ -13,6 +13,7 @@ interface SessionState {
     profile: UserProfile;
     metaState: MetaGameState;
     workbenchView: WorkbenchView; // [NEW] Bridge to Phaser Camera
+    sessionLoot: number; // [NEW] Gold gathered in current run
 }
 
 class SessionService {
@@ -24,7 +25,8 @@ class SessionService {
             appState: 'BOOT',
             profile: persistence.getProfile(),
             metaState: metaGame.getState(),
-            workbenchView: 'NONE'
+            workbenchView: 'NONE',
+            sessionLoot: 0 // [NEW] Track In-Game Loot
         };
 
         // Bind Context
@@ -64,6 +66,12 @@ class SessionService {
         // [SYSTEM] 5. Event Listeners (Runtime)
         EventBus.on('GAME_OVER', this.handleMissionEnd);
         EventBus.on('EXTRACTION_SUCCESS', this.handleExtraction);
+        // [NEW] Loot Pickup
+        EventBus.on('LOOT_PICKUP', this.handleLootPickup.bind(this));
+        // [CRITICAL FIX] Reset session loot when starting a new match
+        EventBus.on('START_MATCH', () => {
+            this.updateState({ sessionLoot: 0 });
+        });
 
         // [FIX] Listen for FTUE triggers
         EventBus.on('SHOW_CLASS_SELECTION', () => { /* Handled elsewhere? */ });
@@ -155,8 +163,13 @@ class SessionService {
 
         if (data && data.score !== undefined) {
             persistence.uploadScore(data.score, data.wave || 1, 0);
+
+            // [FIX] Add Session Loot to Total Credits
+            const sessionGold = this.state.sessionLoot || 0;
+            const earn = Math.floor(data.score / 10) + sessionGold;
+
             persistence.save({
-                credits: currentProfile.credits + Math.floor(data.score / 10),
+                credits: currentProfile.credits + earn,
                 level: Math.max(currentProfile.level, data.level || 1)
             });
         }
@@ -179,6 +192,13 @@ class SessionService {
 
     private handleExtraction(loot: any[]) {
         this.updateState({ appState: 'GAME_OVER' });
+    }
+
+    private handleLootPickup(data: { value: number }) {
+        const val = data.value || 0;
+        const current = this.state.sessionLoot || 0;
+        this.updateState({ sessionLoot: current + val });
+        // Emit for HUD
     }
 
     // --- Actions (Called by UI) ---

@@ -63,6 +63,37 @@ export class WeaponSystem {
         const damage = stats.damage || 10;
         const duration = stats.duration || 1000;
 
+        // [WEAPON DIFFERENTIATION] Apply behavior-specific settings
+        let textureId = 1; // Default: circle
+        let tint = 0xF59E0B; // Default: amber
+        let scale = 0.4;
+        let projSpeed = speed;
+        let projDamage = damage;
+        let projDuration = duration;
+
+        switch (def.behavior) {
+            case 'MELEE_SWEEP':
+                textureId = 2; // Square
+                tint = 0x22C55E; // Green
+                scale = 0.8;
+                projSpeed = 200;
+                projDamage = damage * 2;
+                projDuration = 200;
+                break;
+            case 'DRONE_BEAM':
+                textureId = 1; // Circle
+                tint = 0x3B82F6; // Blue
+                scale = 0.25;
+                projSpeed = 800;
+                projDamage = damage * 0.3;
+                projDuration = 600;
+                break;
+            case 'PISTOL_SHOT':
+            default:
+                // Use defaults above
+                break;
+        }
+
         for (let i = 0; i < count; i++) {
             let angle = source.rotation;
             if (count > 1) {
@@ -83,18 +114,18 @@ export class WeaponSystem {
             Transform.y[eid] = source.y;
             Transform.rotation[eid] = angle;
 
-            Velocity.x[eid] = Math.cos(angle) * speed;
-            Velocity.y[eid] = Math.sin(angle) * speed;
+            Velocity.x[eid] = Math.cos(angle) * projSpeed;
+            Velocity.y[eid] = Math.sin(angle) * projSpeed;
 
-            SpriteConfig.textureId[eid] = 1; // 'circle' for bullets
-            SpriteConfig.scale[eid] = 0.4;
-            SpriteConfig.tint[eid] = 0xF59E0B; // Amber (Player Color)
+            SpriteConfig.textureId[eid] = textureId;
+            SpriteConfig.scale[eid] = scale;
+            SpriteConfig.tint[eid] = tint;
 
-            Damage.value[eid] = damage;
+            Damage.value[eid] = projDamage;
             Damage.ownerId[eid] = source.isEnemy ? 0 : 1; // 1 = Player
 
-            Lifetime.remaining[eid] = duration;
-            Lifetime.total[eid] = duration;
+            Lifetime.remaining[eid] = projDuration;
+            Lifetime.total[eid] = projDuration;
         }
 
         // Just for reference, we skip the old strategy block

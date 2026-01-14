@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { EventBus } from '../../services/EventBus';
 import { inventoryService } from '../../services/InventoryService';
 import { metaGame } from '../../services/MetaGameService';
+import { sessionService } from '../../services/SessionService'; // [FIX] Import
 import { PlayerClassID, ItemInstance } from '../../types';
 import { AcquisitionModal } from '../AcquisitionModal';
 
@@ -18,6 +19,7 @@ import { AcquisitionModal } from '../AcquisitionModal';
 export const HUD: React.FC = () => {
     // --- STATE ---
     const [stats, setStats] = useState({ hp: 100, maxHp: 100, level: 1, xp: 0, xpToNextLevel: 100, score: 0, survivalTime: 0, enemiesAlive: 0 });
+    const [gold, setGold] = useState(0); // [NEW] Gold State
 
     // Modals
     const [showClassSelection, setShowClassSelection] = useState(false);
@@ -32,6 +34,11 @@ export const HUD: React.FC = () => {
 
     // --- EFFECTS ---
     useEffect(() => {
+        // [NEW] Gold Subscription
+        const unsubSession = sessionService.subscribe(state => {
+            setGold(state.sessionLoot || 0);
+        });
+
         // Stats
         const handleStats = (newStats: any) => setStats(newStats);
 
@@ -46,6 +53,7 @@ export const HUD: React.FC = () => {
         EventBus.on('SHOW_ACQUISITION_MODAL', handleAcquisition);
 
         return () => {
+            unsubSession();
             EventBus.off('STATS_UPDATE', handleStats);
             EventBus.off('SHOW_CLASS_SELECTION', handleShowClassSelection);
             EventBus.off('SHOW_TRIAL_END', handleShowTrialEnd);
@@ -102,10 +110,23 @@ export const HUD: React.FC = () => {
                     </div>
                 </div>
 
-                {/* TIMER & SCORE */}
+                {/* TIMER & GOLD */}
                 <div className="flex flex-col items-center grow">
                     <div className="bg-black/50 border border-white/20 px-2 md:px-4 py-1 backdrop-blur-sm rounded mb-1">
                         <span className="text-xl md:text-2xl font-bold text-amber-400 tracking-widest">{timeString}</span>
+                    </div>
+                </div>
+
+                {/* Top Right: Gold (Credits) */}
+                <div className="flex flex-col items-end mr-4">
+                    <div className="flex items-center gap-2">
+                        <span className="text-2xl font-black text-amber-500 tracking-widest leading-none">
+                            {gold}
+                        </span>
+                        <div className="w-4 h-4 bg-amber-500" /> {/* Gold Square Icon */}
+                    </div>
+                    <div className="text-[10px] text-amber-500/50 font-bold uppercase tracking-[0.2em]">
+                        CREDITS
                     </div>
                 </div>
 

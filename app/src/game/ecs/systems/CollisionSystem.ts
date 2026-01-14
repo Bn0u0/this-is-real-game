@@ -64,12 +64,8 @@ export const createCollisionSystem = (scene: Phaser.Scene, world: any) => {
                     // 3. 銷毀子彈
                     removeEntity(world, pid);
 
-                    // 4. 檢查敵人死亡
-                    if (Health.current[eid] <= 0) {
-                        // console.log(`[Collision] Enemy ${eid} died`);
-                        removeEntity(world, eid);
-                        // TODO: 觸發掉落物, 分數等
-                    }
+                    // 4. 不在這裡處理死亡
+                    // 讓 DeathSystem 統一處理 (檢測 HP <= 0 並觸發掉寶事件)
 
                     // 子彈已銷毀，跳出內層迴圈 (不能再撞其他敵人，除非是穿透彈)
                     break;

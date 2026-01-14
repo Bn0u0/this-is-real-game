@@ -252,7 +252,7 @@ export class MainScene extends Phaser.Scene {
             });
         });
 
-        this.waveManager = new WaveManager(this, this.enemyGroup, this.world);
+        this.waveManager = new WaveManager(this, this.world);
         this.soundManager = new SoundManager();
 
         // ECS (Phase 1: bitecs)
@@ -270,12 +270,12 @@ export class MainScene extends Phaser.Scene {
             createRenderSystem(this, this.world) // 最後畫出來
         ];
 
-        // 監聽 ECS 發出的死亡事件
-        EventBus.on('ENEMY_KILLED_AT', (data: { x: number, y: number, tier: number }) => {
-            // 觸發掉寶
-            if (this.lootService) this.lootService.trySpawnLoot(data.x, data.y);
+        // 監聯 ECS 發出的死亡事件
+        EventBus.on('ENEMY_KILLED_AT', (data: { x: number, y: number, textureId: number }) => {
+            // 觸發 ECS 掉寶 (直接傳座標和類型)
+            this.waveManager.spawnLootAt(data.x, data.y, data.textureId);
             // 加分
-            EventBus.emit('ADD_SCORE', 10 * data.tier);
+            EventBus.emit('ADD_SCORE', 10);
         });
 
         // 🧪 測試：生成 100 個 ECS 實體
@@ -334,6 +334,12 @@ export class MainScene extends Phaser.Scene {
         this.setupDevTools();
         EventBus.emit('SCENE_READY');
 
+        // [FIX] Player Death Listener
+        EventBus.on('PLAYER_DEATH', () => {
+            console.log("💀 [MainScene] Player Died!");
+            this.gameOver(false);
+        });
+
         // [FIX] Listen for Return to Base
         EventBus.once('RETURN_TO_BASE', () => {
             console.log("🏠 [MainScene] Returning to Workbench...");
@@ -346,8 +352,11 @@ export class MainScene extends Phaser.Scene {
     private cleanStart() {
         console.log("[MainScene] 🧹 Cleaning up previous match state...");
 
-        if (this.physics.world.isPaused) {
-            this.physics.resume();
+        // [FIX] Safety Check
+        if (this.physics && this.physics.world) {
+            if (this.physics.world.isPaused) {
+                this.physics.resume();
+            }
         }
         this.isPaused = false;
         this.isGameActive = false;
@@ -427,15 +436,14 @@ export class MainScene extends Phaser.Scene {
         if (myUnit) {
             this.inputSystem.processInput(this.input, this.cameras, myUnit, this.statsModifiers);
             this.cameraDirector.updateLookahead(this.inputSystem.getVirtualAxis().x, this.inputSystem.getVirtualAxis().y);
-            if (this.enemyGroup) myUnit.autoFire(time, this.enemyGroup);
+            if (this.world) myUnit.autoFire(time, this.world); // [FIX] Pass ECS World
         }
 
         // Keep WaveManager only for spawning timer
         this.waveManager.update(time, delta, this.progression.survivalTime);
 
-        // Ally Manager?
-        this.allyManager.update(time, delta, this.enemyGroup);
-        // this.allyManager.checkCollisions(...); // OOP Collision Disabled
+        // Ally Manager (ECS-incompatible features disabled)
+        this.allyManager.update(time, delta);
 
         this.runCombatLogic(delta);
         this.extractionManager.update(time, delta);
@@ -446,6 +454,7 @@ export class MainScene extends Phaser.Scene {
             this.physics.overlap(myUnit, this.lootService.group, (p, l) => this.handleLootPickup(l));
         }
 
-        if (time % 10 < 1) this.emitStatsUpdate();
+        // [FIX] Emit Stats Every Frame for Immediate UI Update
+        this.emitStatsUpdate();
     }
 }

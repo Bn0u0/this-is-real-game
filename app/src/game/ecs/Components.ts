@@ -29,19 +29,24 @@ export const CombatState = defineComponent({
     hasFired: Types.ui8 // 0 or 1, maybe useful for one-shot?
 });
 
+export const Lifetime = defineComponent({
+    remaining: Types.f32,
+    total: Types.f32
+});
+
+export const Value = defineComponent({
+    amount: Types.f32
+});
+
 // --- Tags (標籤，無數據) ---
 export const PlayerTag = defineComponent();
 export const EnemyTag = defineComponent();
 export const ProjectileTag = defineComponent();
+export const LootTag = defineComponent();
 
 export const Damage = defineComponent({
     value: Types.f32,
     ownerId: Types.ui8 // 0: Enemy, 1: Player (Simplified)
-});
-
-export const Lifetime = defineComponent({
-    remaining: Types.f32,
-    total: Types.f32
 });
 
 // --- View Components (渲染設定) ---

@@ -24,28 +24,17 @@ export class AllyManager {
         }
     }
 
-    public update(time: number, delta: number, enemyGroup: Phaser.GameObjects.Group) {
-        // Update all allies (Turrets will have their own update method called)
-        // Note: Phaser Groups run update() on children automatically if runChildUpdate is set, 
-        // but often we want manual control or arguments.
-
+    public update(time: number, delta: number) {
+        // [SIMPLIFIED] No enemyGroup parameter - allies don't interact with ECS enemies yet
         this.allyGroup.getChildren().forEach((child: any) => {
             if (child.active && child.update) {
-                child.update(time, delta, enemyGroup);
+                child.update(time, delta);
             }
         });
     }
 
-    public checkCollisions(enemyGroup: Phaser.GameObjects.Group) {
-        // Hard Collision: Enemy vs Turret
-        this.scene.physics.collide(enemyGroup, this.allyGroup, (enemy, turret) => {
-            // Turret is Immovable, Enemy stops.
-            // Logic: Turret takes contact damage?
-            if ((turret as any).takeDamage) {
-                (turret as any).takeDamage(0.5); // Contact Damage tick
-            }
-        });
-    }
+    // [DISABLED] checkCollisions cannot work with ECS enemies
+    // TODO: Migrate to ECS collision system if allies are needed
 
     public clear() {
         this.allyGroup.clear(true, true);

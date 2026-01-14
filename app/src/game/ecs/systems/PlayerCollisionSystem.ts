@@ -1,10 +1,13 @@
 import { defineSystem, defineQuery, removeEntity } from 'bitecs';
-import { Transform, EnemyTag, ProjectileTag, Damage } from '../Components';
+import { Transform, EnemyTag, ProjectileTag, Damage, LootTag, Value } from '../Components';
+import { EventBus } from '../../../services/EventBus';
 
 export const createPlayerCollisionSystem = (world: any) => {
     const enemyQuery = defineQuery([Transform, EnemyTag]);
     // [NEW] Query for Enemy Projectiles
     const projectileQuery = defineQuery([Transform, ProjectileTag, Damage]);
+    // [NEW] Query for Loot
+    const lootQuery = defineQuery([Transform, LootTag, Value]);
 
     return defineSystem((world: any) => {
         // 如果沒有玩家位置數據，直接跳過
@@ -50,6 +53,28 @@ export const createPlayerCollisionSystem = (world: any) => {
 
                 // 銷毀子彈
                 removeEntity(world, pid);
+            }
+        }
+
+        // 3. Loot Pickup Collision
+        const loots = lootQuery(world);
+        const pickupDistSq = (playerRadius + 15) ** 2; // Slightly larger pickup range
+
+        for (let i = 0; i < loots.length; ++i) {
+            const lid = loots[i];
+            const dx = Transform.x[lid] - world.playerX;
+            const dy = Transform.y[lid] - world.playerY;
+            const distSq = dx * dx + dy * dy;
+
+            if (distSq < pickupDistSq) {
+                // Pick up loot
+                const val = Value.amount[lid] || 1;
+
+                // Emit event to Session Service
+                EventBus.emit('LOOT_PICKUP', { value: val });
+
+                // Remove from World
+                removeEntity(world, lid);
             }
         }
 

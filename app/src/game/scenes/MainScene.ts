@@ -209,6 +209,13 @@ export class MainScene extends Phaser.Scene {
 
     create() {
         console.log("🚀 [MainScene] Creating Scene...");
+
+        // [CRITICAL FIX] Initialize ECS World FIRST
+        // This ensures all Managers/Systems that receive it in constructor have a valid reference.
+        this.world = createWorld();
+        this.world.playerDamageAccumulator = 0; // [FIX] Initialize
+        console.log("🚀 [ECS] World Initialized.");
+
         this.physics.world.setBounds(0, 0, this.worldWidth, this.worldHeight);
 
         // Groups
@@ -249,8 +256,8 @@ export class MainScene extends Phaser.Scene {
         this.soundManager = new SoundManager();
 
         // ECS (Phase 1: bitecs)
-        console.log("🚀 [ECS] Initializing Phase 1...");
-        this.world = createWorld();
+        console.log("🚀 [ECS] Initializing Phase 1 Systems...");
+        // this.world = createWorld(); // [REMOVED] Moved to top of create()
 
         // 初始化系統
         this.systems = [

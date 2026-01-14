@@ -17,8 +17,8 @@ export class WaveManager {
     private readonly MAX_ENEMIES = 300; // 硬上限
 
     public wave: number = 1;
-
     private spawnTimer: number = 0;
+    private isActive: boolean = false;
 
     public get currentWave(): number { return this.wave; }
 
@@ -32,6 +32,8 @@ export class WaveManager {
     }
 
     public start(waveNumber: number) {
+        this.isActive = true;
+        this.spawnTimer = this.scene.time.now + 1000; // Delay first spawn
         this.startWave(waveNumber);
     }
 
@@ -48,7 +50,7 @@ export class WaveManager {
         // 3~5 Minutes
         const delay = Phaser.Math.Between(180000, 300000);
         this.scene.time.delayedCall(delay, () => {
-            if (this.scene) { // Safety check
+            if (this.scene && this.isActive) { // Safety check
                 this.spawnLootDrone();
                 this.scheduleNextDrone(); // Loop
             }
@@ -70,6 +72,8 @@ export class WaveManager {
     }
 
     public update(time: number, delta: number, survivalTime: number) {
+        if (!this.isActive) return;
+
         // [FIX] Update Drones safely
         for (let i = this.drones.length - 1; i >= 0; i--) {
             const drone = this.drones[i];
@@ -161,13 +165,28 @@ export class WaveManager {
         Health.current[eid] = def.stats.hp;
         Health.max[eid] = def.stats.hp;
 
-        SpriteConfig.textureId[eid] = 2; // 'tex_enemy_01'
+        // [VISUAL] Semantic Shape/Color System
+        // Rusted (Basic) -> Blue Triangle
+        // Overgrown (Elite) -> Green Square
+        // Glitched (Boss) -> Red Circle
+
+        if (faction === 'RUSTED') {
+            SpriteConfig.textureId[eid] = 3; // Triangle
+            SpriteConfig.tint[eid] = 0x3B82F6; // Blue
+        } else if (faction === 'OVERGROWN') {
+            SpriteConfig.textureId[eid] = 2; // Square
+            SpriteConfig.tint[eid] = 0x10B981; // Green
+        } else {
+            SpriteConfig.textureId[eid] = 1; // Circle
+            SpriteConfig.tint[eid] = 0xEF4444; // Red
+        }
+
         SpriteConfig.scale[eid] = def.visuals.scale || 1.0;
-        SpriteConfig.tint[eid] = def.visuals.color;
     }
 
     public cleanup() {
         this.enemyGroup.clear(true, true);
+        this.isActive = false; // [FIX] Stop spawning
 
         // [FIX] Cleanup Drones
         this.drones.forEach(d => d.destroy());

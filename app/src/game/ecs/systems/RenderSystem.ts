@@ -4,8 +4,10 @@ import { Transform, SpriteConfig } from '../Components';
 
 // 簡單的 Texture 映射表 (暫時寫死，之後可移至 Config)
 const TEXTURE_MAP: Record<number, string> = {
-    1: 'tex_orb',      // 測試用圖
-    2: 'tex_enemy_01'  // 測試用圖
+    1: 'circle',       // Boss / Projectile
+    2: 'square',       // Elite / Wall
+    3: 'triangle',     // Basic Enemy
+    4: 'tex_orb'       // Legacy
 };
 
 export const createRenderSystem = (scene: Phaser.Scene, world: any) => {

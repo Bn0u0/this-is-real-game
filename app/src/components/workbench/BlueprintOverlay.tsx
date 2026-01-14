@@ -9,8 +9,8 @@ export const BlueprintOverlay: React.FC = () => {
     return (
         <div className="absolute inset-0 flex flex-col items-center justify-end pb-24 pointer-events-none">
             <div className="w-full max-w-sm pointer-events-auto animate-in slide-in-from-bottom duration-500">
-                <div className="bg-black/80 border-t-4 border-[#00FFFF] p-6 backdrop-blur-md">
-                    <h3 className="text-[#00FFFF] font-bold text-center mb-4 text-xl" style={{ fontFamily: 'Microsoft JhengHei' }}>
+                <div className="bg-black border-t-4 border-amber-500 p-6">
+                    <h3 className="text-amber-500 font-bold text-center mb-4 text-xl tracking-widest uppercase">
                         {languageService.t('WB_CLASS_SELECT')}
                     </h3>
 
@@ -21,9 +21,9 @@ export const BlueprintOverlay: React.FC = () => {
 
                     <button
                         onClick={() => EventBus.emit('WORKBENCH_ACTION', 'BACK')}
-                        className="w-full py-3 mt-2 bg-white/10 hover:bg-white/20 text-white font-mono text-sm border border-white/20"
+                        className="w-full py-3 mt-2 bg-white text-black font-black hover:bg-amber-400 transition-colors"
                     >
-                        [ {languageService.t('BTN_BACK')} ]
+                        [{languageService.t('BTN_BACK')}]
                     </button>
                 </div>
             </div>

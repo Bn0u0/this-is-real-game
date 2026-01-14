@@ -89,14 +89,14 @@ export const HUD: React.FC = () => {
             {/* --- HUD: TOP BAR --- */}
             {/* pointer-events-auto ONLY on the bars if we want tooltips, otherwise none is fine */}
             <div className="flex justify-between items-start w-full gap-2 pointer-events-none">
-                {/* HP BAR */}
+                {/* HP BAR (FLAT) */}
                 <div className="flex flex-col gap-1 shrink-0">
-                    <div className="w-32 md:w-64 bg-black/50 border border-amber-900 h-6 md:h-8 relative skew-x-[-15deg]">
+                    <div className="w-32 md:w-64 bg-black border-2 border-white h-6 md:h-8 relative">
                         <div
-                            className="absolute top-0 left-0 h-full bg-amber-600 transition-all duration-200"
+                            className="absolute top-0 left-0 h-full bg-amber-500 transition-all duration-200"
                             style={{ width: `${(stats.hp / stats.maxHp) * 100}%` }}
                         />
-                        <div className="absolute inset-0 flex items-center justify-center text-[10px] md:text-xs font-mono text-white skew-x-[15deg]">
+                        <div className="absolute inset-0 flex items-center justify-center text-[10px] md:text-xs font-bold text-black">
                             HP: {Math.floor(stats.hp)}
                         </div>
                     </div>

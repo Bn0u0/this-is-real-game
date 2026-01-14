@@ -16,33 +16,39 @@ export const BootScreen: React.FC<BootScreenProps> = ({ onStart }) => {
     }, [onStart]);
 
     return (
-        <div className="absolute inset-0 bg-black flex flex-col items-center justify-center z-[99999] pointer-events-none">
-            {/* <div className="text-6xl mb-8 animate-pulse">🐰</div> - REMOVED LEGACY RABBIT */}
-            <h1 className="text-4xl mb-8 font-black text-[#00FFFF] tracking-tighter animate-pulse drop-shadow-[0_0_10px_#00FFFF] text-center">
-                這才較割草<br />
-                <span className="text-xl text-[#FF00FF] tracking-normal font-bold">就3分鐘 別貪!快撤</span>
-            </h1>
+        <div className="absolute inset-0 bg-black flex flex-col items-center justify-center z-[99999] pointer-events-none font-mono selection:bg-white selection:text-black">
+            {/* Terminal Container */}
+            <div className="flex flex-col items-center gap-8 w-full max-w-md p-8">
 
-            <div className="w-64 h-2 bg-black rounded-none overflow-hidden border border-[#00FFFF]">
-                <div
-                    className="h-full bg-[#00FFFF] transition-all duration-75 ease-out shadow-[0_0_10px_#00FFFF]"
-                    style={{ width: `${progress}%` }}
-                />
-            </div>
-            <div className="mt-4 font-mono text-[#00FFFF] tracking-widest text-xs">
-                系統初始化中... {progress}%
-            </div>
+                {/* Header */}
+                <div className="text-center space-y-2">
+                    <h1 className="text-4xl font-bold text-white tracking-widest uppercase border-b-2 border-white pb-4 mb-4">
+                        SYNAPSE OS
+                    </h1>
+                    <p className="text-sm text-gray-500 tracking-[0.2em] uppercase">
+                        v4.0.1 // BOOT SEQUENCE
+                    </p>
+                </div>
 
-            {/* Amber Glitch Grid Background */}
-            <div className="absolute inset-0 -z-10" style={{
-                background: `
-                    linear-gradient(rgba(18, 16, 35, 0.9), rgba(18, 16, 35, 0.9)),
-                    repeating-linear-gradient(0deg, transparent, transparent 19px, #00FFFF 20px),
-                    repeating-linear-gradient(90deg, transparent, transparent 19px, #FF00FF 20px)
-                `,
-                backgroundSize: '100% 100%, 40px 40px, 40px 40px',
-                opacity: 0.1
-            }}></div>
+                {/* Progress Bar (Flat) */}
+                <div className="w-full space-y-2">
+                    <div className="w-full h-4 bg-gray-900 border-2 border-white/20">
+                        <div
+                            className="h-full bg-white transition-all duration-75 ease-linear"
+                            style={{ width: `${progress}%` }}
+                        />
+                    </div>
+                    <div className="flex justify-between text-xs text-gray-400 font-bold">
+                        <span>LOADING CORE...</span>
+                        <span>{progress}%</span>
+                    </div>
+                </div>
+
+                {/* Footer status */}
+                <div className="text-xs text-gray-600 mt-8">
+                    [ SYSTEMS NOMINAL ]
+                </div>
+            </div>
         </div>
     );
 };

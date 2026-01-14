@@ -80,68 +80,25 @@ export class TerrainManager {
         const g = this.scene.add.graphics();
         this.scene.add.existing(g);
 
-        // -- NEON GLITCH PALETTE --
-        // -- NEON GLITCH PALETTE [REVISED] --
-        const COL_GROUND = 0x111111; // Dark Asphalt (Not Purple)
-        const COL_HEX = 0xFFFFFF;    // [DEV] Pure White Grid for Visibility
-        const COL_WALL_SIDE = 0x0f0518; // Obsidian
-        const COL_WALL_TOP = 0x222222;  // Dark Grey
-        const COL_GLOW = 0x00ff9d;      // Cyber Green Glow
-        const COL_DECOR = 0x555555;     // Industrial Grey
-
+        // -- PROTO-MINIMALIST PALETTE --
+        const COL_FLOOR = 0xFFFFFF; // Pure White
+        const COL_WALL = 0x000000;  // Pure Black
+        const COL_GRID = 0xEEEEEE;  // Faint Grey Grid
 
         if (type === TileType.GROUND) {
-            // 1. Base Ground
-            g.fillStyle(COL_GROUND, 1);
+            // 1. Base Ground (White)
+            g.fillStyle(COL_FLOOR, 1);
             g.fillRect(worldX, worldY, this.tileSize, this.tileSize);
 
-            // 2. Soft Hexagon Pattern (Grid)
-            g.lineStyle(2, COL_HEX, 0.15); // Faint
-            const cx = worldX + this.tileSize / 2;
-            const cy = worldY + this.tileSize / 2;
-            const r = this.tileSize / 2.5;
-            this.drawHex(g, cx, cy, r);
-
-            // 3. TASK_VF_003: Decoration Scatter (Debris) - [FIX] Reduced Density
-            if (Math.random() < 0.05) { // Reduced to 5%
-                const shards = Math.floor(Math.random() * 2) + 1;
-                g.fillStyle(COL_DECOR, 0.4);
-                for (let i = 0; i < shards; i++) {
-                    const sx = worldX + Math.random() * this.tileSize;
-                    const sy = worldY + Math.random() * this.tileSize;
-                    const size = Math.random() * 6 + 2;
-                    g.fillRect(sx, sy, size, size); // Pixel shards
-                }
-            }
-
-            // 4. Glitch Dots (Rare) - [FIX] Reduced Density
-            if (Math.random() < 0.01) { // Reduced to 1%
-                g.fillStyle(COL_GLOW, 0.6);
-                g.fillRect(worldX + Math.random() * 60, worldY + Math.random() * 60, 4, 4);
-            }
+            // 2. Grid (Faint)
+            g.lineStyle(1, COL_GRID, 1);
+            g.strokeRect(worldX, worldY, this.tileSize, this.tileSize);
 
             g.setDepth(GAME_LAYER.GROUND);
         } else if (type === TileType.WALL) {
-            // "Digital Monolith" Style
-
-            // Side (Darkness)
-            g.fillStyle(COL_WALL_SIDE, 1);
-            g.fillRect(worldX, worldY + this.tileSize, this.tileSize, height);
-
-            // Top (Matte)
-            g.fillStyle(COL_WALL_TOP, 1);
+            // 1. Wall (Solid Black Block)
+            g.fillStyle(COL_WALL, 1);
             g.fillRect(worldX, worldY - height, this.tileSize, this.tileSize + height);
-
-            // Neon Edge (Top Highlight)
-            g.fillStyle(COL_HEX, 1);
-            g.fillRect(worldX, worldY - height, this.tileSize, 4); // Top strip
-
-            // Glitch Lines on Wall
-            if (Math.random() < 0.3) {
-                g.fillStyle(COL_GLOW, 0.3);
-                g.fillRect(worldX + 10, worldY - height + 20 + Math.random() * 20, 2, 10);
-                g.fillRect(worldX + 20, worldY - height + 40, 20, 2);
-            }
 
             // Physics Body
             const zone = this.scene.add.zone(worldX + 32, worldY + 32, this.tileSize, this.tileSize);
@@ -157,16 +114,7 @@ export class TerrainManager {
     }
 
     private drawHex(g: Phaser.GameObjects.Graphics, x: number, y: number, r: number) {
-        const points: { x: number, y: number }[] = [];
-        for (let i = 0; i < 6; i++) {
-            const rad = (60 * i) * (Math.PI / 180);
-            points.push({ x: x + r * Math.cos(rad), y: y + r * Math.sin(rad) });
-        }
-        g.beginPath();
-        g.moveTo(points[0].x, points[0].y);
-        for (let i = 1; i < 6; i++) g.lineTo(points[i].x, points[i].y);
-        g.closePath();
-        g.strokePath();
+        // [DEPRECATED] Hex grid removed for square grid readability
     }
 
     getRandomGroundTile(): { x: number, y: number } | null {
@@ -179,22 +127,6 @@ export class TerrainManager {
     }
 
     private scatterClutter() {
-        const textures = ['clutter_can', 'clutter_wire', 'clutter_tire'];
-        this.tiles.forEach(tile => {
-            if (Math.random() < 0.005) { // [FIX] Reduced to 0.5% (Very Rare)
-                const tex = textures[Math.floor(Math.random() * textures.length)];
-
-                // Random offset within tile
-                const x = tile.x * this.tileSize + Math.random() * 40 + 12;
-                const y = tile.y * this.tileSize + Math.random() * 40 + 12;
-
-                const clutter = this.scene.add.image(x, y, tex);
-                clutter.setRotation(Math.random() * Math.PI * 2);
-                clutter.setPipeline('Light2D'); // React to lights
-                clutter.setDepth(GAME_LAYER.CLUTTER); // [FIX] Depth 1 ensure it is visually ON FLOOR
-
-                this.clutterGroup.add(clutter);
-            }
-        });
+        // [REMOVED] No clutter in minimalist mode
     }
 }

@@ -50,12 +50,9 @@ export const ArsenalOverlay: React.FC<Props> = ({ currentWeapon, inventory }) =>
 
     // --- Render Components ---
     const EmptySlot = () => (
-        <div className="aspect-square border border-[#FFAA00]/10 bg-black/40 flex items-center justify-center opacity-50">
-            {/* Wireframe Silhouette (Diagonal Lines) */}
-            <div className="w-full h-full relative overflow-hidden">
-                <div className="absolute inset-0 bg-[linear-gradient(45deg,transparent_45%,rgba(255,170,0,0.1)_50%,transparent_55%)]" />
-                <div className="absolute inset-0 flex items-center justify-center text-[#FFAA00]/20 text-[10px] font-mono">EMPTY</div>
-            </div>
+        <div className="aspect-square border border-white/10 bg-black flex items-center justify-center opacity-30">
+            {/* Flat Empty Slot */}
+            <div className="w-full h-full flex items-center justify-center text-white/20 text-[10px] font-bold">EMPTY</div>
         </div>
     );
 

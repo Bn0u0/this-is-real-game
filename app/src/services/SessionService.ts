@@ -118,14 +118,35 @@ class SessionService {
     private transitionToCombat(heroId: string) {
         console.log("⚡ [Session] Combat Sequence Initiated.");
 
-        // [FIX] Force Phaser to Switch Scene
-        EventBus.emit('SCENE_SWITCH', 'MainScene');
-
-        setTimeout(() => {
+        // [ROBUST] Wait for Scene to be Ready (Register BEFORE starting scene)
+        const onSceneReady = () => {
+            console.log("⚡ [Session] MainScene Ready. Starting Match...");
             EventBus.emit('START_MATCH', { mode: 'SINGLE', hero: heroId });
-            // Double tap to ensure MainScene is ready
-            setTimeout(() => EventBus.emit('START_MATCH', { mode: 'SINGLE', hero: heroId }), 500);
-        }, 300); // Increased delay to allow scene load
+            EventBus.off('SCENE_READY', onSceneReady);
+        };
+
+        // Listen for ready signal
+        EventBus.on('SCENE_READY', onSceneReady);
+
+        // [FIX] Direct Phaser Access (Bypass EventBus if possible)
+        const game = (window as any).phaserGame;
+        if (game) {
+            console.log("🎮 [Session] Direct Scene Switch Triggered (MainScene).");
+            game.scene.start('MainScene');
+            game.scene.stop('WorkbenchScene');
+        } else {
+            console.warn("⚠️ [Session] Phaser Game not found on window. Using EventBus fallback.");
+            EventBus.emit('SCENE_SWITCH', 'MainScene');
+        }
+
+        // [FALLBACK] Timeout in case event is missed (e.g. restart)
+        setTimeout(() => {
+            if (EventBus.listenerCount('SCENE_READY') > 0) {
+                console.warn("⚠️ [Session] Scene Ready Timeout. Forcing Start...");
+                EventBus.emit('START_MATCH', { mode: 'SINGLE', hero: heroId });
+                EventBus.off('SCENE_READY', onSceneReady);
+            }
+        }, 2000);
     }
 
     private handleMissionEnd(data: any) {

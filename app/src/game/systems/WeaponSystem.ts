@@ -86,9 +86,9 @@ export class WeaponSystem {
             Velocity.x[eid] = Math.cos(angle) * speed;
             Velocity.y[eid] = Math.sin(angle) * speed;
 
-            SpriteConfig.textureId[eid] = 1; // 'tex_orb'
-            SpriteConfig.scale[eid] = 0.5;
-            SpriteConfig.tint[eid] = 0xFFFF00; // Yellow Bullet
+            SpriteConfig.textureId[eid] = 1; // 'circle' for bullets
+            SpriteConfig.scale[eid] = 0.4;
+            SpriteConfig.tint[eid] = 0xF59E0B; // Amber (Player Color)
 
             Damage.value[eid] = damage;
             Damage.ownerId[eid] = source.isEnemy ? 0 : 1; // 1 = Player

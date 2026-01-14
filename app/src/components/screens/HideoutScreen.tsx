@@ -81,14 +81,14 @@ export const HideoutScreen: React.FC = () => {
             <div className="pointer-events-auto">
                 <button
                     onClick={() => metaGame.startMatch()}
-                    className="absolute bottom-6 right-6 group bg-amber-500 hover:scale-105 active:scale-95 transition-all"
+                    className="absolute bottom-6 right-6 group bg-amber-500 hover:bg-amber-400 active:scale-95 transition-all"
                 >
-                    {/* Yellow Block */}
-                    <div className="px-12 py-6 flex items-center gap-4 skew-x-[-12deg] shadow-[0_0_20px_rgba(245,158,11,0.5)] group-hover:shadow-[0_0_40px_rgba(245,158,11,0.8)] border-2 border-white/20">
-                        <span className="text-4xl font-black text-black tracking-widest italic skew-x-[12deg]">
+                    {/* Yellow Block (Flat) */}
+                    <div className="px-12 py-6 flex items-center gap-4 border-2 border-white/20">
+                        <span className="text-4xl font-black text-black tracking-widest italic">
                             {t('WB_GO')}
                         </span>
-                        <span className="text-2xl animate-pulse delay-75 skew-x-[12deg] text-black/50">
+                        <span className="text-2xl animate-pulse delay-75 text-black/50">
                             ►►
                         </span>
                     </div>

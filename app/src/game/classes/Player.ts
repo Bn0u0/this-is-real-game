@@ -133,7 +133,7 @@ export class Player extends Phaser.GameObjects.Container {
         body.setDrag(2000); // Was 800. Make it snappy.
         body.setDamping(false);
         body.setMaxVelocity(PHYSICS.maxVelocity);
-        body.setCollideWorldBounds(false);
+        body.setCollideWorldBounds(true);
     }
 
     public configure(config: ClassConfig, classId: string) {

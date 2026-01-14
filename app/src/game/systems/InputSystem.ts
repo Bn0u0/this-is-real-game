@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import { Player } from '../classes/Player';
+import { PHYSICS } from '../../constants';
 
 // ONE-THUMB REVOLUTION: INPUT CORE
 // 1. Inputs come from EventBus 'JOYSTICK_MOVE' (from VirtualJoystick.tsx)
@@ -129,8 +130,8 @@ export class InputSystem {
             controlType = player.equippedWeapon.def.controlType || 'AUTO';
         }
 
-        // 4. Default Base Speed
-        const baseSpeed = 1200 * (modifiers.playerSpeed ?? 1.0);
+        // 4. Default Base Speed (Using Config)
+        const baseSpeed = PHYSICS.acceleration * (modifiers.playerSpeed ?? 1.0);
 
         // 5. Apply Movement Rule
         if (force > 0.1) {
@@ -140,7 +141,7 @@ export class InputSystem {
             // Siege Mode = Speed Boost (or just specific weapon behavior)
             const speedMult = isSiege ? 1.1 : 1.0;
 
-            body.setDrag(600);
+            body.setDrag(PHYSICS.drag);
             body.setAcceleration(moveX * baseSpeed * speedMult, moveY * baseSpeed * speedMult);
 
             // [DEBUG] Physics State

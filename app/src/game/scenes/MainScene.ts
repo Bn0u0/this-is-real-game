@@ -66,8 +66,8 @@ export class MainScene extends Phaser.Scene {
 
     // [NEW] Declarations for Build Fix
     public statsModifiers: { playerSpeed: number } = { playerSpeed: 1.0 }; // [FIX] Added default
-    public worldWidth: number = 2000;
-    public worldHeight: number = 2000;
+    public worldWidth: number = 3200; // 50 * 64 (TerrainManager)
+    public worldHeight: number = 3200;
 
     public lootService!: LootService;
     public effectManager!: EffectManager;

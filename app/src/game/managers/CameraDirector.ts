@@ -18,7 +18,8 @@ export class CameraDirector {
     }
 
     public follow(target: Phaser.GameObjects.GameObject) {
-        this.camera.startFollow(target, true, 0.1, 0.1);
+        // Increased lerp from 0.1 to 0.25 for tighter "Action Cam" feel
+        this.camera.startFollow(target, true, 0.25, 0.25);
         this.camera.setBounds(0, 0, this.worldWidth, this.worldHeight);
         console.log(`🎥 [CameraDirector] Following target at ${target.body?.position.x}, ${target.body?.position.y}`);
     }

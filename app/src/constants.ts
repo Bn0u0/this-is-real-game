@@ -21,8 +21,8 @@ export const COLORS = {
 };
 
 export const PHYSICS = {
-  drag: 1200, // High drag for precise stopping
-  acceleration: 2200, // High acceleration for snappy response
+  drag: 3000, // High drag for precise stopping (Was 1200)
+  acceleration: 4000, // High acceleration for snappy response (Was 2200)
   maxVelocity: 550,
   tetherDistance: 300,
   rotationLerp: 0.15, // Smooth turning speed
@@ -41,6 +41,6 @@ export const FX = {
 };
 
 export const GAME_CONFIG = {
-  width: window.innerWidth,
-  height: window.innerHeight,
+  width: typeof window !== 'undefined' ? window.innerWidth : 800,
+  height: typeof window !== 'undefined' ? window.innerHeight : 600,
 };

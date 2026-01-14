@@ -20,6 +20,15 @@ export const createCollisionSystem = (scene: Phaser.Scene, world: any) => {
         for (let pIdx = 0; pIdx < projectiles.length; ++pIdx) {
             const pid = projectiles[pIdx];
 
+            // [FIX] Friendly Fire Check
+            // Owner 0 = Enemy, 1 = Player
+            // If projectile is from Enemy (0), simple CollisionSystem (PvE) should ignore it.
+            // We need a separate System for Enemy Projectile vs Player? 
+            // Or just check here? 
+            // Current System is: Projectile vs EnemyQuery.
+            // So if Owner is Enemy, SKIP.
+            if (Damage.ownerId[pid] === 0) continue;
+
             // 子彈位置
             const px = Transform.x[pid];
             const py = Transform.y[pid];

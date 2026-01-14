@@ -8,7 +8,7 @@ import { inventoryService } from '../../services/InventoryService';
 import { WeaponSystem } from '../systems/WeaponSystem';
 import { WaveManager } from '../managers/WaveManager';
 import { ExtractionManager } from '../managers/ExtractionManager';
-import { CombatManager } from '../managers/CombatManager';
+// import { CombatManager } from '../managers/CombatManager'; [REMOVED]
 import { TerrainManager } from '../managers/TerrainManager';
 import { InputSystem } from '../systems/InputSystem';
 import { EffectManager } from '../managers/EffectManager';
@@ -76,7 +76,7 @@ export class MainScene extends Phaser.Scene {
     public inputSystem!: InputSystem;
     public inputRecorder!: InputRecorder;
     public networkSyncSystem!: NetworkSyncSystem;
-    public combatManager!: CombatManager;
+    // public combatManager!: CombatManager;
     public extractionManager!: ExtractionManager;
     public waveManager!: WaveManager;
     public soundManager!: SoundManager;
@@ -184,8 +184,11 @@ export class MainScene extends Phaser.Scene {
             EventBus.emit('STATS_UPDATE', {
                 hp: p.stats.hp,
                 maxHp: p.stats.maxHp,
-                xp: 0,
-                level: p.level
+                xp: this.progression.xp,
+                level: p.level,
+                xpToNextLevel: this.progression.xpToNextLevel,
+                score: this.progression.score,
+                survivalTime: this.progression.survivalTime
             });
         }
     }
@@ -229,7 +232,7 @@ export class MainScene extends Phaser.Scene {
         this.inputSystem = new InputSystem(this);
         this.inputRecorder = new InputRecorder();
         this.networkSyncSystem = new NetworkSyncSystem(this);
-        this.combatManager = new CombatManager(this);
+        // this.combatManager = new CombatManager(this); // [REMOVED]
         this.extractionManager = new ExtractionManager(this, this.worldWidth, this.worldHeight);
 
         // [NEW] Register Waypoints
@@ -382,9 +385,9 @@ export class MainScene extends Phaser.Scene {
     update(time: number, delta: number) {
         if (!this.world) return;
 
-        // 更新 ECS Context
+        // Update ECS World Context
         this.world.dt = delta;
-        this.world.time = time;
+        this.world.time = time; // [NEW] Time Injection for Systems
 
         // [NEW] 告訴 ECS 玩家在哪裡
         if (this.playerManager.myUnit) {
@@ -421,7 +424,7 @@ export class MainScene extends Phaser.Scene {
         }
 
         // Keep WaveManager only for spawning timer
-        this.waveManager.update(time, delta);
+        this.waveManager.update(time, delta, this.progression.survivalTime);
 
         // Ally Manager?
         this.allyManager.update(time, delta, this.enemyGroup);

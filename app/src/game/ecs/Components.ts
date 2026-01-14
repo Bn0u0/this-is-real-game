@@ -16,6 +16,19 @@ export const Health = defineComponent({
     max: Types.f32
 });
 
+export const Stats = defineComponent({
+    speed: Types.f32,
+    damage: Types.f32,
+    attackRange: Types.f32,
+    attackSpeed: Types.f32
+});
+
+export const CombatState = defineComponent({
+    lastAttackTime: Types.f32,
+    cooldown: Types.f32,
+    hasFired: Types.ui8 // 0 or 1, maybe useful for one-shot?
+});
+
 // --- Tags (標籤，無數據) ---
 export const PlayerTag = defineComponent();
 export const EnemyTag = defineComponent();

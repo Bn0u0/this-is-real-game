@@ -14,6 +14,8 @@ export class InputRecorder {
 
     constructor() { }
 
+    private readonly MAX_FRAMES = 60 * 60 * 10; // ~10 Minutes @ 60fps
+
     public record(tick: number, dx: number, dy: number, fire: boolean, dash: boolean) {
         if (this.playbackMode) return;
 
@@ -23,10 +25,15 @@ export class InputRecorder {
 
         this.buffers.push({
             tick,
-            dx,
+            dx, // Fix: Use shorthand
             dy,
             actions
         });
+
+        // [FIX] Circular Buffer Protection
+        if (this.buffers.length > this.MAX_FRAMES) {
+            this.buffers.shift();
+        }
     }
 
     public getPlayback(tick: number): InputFrame | null {

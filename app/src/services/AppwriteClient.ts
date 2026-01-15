@@ -13,9 +13,10 @@ client
     .setEndpoint(ENDPOINT)
     .setProject(PROJECT_ID);
 
-// [CAUTION] SSL Security Warning & Fix:
-// Use self-signed certificates for local development (OrbStack/Local LAN).
-(client as any).setSelfSigned(true);
+// [NOTE] Local Development SSL:
+// Web SDK does not support setSelfSigned() due to browser security.
+// If using a self-signed cert (local IP), visit the endpoint in your browser 
+// and "Accept Risk" once to allow API requests.
 
 export const account = new Account(client);
 export const databases = new Databases(client);

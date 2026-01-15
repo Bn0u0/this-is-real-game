@@ -98,10 +98,10 @@ export interface ItemInstance {
 }
 
 export type NetworkPacket =
-  | { type: 'START_MATCH', payload: { mode: string, hero: string } }
-  | { type: 'INPUT', payload: { x: number, y: number } }
-  | { type: 'STATE', payload: any }
-  | { type: 'GAME_OVER', payload: any };
+  | { type: 'START_MATCH', payload: { mode: string; hero: string } }
+  | { type: 'INPUT', payload: JoystickData }
+  | { type: 'STATE', payload: any } // [FIX] Keep flexible for legacy sync format
+  | { type: 'GAME_OVER', payload: { success: boolean; score: number } };
 
 export interface JoystickData {
   x: number;
@@ -168,20 +168,34 @@ export interface Backpack {
 export type TutorialStep = 'VOID' | 'TRIAL' | 'COMPLETE';
 
 export interface PlayerProfile {
-  id: string; // [RESTORED]
-  credits: number; // [LEGACY] - use wallet.gold
+  id: string;
+  username: string; // [NEW] Cloud Profile Name
+  credits: number; // [SSOT] Primary Currency
   wallet: {
-    gold: number;
+    gold: number; // Aliased to credits for UI compat
     gems: number;
   };
-  level: number; // Player Account Level
-  inventory: string[]; // Item IDs
-  stash: ItemInstance[]; // [RESTORED]
+  /** @deprecated use toolkitLevel instead */
+  level: number; // [LEGACY]
+  toolkitLevel: number; // [NEW] Backend Level
+  xp: number;
+  /** @deprecated use stash instead */
+  inventory: string[]; // [LEGACY]
+  stash: ItemInstance[]; // Persistent Item Storage
   loadout: Loadout;
-  backpack: Backpack; // [RESTORED]
+  backpack: Backpack;
   tutorialStep: TutorialStep;
   trialClassId: string | null;
-  unlockedClasses: string[]; // Class IDs
+  unlockedClasses: string[];
+
+  // [NEW] Persistence Fields
+  hasPlayedOnce: boolean;
+  stats: {
+    totalKills: number;
+    runsCompleted: number;
+  };
+  licenses: Record<string, LicenseRank>;
+  blueprints: string[];
 }
 
 // ----------------------

@@ -61,46 +61,29 @@ export class InputSystem {
     }
 
     private checkFlick() {
-        // FLICK LOGIC: Detect "Pull and Release" or "Quick Swipe"
+        // [REMOVED] Flick-to-Dash logic - focusing on core movement/attack loop
         // VirtualJoystick emits 0,0 on release.
-
-        // 1. Check if we just released (Current is 0,0)
+        // Dash feature disabled for MVP.
+        /*
         const current = this.moveVector;
         if (current.x === 0 && current.y === 0) {
-            // 2. Check history (Did we have high velocity recently?)
-            // 2. Check history (Did we have high velocity recently?)
-            // Note: trackHistory() is called BEFORE checkFlick(), so the last entry is the current (0,0).
-            // We need the one before that.
             if (this.vectorHistory.length >= 2) {
                 const lastInput = this.vectorHistory[this.vectorHistory.length - 2];
                 const lastTime = lastInput.time;
                 const now = this.scene.time.now;
-
-                // Only if released VERY recently (within 100ms of last input)
                 if (now - lastTime < 100) {
                     const magnitude = Math.sqrt(lastInput.x * lastInput.x + lastInput.y * lastInput.y);
-
-                    // Threshold: Must be a deliberate strong pull (> 0.6)
                     if (magnitude > 0.6) {
-                        // TRIGGER DASH
-                        // We need access to player to dash? 
-                        // Or emit event? Player listens to InputSystem?
-                        // Currently processInput passes player. 
-                        // But checkFlick is called from setVirtualAxis (event).
-                        // We can't access player derived from processInput easily here.
-
-                        // Solution: Emit Event
                         this.scene.events.emit('PLAYER_DASH', {
                             x: lastInput.x,
                             y: lastInput.y
                         });
-
-                        // Clear history to prevent double trigger
                         this.vectorHistory = [];
                     }
                 }
             }
         }
+        */
     }
 
     // Called every frame by MainScene
@@ -157,7 +140,15 @@ export class InputSystem {
             (player as any).isSiegeMode = isSiege;
 
         } else {
+            // [FIX] Stop quickly when joystick released to allow firing
             body.setAcceleration(0, 0);
+            body.setDrag(4000); // High drag to stop quickly
+
+            // [MVP FIX] If velocity is very low, snap to zero to enable firing
+            if (body.velocity.length() < 50) {
+                body.setVelocity(0, 0);
+            }
+
             player.isMoving = false;
             (player as any).isSiegeMode = false;
         }

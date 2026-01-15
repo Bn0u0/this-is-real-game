@@ -1,6 +1,7 @@
 import { Utils } from 'phaser';
 import { ItemInstance, ItemDef, ItemRarity, ItemStats, Loadout, Backpack, PlayerProfile, TutorialStep } from '../types';
 import { ItemLibrary } from '../game/data/library/items';
+import { persistence } from './PersistenceService';
 
 const STORAGE_KEY_V4 = 'SYNAPSE_NEO_INVENTORY_V5';
 
@@ -10,6 +11,23 @@ class InventoryService {
 
     constructor() {
         this.state = this.load();
+
+        // [NEW] Cloud Sync Integration
+        persistence.setOnSync((cloudData) => {
+            console.log("🔄 [Inventory] Merging Cloud Data...");
+            this.state = {
+                ...this.state,
+                ...cloudData,
+                // Ensure currency naming consistency
+                credits: cloudData.credits ?? this.state.credits
+            };
+            // Update wallet gold to match credits SSOT
+            this.state.wallet.gold = this.state.credits;
+
+            this.save(false); // Save locally but don't loop back to cloud
+        });
+
+        persistence.initCloudSync();
     }
 
     private load(): PlayerProfile {
@@ -31,18 +49,21 @@ class InventoryService {
 
     private createDefaultProfile(): PlayerProfile {
         return {
-            id: 'DEV_USER_V5', // [DEV] Force New ID
-            credits: 9999,  // [LEGACY]
+            id: 'DEV_USER_V5',
+            username: 'Guest',
+            credits: 9999,
             wallet: {
-                gold: 9999, // [DEV] Rich
+                gold: 9999,
                 gems: 100
             },
             level: 1,
+            toolkitLevel: 1,
+            xp: 0,
             inventory: ['W_T1_PISTA_01'],
             stash: [],
             loadout: {
                 mainWeapon: this.createItem('W_T1_PISTA_01'),
-                head: null, // [CRITICAL] V5 Schema
+                head: null,
                 body: null,
                 legs: null,
                 feet: null
@@ -53,12 +74,41 @@ class InventoryService {
             },
 
             // =========== [DEV MODE ACTIVE] ==========
-            tutorialStep: 'COMPLETE', // Skip FTUE
+            tutorialStep: 'COMPLETE',
             unlockedClasses: [
                 'SCAVENGER', 'SKIRMISHER', 'WEAVER'
             ],
-            trialClassId: null
+            trialClassId: null,
+
+            // [NEW] Persistence
+            hasPlayedOnce: false,
+            stats: { totalKills: 0, runsCompleted: 0 },
+            licenses: {
+                'SCAVENGER': 'D',
+                'SKIRMISHER': 'D',
+                'WEAVER': 'D'
+            },
+            blueprints: ['bp_scavenger', 'bp_skirmisher', 'bp_weaver']
         };
+    }
+
+    public updateToolkitLevel(level: number) {
+        if (level > this.state.toolkitLevel) {
+            this.state.toolkitLevel = level;
+            this.state.level = level; // Sync legacy level
+            this.save();
+        }
+    }
+
+    public addCredits(amount: number) {
+        this.state.credits += amount;
+        this.state.wallet.gold = this.state.credits; // Sync wallet
+        this.save();
+    }
+
+    public setPlayedOnce() {
+        this.state.hasPlayedOnce = true;
+        this.save();
     }
 
     public setTrialClass(classId: string) {
@@ -318,9 +368,16 @@ class InventoryService {
 
     // --- Persistence ---
 
-    private save() {
+    private save(syncToCloud: boolean = true) {
+        // Ensure credits and wallet.gold are synced before saving
+        this.state.wallet.gold = this.state.credits;
+
         localStorage.setItem(STORAGE_KEY_V4, JSON.stringify(this.state));
         this.notify();
+
+        if (syncToCloud) {
+            persistence.save(this.state);
+        }
     }
 
     public subscribe(cb: (s: PlayerProfile) => void) {

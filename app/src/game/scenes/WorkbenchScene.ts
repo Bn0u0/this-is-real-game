@@ -26,7 +26,9 @@ export class WorkbenchScene extends Phaser.Scene {
 
     create() {
         console.log("🛠️ [WorkbenchScene] STARTING...");
-        this.cameraDirector = new CameraDirector(this, this.cameras.main.width, this.cameras.main.height);
+        // [FIX] Pass 0,0 dimensions so CameraDirector.reset() centers on (0,0)
+        // Workbench objects are placed around (0,0), so we want the camera centered there.
+        this.cameraDirector = new CameraDirector(this, 0, 0);
 
         // 1. Setup Environment
         this.createEnvironment();

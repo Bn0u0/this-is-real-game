@@ -14,7 +14,6 @@
     "check:boot": "npx -y tsx scripts/sentinel/check_boot.ts"
   },
   "dependencies": {
-    "@supabase/supabase-js": "^2.88.0",
     "appwrite": "^21.5.0",
     "bitecs": "^0.3.40",
     "canvas-confetti": "^1.9.4",

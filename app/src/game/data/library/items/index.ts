@@ -32,6 +32,11 @@ export const ItemLibrary = {
 
     getRandomDef: (tier: number) => {
         const pool = ALL_ITEMS.filter(i => i.tier === tier);
-        return pool.length > 0 ? pool[Math.floor(Math.random() * pool.length)] : null;
+        if (pool.length > 0) {
+            return pool[Math.floor(Math.random() * pool.length)];
+        }
+        // Fallback to T0 Weapon to prevent crash
+        console.warn(`[ItemLibrary] No items found for Tier ${tier}. Falling back to default.`);
+        return T0_WEAPONS[0] || null;
     }
 };

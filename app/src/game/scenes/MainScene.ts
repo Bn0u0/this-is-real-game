@@ -32,6 +32,7 @@ import { PlayerLifecycleManager } from '../phaser/managers/PlayerLifecycleManage
 import { ProgressionManager } from '../phaser/managers/ProgressionManager';
 import { WaypointManager } from '../phaser/managers/WaypointManager';
 import { AllyManager } from '../phaser/managers/AllyManager'; // [NEW]
+import { logger } from '../../services/LoggerService';
 
 type GameMode = 'SINGLE' | 'MULTI';
 
@@ -93,7 +94,7 @@ export class MainScene extends Phaser.Scene {
 
     // [FIX] Missing Methods stub
     public handleStartMatch(data: any) {
-        console.log("?? [MainScene] START_MATCH Received:", data);
+        logger.info("MainScene", "START_MATCH Received:", data);
         this.isGameActive = true;
         this.isPaused = false;
         this.cleanStart();
@@ -136,8 +137,13 @@ export class MainScene extends Phaser.Scene {
         this.isGameActive = false;
         this.physics.pause();
 
-        console.log(`?? [MainScene] GAME OVER. Success: ${success}`);
-        EventBus.emit('GAME_OVER', { success, score: 0, wave: this.waveManager.currentWave });
+        logger.info("MainScene", `GAME OVER. Success: ${success}`);
+        EventBus.emit('GAME_OVER', {
+            success,
+            score: this.progression.score,
+            wave: this.waveManager.currentWave,
+            level: this.playerManager.myUnit?.level || 1
+        });
 
         // Visuals
         this.cameras.main.shake(500, 0.01);
@@ -150,7 +156,7 @@ export class MainScene extends Phaser.Scene {
         // Check overlap with extraction zones
         if (this.extractionManager.checkExtraction(this.playerManager.myUnit)) {
             // [CORE LOOP] Success!
-            console.log("?? [MainScene] Extraction Successful!");
+            logger.info("MainScene", "Extraction Successful!");
 
             // 1. Secure Loot
             const securedCount = inventoryService.secureBackpack();
@@ -170,11 +176,34 @@ export class MainScene extends Phaser.Scene {
     }
 
     public handleLootPickup(item: any) {
-        if (this.playerManager.myUnit) {
-            // Apply item effect or add to inventory
-            // For now, destroy visuals
+        const myUnit = this.playerManager.myUnit;
+        if (!myUnit) return;
+
+        const itemInstance = item.getData('itemInstance');
+        if (itemInstance) {
+            const added = inventoryService.addToBackpack(itemInstance);
+            if (added) {
+                // Visual & Audio Feedback
+                EventBus.emit('SHOW_FLOATING_TEXT', {
+                    x: myUnit.x,
+                    y: myUnit.y - 40,
+                    text: `+ ${itemInstance.displayName}`,
+                    color: '#FFAA00'
+                });
+                EventBus.emit('PLAY_SFX', 'LOOT_PICKUP');
+                item.destroy();
+            } else {
+                // Backpack Full
+                EventBus.emit('SHOW_FLOATING_TEXT', {
+                    x: myUnit.x,
+                    y: myUnit.y - 40,
+                    text: 'BACKPACK FULL!',
+                    color: '#FF0000'
+                });
+            }
+        } else {
+            // Generic Scrap/XP Pickup
             item.destroy();
-            // Play Sound
         }
     }
 
@@ -208,13 +237,13 @@ export class MainScene extends Phaser.Scene {
     // ... (Lines 60-118 skipped) ...
 
     create() {
-        console.log("?? [MainScene] Creating Scene...");
+        logger.debug("MainScene", "Creating Scene...");
 
         // [CRITICAL FIX] Initialize ECS World FIRST
         // This ensures all Managers/Systems that receive it in constructor have a valid reference.
         this.world = createWorld();
         this.world.playerDamageAccumulator = 0; // [FIX] Initialize
-        console.log("?? [ECS] World Initialized.");
+        logger.info("ECS", "World Initialized.");
 
         this.physics.world.setBounds(0, 0, this.worldWidth, this.worldHeight);
 
@@ -256,18 +285,18 @@ export class MainScene extends Phaser.Scene {
         this.soundManager = new SoundManager();
 
         // ECS (Phase 1: bitecs)
-        console.log("?? [ECS] Initializing Phase 1 Systems...");
+        logger.info("ECS", "Initializing Phase 1 Systems...");
         // this.world = createWorld(); // [REMOVED] Moved to top of create()
 
         // ???頂蝯?
         this.systems = [
-            createChaseSystem(this.world), // [NEW] ??餈質馱)
+            createChaseSystem(this.world), // [NEW] ?€€?餈質馱)
             createMovementSystem(this.world), // ????蝘餃?)
             createPlayerCollisionSystem(this.world), // [NEW] 瑼Ｘ葫?拙振鋡急?
             createCollisionSystem(this, this.world), // ?１??
             createDeathSystem(this.world),           // [NEW] 瑼Ｘ葫甇颱滿銝行?撖?
             createLifetimeSystem(this.world), // 瑼Ｘ憯賢
-            createRenderSystem(this, this.world) // ?敺?箔?
+            createRenderSystem(this, this.world) // ?€敺?箔?
         ];
 
         // ?? ECS ?澆?香鈭∩?隞?
@@ -281,7 +310,7 @@ export class MainScene extends Phaser.Scene {
         // ?妒 皜祈岫嚗???100 ??ECS 撖阡?
         // 蝣箔???'tex_orb' ??嚗?????隢雿?獢???? key ?踵?
         if (!this.textures.exists('tex_orb')) {
-            // ?萄遣銝????質?耦蝝?雿 fallback
+            // ?萄遣銝€????質?耦蝝?雿 fallback
             const graphics = this.make.graphics({ x: 0, y: 0, add: false } as any);
             graphics.fillStyle(0xffffff);
             graphics.fillCircle(10, 10, 10);
@@ -321,9 +350,9 @@ export class MainScene extends Phaser.Scene {
         });
         EventBus.on('TRIGGER_SKILL', (skill: string) => this.inputSystem.triggerSkill(skill));
 
-        console.log("?? [MainScene] Registering START_MATCH Listener...");
+        logger.debug("MainScene", "Registering START_MATCH Listener...");
         EventBus.on('START_MATCH', this.handleStartMatch, this);
-        console.log(`?? [MainScene] Listener Registered. Count: ${EventBus.listenerCount('START_MATCH')}`);
+        logger.debug("MainScene", `Listener Registered. Count: ${EventBus.listenerCount('START_MATCH')}`);
 
         (window as any).SceneEventBus = EventBus;
 
@@ -338,21 +367,24 @@ export class MainScene extends Phaser.Scene {
 
         // [FIX] Player Death Listener
         EventBus.on('PLAYER_DEATH', () => {
-            console.log("?? [MainScene] Player Died!");
+            logger.info("MainScene", "Player Died!");
             this.gameOver(false);
         });
 
-        // [FIX] Listen for Return to Base
-        EventBus.once('RETURN_TO_BASE', () => {
-            console.log("?? [MainScene] Returning to Workbench...");
+        // [FIX] Listen for Return to Base (Must use .on, not .once, to persist across game overs)
+        EventBus.off('RETURN_TO_BASE'); // Prevent duplicates if scene restarts
+        EventBus.on('RETURN_TO_BASE', () => {
+            logger.info("MainScene", "Returning to Workbench...");
+            this.cleanStart(); // [FIX] Reset state before switching
             this.scene.start('WorkbenchScene');
+            this.scene.stop('MainScene'); // [FIX] Explicitly stop combat scene
         });
     }
 
     // ... (Handles & CleanStart) ...
 
     private cleanStart() {
-        console.log("[MainScene] ?完 Cleaning up previous match state...");
+        logger.debug("MainScene", "Cleaning up previous match state...");
 
         // [FIX] Safety Check
         if (this.physics && this.physics.world) {

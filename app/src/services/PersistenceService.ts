@@ -1,124 +1,83 @@
 import { account, databases, DB_ID, COLLECTION_PROFILES } from './AppwriteClient';
-import { ItemInstance, LicenseRank } from '../types';
+import { ItemInstance, LicenseRank, PlayerProfile } from '../types';
 import { ID, Query } from 'appwrite';
-
-export interface UserProfile {
-    username: string;
-    level: number;
-    toolkitLevel: number;
-    xp: number;
-    credits: number;
-    inventory: ItemInstance[];
-    loadout: any;
-    hasPlayedOnce: boolean;
-    stats: {
-        totalKills: number;
-        runsCompleted: number;
-    };
-    licenses: Record<string, LicenseRank>;
-    blueprints: string[];
-}
-
-const DEFAULT_PROFILE: UserProfile = {
-    username: 'Guest',
-    level: 1,
-    toolkitLevel: 1,
-    xp: 0,
-    credits: 0,
-    inventory: [],
-    loadout: {
-        mainWeapon: {
-            uid: 'default_weapon',
-            defId: 'W_T1_PISTA_01',
-            def: null,
-            name: 'Pistol',
-            rarity: 'COMMON',
-            computedStats: { damage: 10 }
-        },
-        head: null,
-        body: null,
-        legs: null,
-        feet: null
-    },
-    hasPlayedOnce: false,
-    stats: { totalKills: 0, runsCompleted: 0 },
-    licenses: {
-        'SCAVENGER': 'D',
-        'SKIRMISHER': 'D',
-        'WEAVER': 'D'
-    },
-    blueprints: ['bp_scavenger', 'bp_skirmisher', 'bp_weaver']
-};
+import { logger } from './LoggerService';
 
 const STORAGE_KEY = 'SYNAPSE_NEO_INVENTORY_V5';
 
 class PersistenceService {
-    private profile: UserProfile;
     private userId: string | null = null;
+    private isOffline: boolean = false;
+    private connectionCheck: Promise<boolean> | null = null;
+    private onSyncCallback: ((data: Partial<PlayerProfile>) => void) | null = null;
 
     constructor() {
-        const saved = localStorage.getItem(STORAGE_KEY);
-        this.profile = saved ? JSON.parse(saved) : { ...DEFAULT_PROFILE };
-        this.initCloudSync();
+        // Initialization is now managed via InventoryService to ensure SSOT
     }
 
-    async initCloudSync() {
-        try {
-            // Check if already logged in
+    public setOnSync(cb: (data: Partial<PlayerProfile>) => void) {
+        this.onSyncCallback = cb;
+    }
+
+    private async ensureConnection(): Promise<boolean> {
+        if (this.isOffline) return false;
+        if (this.connectionCheck) return this.connectionCheck;
+
+        // All errors are handled internally; this promise never rejects.
+        this.connectionCheck = (async () => {
             try {
                 const user = await account.get();
                 this.userId = user.$id;
-                console.log("🟢 [Appwrite] Session found:", user.email || user.$id);
-            } catch (e) {
-                // Not logged in, try anonymous session
-                console.log("☁️ [Appwrite] Signing in anonymously...");
-                const session = await account.createAnonymousSession();
-                this.userId = session.userId;
+                logger.info("Appwrite", `Connected. Session found: ${user.$id}`);
+                return true;
+            } catch (e: any) {
+                if (e.code === 401) {
+                    // No session, try anonymous login
+                    try {
+                        logger.info("Appwrite", "No session found. Signing in anonymously...");
+                        const session = await account.createAnonymousSession();
+                        this.userId = session.userId;
+                        logger.info("Appwrite", `Anonymous Session Created: ${this.userId}`);
+                        return true;
+                    } catch (sessionErr: any) {
+                        this.isOffline = true;
+                        logger.warn("Persistence", "Cloud Sync Unavailable (Offline Mode)", sessionErr.message || '無法建立匿名會話');
+                        logger.warn("Persistence", "💡 Tip: Check Appwrite container port if testing locally.");
+                        return false;
+                    }
+                } else {
+                    // Network error (e.g., ERR_CONNECTION_REFUSED)
+                    this.isOffline = true;
+                    logger.warn("Persistence", "Cloud Sync Unavailable (Offline Mode)", e.message || '無法連接到 Appwrite 伺服器');
+                    logger.warn("Persistence", "💡 Tip: Check Appwrite container port if testing locally.");
+                    return false;
+                }
             }
+        })();
 
-            if (this.userId) {
-                await this.syncDown();
-            }
-        } catch (e) {
-            console.warn("Cloud Sync Failed (Offline Mode)", e);
+        return this.connectionCheck;
+    }
+
+    async initCloudSync() {
+        const connected = await this.ensureConnection();
+        if (connected && this.userId) {
+            await this.syncDown();
         }
     }
 
-    getProfile(): UserProfile {
-        return this.profile;
-    }
-
-    exportSaveString(): string {
-        return btoa(JSON.stringify(this.profile));
-    }
-
-    importSaveString(str: string): { success: boolean, msg: string } {
-        try {
-            const data = JSON.parse(atob(str));
-            this.profile = { ...this.profile, ...data };
-            this.save({});
-            return { success: true, msg: 'Profile Imported Successfully' };
-        } catch (e) {
-            return { success: false, msg: 'Invalid Save String' };
-        }
-    }
-
-    async save(updates: Partial<UserProfile>) {
-        this.profile = { ...this.profile, ...updates };
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(this.profile));
-
+    async save(profile: PlayerProfile) {
         if (!this.userId) return;
 
         try {
-            // Appwrite Schema: inventory_json, stats_json (strings)
             const payload = {
-                username: this.profile.username,
-                toolkitLevel: this.profile.toolkitLevel,
-                credits: this.profile.credits,
-                inventory_json: JSON.stringify(this.profile.inventory),
-                stats_json: JSON.stringify(this.profile.stats),
-                // Add other fields if collections attributes are created for them
-                // For now sticking to the core mapping requested
+                username: profile.username || 'Guest',
+                toolkitLevel: profile.toolkitLevel || 1,
+                credits: profile.credits || 0,
+                inventory_json: JSON.stringify(profile.stash || []),
+                stats_json: JSON.stringify(profile.stats || {}),
+                loadout_json: JSON.stringify(profile.loadout || {}),
+                licenses_json: JSON.stringify(profile.licenses || {}),
+                blueprints_json: JSON.stringify(profile.blueprints || []),
             };
 
             await databases.updateDocument(
@@ -127,7 +86,7 @@ class PersistenceService {
                 this.userId,
                 payload
             );
-            console.log("☁️ [Appwrite] Saved.");
+            logger.debug("Appwrite", "Cloud Saved.");
         } catch (error: any) {
             if (error.code === 404) {
                 // Document doesn't exist, create it
@@ -137,19 +96,22 @@ class PersistenceService {
                         COLLECTION_PROFILES,
                         this.userId,
                         {
-                            username: this.profile.username,
-                            toolkitLevel: this.profile.toolkitLevel,
-                            credits: this.profile.credits,
-                            inventory_json: JSON.stringify(this.profile.inventory),
-                            stats_json: JSON.stringify(this.profile.stats)
+                            username: profile.username || 'Guest',
+                            toolkitLevel: profile.toolkitLevel || 1,
+                            credits: profile.credits || 0,
+                            inventory_json: JSON.stringify(profile.stash || []),
+                            stats_json: JSON.stringify(profile.stats || {}),
+                            loadout_json: JSON.stringify(profile.loadout || {}),
+                            licenses_json: JSON.stringify(profile.licenses || {}),
+                            blueprints_json: JSON.stringify(profile.blueprints || []),
                         }
                     );
-                    console.log("☁️ [Appwrite] Profile Created.");
+                    logger.info("Appwrite", "Cloud Profile Created.");
                 } catch (createError) {
-                    console.error("☁️ [Appwrite] Create Failed:", createError);
+                    logger.error("Appwrite", "Create Failed:", createError);
                 }
             } else {
-                console.error("☁️ [Appwrite] Save Failed:", error);
+                logger.error("Appwrite", "Save Failed:", error);
             }
         }
     }
@@ -164,64 +126,53 @@ class PersistenceService {
                 this.userId
             );
 
-            if (data) {
-                console.log("☁️ [Appwrite] Profile Synced Down");
+            if (data && this.onSyncCallback) {
+                logger.debug("Appwrite", "Profile Synced Down");
 
                 // Parse JSON strings back to objects
-                const inventory = data.inventory_json ? JSON.parse(data.inventory_json) : [];
-                const stats = data.stats_json ? JSON.parse(data.stats_json) : this.profile.stats;
+                const stash = data.inventory_json ? JSON.parse(data.inventory_json) : [];
+                const stats = data.stats_json ? JSON.parse(data.stats_json) : {};
+                const loadout = data.loadout_json ? JSON.parse(data.loadout_json) : null;
+                const licenses = data.licenses_json ? JSON.parse(data.licenses_json) : null;
+                const blueprints = data.blueprints_json ? JSON.parse(data.blueprints_json) : null;
 
-                this.profile = {
-                    ...this.profile,
-                    username: data.username || this.profile.username,
-                    toolkitLevel: data.toolkitLevel || this.profile.toolkitLevel,
-                    credits: data.credits ?? this.profile.credits,
-                    inventory: inventory,
+                this.onSyncCallback({
+                    username: data.username,
+                    toolkitLevel: data.toolkitLevel,
+                    credits: data.credits,
+                    stash: stash,
                     stats: stats,
-                    // Note: licenses and blueprints might need their own _json fields if they are to be persisted
-                };
-
-                localStorage.setItem(STORAGE_KEY, JSON.stringify(this.profile));
+                    loadout: loadout || undefined,
+                    licenses: licenses || undefined,
+                    blueprints: blueprints || undefined
+                });
             }
         } catch (e: any) {
             if (e.code !== 404) {
-                console.warn("☁️ [Appwrite] Sync Down Failed:", e);
+                logger.warn("Appwrite", "Sync Down Failed:", e);
             }
         }
     }
 
-    async uploadScore(score: number, wave: number, survivalTime: number) {
+    async uploadScore(score: number, currentStats: any) {
         if (!this.userId) return;
-        if (score > 999999) return;
 
-        try {
-            // Assuming a 'leaderboard' collection exists or we just update profile stats
-            // For now, let's stick to the profile update since 'leaderboard' schema wasn't fully detailed in the MD
-            // but the user guide mentioned 'profiles' specifically.
-            console.log(`🏆 [Appwrite] Score recorded locally: ${score}`);
-            this.save({
-                stats: {
-                    ...this.profile.stats,
-                    totalKills: (this.profile.stats.totalKills || 0) + (score > 100 ? 1 : 0), // Mock logic
-                }
-            });
-        } catch (e) {
-            console.warn("🏆 [Appwrite] Score Upload Failed", e);
-        }
+        logger.debug("Appwrite", `Attempting Score Sync: ${score}`);
+        // In local Appwrite, we update the profile stats
+        this.save({
+            ...currentStats,
+            totalKills: (currentStats.totalKills || 0) + (score > 100 ? 1 : 0),
+        } as any);
     }
 
-    addInventory(item: any) {
-        this.profile.inventory.push(item);
-        this.save({});
-        console.log("📦 [Persistence] Item Added:", item.name);
-    }
+    // addInventory and generateGiftCode removed to maintain SSOT in InventoryService
 
     async bindEmail(email: string) {
         // Appwrite email verification/binding is different from Supabase update
         // Usually involves createVerification
         try {
             // Simplified for now: just log
-            console.log("📧 [Appwrite] Binding email requested:", email);
+            logger.info("Appwrite", `Binding email requested: ${email}`);
             // return { success: true, msg: '請在 Appwrite 控制台設定驗證信發送。' };
             // Actually Appwrite needs a password for email login, or Magic Link (Create Magic URL)
             return { success: false, msg: 'Appwrite 整合中，目前僅支援匿名登入。' };
@@ -249,17 +200,22 @@ class PersistenceService {
         if (userId && secret) {
             try {
                 await account.updateMagicURLSession(userId, secret);
-                console.log("🟢 [Appwrite] Magic URL Session Verified");
+                logger.info("Appwrite", "Magic URL Session Verified");
                 await this.initCloudSync();
                 return true;
-            } catch (e) {
-                console.error("❌ [Appwrite] Magic URL Verification Failed", e);
+            } catch (e: any) {
+                logger.error("Appwrite", "Magic URL Verification Failed", e);
             }
         }
 
+        if (this.isOffline) return false;
+
+        const connected = await this.ensureConnection();
+        if (!connected) return false;
+
         try {
-            const user = await account.get();
-            if (user) {
+            // Re-sync if we have a userId now
+            if (this.userId) {
                 await this.syncDown();
                 return true;
             }

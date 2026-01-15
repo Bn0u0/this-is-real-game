@@ -41,7 +41,7 @@ export const HideoutScreen: React.FC = () => {
                                 {t('ROOT_ACCESS').replace('// ', '')} 8842
                             </h2>
                             <span className="text-xs text-amber-500 font-mono bg-amber-500/10 px-1 rounded">
-                                LV.{profile.level || 1}
+                                LV.{profile.toolkitLevel || 1}
                             </span>
                         </div>
                     </div>

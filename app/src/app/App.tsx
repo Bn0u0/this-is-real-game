@@ -63,7 +63,7 @@ const App: React.FC = () => {
                         {session.workbenchView === 'CRATE' && (
                             <ArsenalOverlay
                                 currentWeapon={session.profile.loadout.mainWeapon}
-                                inventory={session.profile.inventory}
+                                inventory={session.profile.stash}
                             />
                         )}
                         {session.workbenchView === 'BLUEPRINTS' && <BlueprintOverlay />}

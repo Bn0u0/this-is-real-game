@@ -1,7 +1,9 @@
-import { persistence, UserProfile } from './PersistenceService';
+import { persistence } from './PersistenceService';
 import { inventoryService } from './InventoryService';
 import { metaGame, MetaGameState } from './MetaGameService';
 import { EventBus } from './EventBus';
+import { PlayerProfile } from '../types';
+import { logger } from './LoggerService';
 
 export type AppState = 'BOOT' | 'MAIN_MENU' | 'HIDEOUT' | 'COMBAT' | 'GAME_OVER' | 'TUTORIAL_DEBRIEF';
 
@@ -10,10 +12,15 @@ export type WorkbenchView = 'NONE' | 'CRATE' | 'HERO' | 'DEPLOY' | 'BLUEPRINTS';
 
 interface SessionState {
     appState: AppState;
-    profile: UserProfile;
+    profile: PlayerProfile;
     metaState: MetaGameState;
-    workbenchView: WorkbenchView; // [NEW] Bridge to Phaser Camera
-    sessionLoot: number; // [NEW] Gold gathered in current run
+    workbenchView: WorkbenchView;
+    sessionLoot: number;
+    lastMissionResult?: {
+        success: boolean;
+        earn: number;
+        lootCount: number;
+    };
 }
 
 class SessionService {
@@ -23,10 +30,10 @@ class SessionService {
     constructor() {
         this.state = {
             appState: 'BOOT',
-            profile: persistence.getProfile(),
+            profile: inventoryService.getState(),
             metaState: metaGame.getState(),
             workbenchView: 'NONE',
-            sessionLoot: 0 // [NEW] Track In-Game Loot
+            sessionLoot: 0
         };
 
         // Bind Context
@@ -39,23 +46,21 @@ class SessionService {
     public async init() {
         // [FIX] Register Critical Listeners EARLY (Before Async)
         EventBus.on('BOOT_COMPLETE', () => {
-            console.log("🔥 [Session] BOOT_COMPLETE received! Transitioning to MAIN_MENU.");
+            logger.info("Session", "BOOT_COMPLETE received! Transitioning to MAIN_MENU.");
             this.updateState({ appState: 'MAIN_MENU' });
         });
 
         // [SYSTEM] 1. Auth Callback
         const restored = await persistence.handleAuthCallback();
         if (restored) {
-            console.log("🔗 [Session] Neural Link Restored.");
+            logger.info("Session", "Neural Link Restored.");
             this.refreshProfile();
         }
 
-        // [SYSTEM] 2. Inventory Schema Check
-        const inv = inventoryService.getState();
-        if (inv.loadout?.head === undefined) {
-            console.warn("⚠️ [Session] Schema Mismatch, force saving...");
-            persistence.save(inv as any);
-        }
+        // [SYSTEM] 2. Inventory Subscription (SSOT)
+        inventoryService.subscribe(newProfile => {
+            this.updateState({ profile: newProfile });
+        });
 
         // [SYSTEM] 3. MetaGame Subscription
         metaGame.subscribe(this.handleMetaUpdate);
@@ -78,7 +83,7 @@ class SessionService {
 
         // [NEW] Workbench Focus Listener
         EventBus.on('WORKBENCH_FOCUS', (view: WorkbenchView) => {
-            console.log(`🎥 [Session] Workbench Focus: ${view}`);
+            logger.debug("Session", `Workbench Focus: ${view}`);
             this.updateState({ workbenchView: view });
         });
     }
@@ -89,17 +94,13 @@ class SessionService {
         if (giftCode) {
             try {
                 const weapon = JSON.parse(atob(giftCode));
-                if (weapon && weapon.baseType) {
-                    persistence.addInventory(weapon);
-                    alert(`🎁 [System] Received: ${weapon.name}`);
-                } else {
-                    const res = persistence.importSaveString(giftCode);
-                    alert(res.msg);
+                if (weapon && weapon.defId) {
+                    inventoryService.addItemToStash(weapon.defId);
+                    alert(`🎁 [System] Received Artifact Seed.`);
                 }
                 window.history.replaceState({}, document.title, window.location.pathname);
-                this.refreshProfile();
-            } catch (e) {
-                console.error("Link Corrupted");
+            } catch (e: any) {
+                logger.error("Session", "Link Corrupted", e);
             }
         }
     }
@@ -124,11 +125,11 @@ class SessionService {
     }
 
     private transitionToCombat(heroId: string) {
-        console.log("⚡ [Session] Combat Sequence Initiated.");
+        logger.info("Session", "Combat Sequence Initiated.");
 
         // [ROBUST] Wait for Scene to be Ready (Register BEFORE starting scene)
         const onSceneReady = () => {
-            console.log("⚡ [Session] MainScene Ready. Starting Match...");
+            logger.info("Session", "MainScene Ready. Starting Match...");
             EventBus.emit('START_MATCH', { mode: 'SINGLE', hero: heroId });
             EventBus.off('SCENE_READY', onSceneReady);
         };
@@ -139,18 +140,18 @@ class SessionService {
         // [FIX] Direct Phaser Access (Bypass EventBus if possible)
         const game = (window as any).phaserGame;
         if (game) {
-            console.log("🎮 [Session] Direct Scene Switch Triggered (MainScene).");
+            logger.info("Session", "Direct Scene Switch Triggered (MainScene).");
             game.scene.start('MainScene');
             game.scene.stop('WorkbenchScene');
         } else {
-            console.warn("⚠️ [Session] Phaser Game not found on window. Using EventBus fallback.");
+            logger.warn("Session", "Phaser Game not found on window. Using EventBus fallback.");
             EventBus.emit('SCENE_SWITCH', 'MainScene');
         }
 
         // [FALLBACK] Timeout in case event is missed (e.g. restart)
         setTimeout(() => {
             if (EventBus.listenerCount('SCENE_READY') > 0) {
-                console.warn("⚠️ [Session] Scene Ready Timeout. Forcing Start...");
+                logger.warn("Session", "Scene Ready Timeout. Forcing Start...");
                 EventBus.emit('START_MATCH', { mode: 'SINGLE', hero: heroId });
                 EventBus.off('SCENE_READY', onSceneReady);
             }
@@ -158,30 +159,37 @@ class SessionService {
     }
 
     private handleMissionEnd(data: any) {
-        console.log("🏁 [Session] Mission Complete.", data);
-        const currentProfile = persistence.getProfile();
+        logger.info("Session", "Mission Complete.", data);
+        const currentProfile = this.state.profile;
 
         if (data && data.score !== undefined) {
-            persistence.uploadScore(data.score, data.wave || 1, 0);
+            persistence.uploadScore(data.score, currentProfile.stats);
 
             // [FIX] Add Session Loot to Total Credits
             const sessionGold = this.state.sessionLoot || 0;
             const earn = Math.floor(data.score / 10) + sessionGold;
 
-            persistence.save({
-                credits: currentProfile.credits + earn,
-                level: Math.max(currentProfile.level, data.level || 1)
+            inventoryService.addCredits(earn);
+            inventoryService.updateToolkitLevel(data.level || currentProfile.toolkitLevel);
+
+            // [NEW] Store Result for UI
+            this.updateState({
+                lastMissionResult: {
+                    success: !!data.success,
+                    earn: earn,
+                    lootCount: sessionGold > 0 ? Math.floor(sessionGold / 10) : 0
+                }
             });
         }
 
         // Death Penalty (Only on failure)
         if (!data.success) {
-            inventoryService.punishDeath('SCAVENGER');
+            inventoryService.punishDeath(currentProfile.id); // [FIX] Pass correct ID
         }
 
         // FTUE Check
         if (!currentProfile.hasPlayedOnce) {
-            persistence.save({ hasPlayedOnce: true });
+            inventoryService.setPlayedOnce();
             this.updateState({ appState: 'TUTORIAL_DEBRIEF' });
         } else {
             this.updateState({ appState: 'GAME_OVER' });
@@ -259,7 +267,7 @@ class SessionService {
     public getState() { return this.state; }
 
     private refreshProfile() {
-        this.updateState({ profile: persistence.getProfile() });
+        this.updateState({ profile: inventoryService.getState() });
     }
 
     private updateState(partial: Partial<SessionState>) {

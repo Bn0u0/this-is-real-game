@@ -51,20 +51,29 @@ export const PhaserGame: React.FC = () => {
 
     // [FIX] Audio Context Unlocker
     // Modern browsers block audio until user interaction.
-    // Since we auto-boot, we must listen for the first click to unlock audio.
     const unlockAudio = () => {
+      if (!game.sound) return;
+
       const soundManager = game.sound as Phaser.Sound.WebAudioSoundManager;
-      if (soundManager && soundManager.context && soundManager.context.state === 'suspended') {
-        soundManager.context.resume().then(() => {
-          console.log("🔊 [System] Audio Context Resumed!");
-        });
+      if (soundManager.context) {
+        if (soundManager.context.state === 'suspended') {
+          soundManager.context.resume().then(() => {
+            console.log("🔊 [System] Audio Context Resumed via User Gesture!");
+          }).catch(err => {
+            console.error("❌ [System] Audio Resume Failed:", err);
+          });
+        }
       }
-      document.removeEventListener('pointerdown', unlockAudio);
-      document.removeEventListener('keydown', unlockAudio);
+
+      // Cleanup listeners
+      ['pointerdown', 'keydown', 'touchstart'].forEach(evt => {
+        document.removeEventListener(evt, unlockAudio);
+      });
     };
 
-    document.addEventListener('pointerdown', unlockAudio);
-    document.addEventListener('keydown', unlockAudio);
+    ['pointerdown', 'keydown', 'touchstart'].forEach(evt => {
+      document.addEventListener(evt, unlockAudio);
+    });
 
     return () => {
       document.removeEventListener('pointerdown', unlockAudio);

@@ -130,12 +130,14 @@ export const UnifiedJoystick: React.FC<UnifiedJoystickProps> = ({ onMove, onSkil
             paramsRef.current.isActive = false;
             onMove(0, 0);
 
-            // Flick Check
+            // Flick Check - [DISABLED] Too sensitive for Run & Gun
+            /*
             const duration = Date.now() - paramsRef.current.dragStart;
             if (onSkill && duration < 200 && paramsRef.current.maxDist > 40) {
                 console.log("⚡ [Joystick] FLICK!");
                 onSkill('DASH');
             }
+            */
         };
 
         container.addEventListener('pointerdown', onPointerDown);

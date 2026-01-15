@@ -16,6 +16,7 @@ import { SkirmisherLogic } from './mechanics/SkirmisherLogic';
 import { WeaverLogic } from './mechanics/WeaverLogic';
 
 import { defineQuery } from 'bitecs';
+import { logger } from '../../../services/LoggerService';
 import { Transform, EnemyTag } from '../../ecs/components';
 
 export class Player extends Phaser.GameObjects.Container {
@@ -41,12 +42,11 @@ export class Player extends Phaser.GameObjects.Container {
     };
 
     // State
-    public isDashing: boolean = false;
+    public isDashing: boolean = false; // [LEGACY] Kept for interface compat
     public isInvulnerable: boolean = false;
     public isMoving: boolean = false;
     public isSiegeMode: boolean = false; // [SIEGE MODE]
-    private dashTimer: number = 0;
-    private dashCooldown: number = 0;
+    // [REMOVED] Dash timers - focus on core loop
 
     // Visuals
     public classId: string = 'SCAVENGER'; // Default
@@ -133,7 +133,7 @@ export class Player extends Phaser.GameObjects.Container {
         scene.physics.add.existing(this);
         const body = this.body as Phaser.Physics.Arcade.Body;
         body.setCircle(16, -16, -16);
-        body.setDrag(2000); // Was 800. Make it snappy.
+        body.setDrag(PHYSICS.drag); // Was 800. Make it snappy.
         body.setDamping(false);
         body.setMaxVelocity(PHYSICS.maxVelocity);
         body.setCollideWorldBounds(true);
@@ -145,12 +145,9 @@ export class Player extends Phaser.GameObjects.Container {
 
         // Input Listener
         // Note: Ideally in constructor, but configure is safe place for logic reset
-        this.scene.events.off('PLAYER_DASH'); // Clean up old
-        this.scene.events.on('PLAYER_DASH', (vector: { x: number, y: number }) => {
-            if (this.scene) { // Alive check
-                this.dash();
-            }
-        });
+        // [REMOVED] Dash listener - focusing on core movement/attack loop
+        // this.scene.events.off('PLAYER_DASH');
+        // this.scene.events.on('PLAYER_DASH', ...);
 
         // [NEW] Recoil Listener
         EventBus.off('PLAYER_RECOIL'); // Prevent dupes
@@ -407,17 +404,9 @@ export class Player extends Phaser.GameObjects.Container {
         const body = this.body as Phaser.Physics.Arcade.Body;
         const speed = body.velocity.length();
 
-        // Dash Logic
-        if (this.dashCooldown > 0) this.dashCooldown -= dt;
-        if (this.isDashing) {
-            this.dashTimer -= dt;
-            if (this.dashTimer <= 0) {
-                this.isDashing = false;
-                this.isInvulnerable = false;
-                this.updateMaxSpeed(); // Reset speed cap
-            }
-            return;
-        }
+        // [REMOVED] Dash Logic - focusing on core movement/attack loop
+        // if (this.dashCooldown > 0) this.dashCooldown -= dt;
+        // if (this.isDashing) { ... }
 
         // Z-height (Jump/Bob)
         if (this.z > 0 || this.zVelocity !== 0) {
@@ -457,26 +446,12 @@ export class Player extends Phaser.GameObjects.Container {
         body.setMaxVelocity(base * multiplier);
     }
 
+    // [REMOVED] Dash method - focusing on core movement/attack loop
+    /*
     public dash() {
-        if (this.dashCooldown > 0) return;
-        this.isDashing = true;
-        this.isInvulnerable = true;
-        this.dashTimer = 250;
-        this.dashCooldown = 1200; // Base CD
-
-        const body = this.body as Phaser.Physics.Arcade.Body;
-        body.drag.set(0);
-        body.maxVelocity.set(1200);
-
-        const angle = this.rotation - Math.PI / 2;
-        const speed = 1100 * (this.stats.speed || 1);
-        body.setVelocity(Math.cos(angle) * speed, Math.sin(angle) * speed);
-
-        this.zVelocity = 12;
-        this.scene.cameras.main.shake(100, 0.002);
-
-        if (this.mechanic) this.mechanic.onDash();
+        // Disabled for MVP
     }
+    */
 
     // Auto-Fire System (WeaponSystem Hook)
     private lastFireTime: number = 0;
@@ -484,37 +459,28 @@ export class Player extends Phaser.GameObjects.Container {
     private static enemyQuery: any = null; // [FIX] Static ECS Query
 
     public autoFire(time: number, world: any) {
-        if (this.isDashing || !this.classConfig) return;
-        if (!world) return; // [FIX] Safety check
+        if (!this.classConfig) {
+            // logger.debug("AutoFire", `BLOCKED: classConfig=${!!this.classConfig}`);
+            return;
+        }
+        if (!world) {
+            // logger.debug("AutoFire", "BLOCKED: world is null");
+            return;
+        }
 
         // [SIEGE MODE] Logic
         const isSiege = this.isSiegeMode;
 
-        // Stop to Shoot Rule (Relaxed in Siege)
-        const speed = (this.body as Phaser.Physics.Arcade.Body).velocity.length();
-
-        // Allow fire if: Slow/Stopped OR Siege Mode
-        const canFire = (speed < 150) || isSiege; // [FIX] Relax condition - allow slow-move shooting
+        // [MVP FIX] Always allow firing - no speed restriction
+        // Original stop-to-shoot logic was causing issues. For run-and-gun MVP, just fire.
+        const canFire = true;
 
         if (canFire) {
             const target = this.scanForECSTarget(world);
-            // If Hybrid/Manual Siege, aim is fixed by InputSystem usually? 
-            // InputSystem sets rotation. 
-            // Whatever, we scan for target to Lock On or just fire forward if no target?
-            // Existing logic scans for target. If found, ROTATES player to target.
 
-            // [CONFLICT]: InputSystem processes rotation based on Joystick in Siege.
-            // If we rotate to target here, we override InputSystem's aiming.
-            // For AUTO: Auto-aim is fine.
-            // For HYBRID/MANUAL: InputSystem controls aim.
-            // We should ONLY rotate if NOT in Siege (or if Auto).
+            // logger.debug("AutoFire", `Scanning... target=${target ? `(${target.x.toFixed(0)}, ${target.y.toFixed(0)})` : 'NONE'}`);
 
-            // Actually, if a target is found:
             if (target) {
-                // Only rotate if NOT Siege (Siege = Manual Aim usually, except AUTO)
-                // But AUTO Siege is "Run and Gun", maybe we still want Auto Aim?
-                // HYBRID/MANUAL Siege is "Fixed Aim" from Joystick.
-
                 const controlType = this.equippedWeapon?.def?.controlType || 'AUTO';
                 if (!isSiege || controlType === 'AUTO') {
                     const angle = Phaser.Math.Angle.Between(this.x, this.y, target.x, target.y);
@@ -524,21 +490,27 @@ export class Player extends Phaser.GameObjects.Container {
                 // Fire Rate Logic
                 let effectiveFireRate = this.fireRate;
                 if (isSiege && controlType === 'AUTO') {
-                    effectiveFireRate *= 0.7; // [Overdrive] Rapid Fire
+                    effectiveFireRate *= 0.7;
                 }
+
+                const timeSinceFire = time - this.lastFireTime;
+                // logger.debug("AutoFire", `timeSinceFire=${timeSinceFire.toFixed(0)}, fireRate=${effectiveFireRate}, weapon=${this.equippedWeapon?.displayName || 'NONE'}`);
 
                 if (time > this.lastFireTime + effectiveFireRate) {
                     // Fire via WeaponSystem
                     const ws = (this.scene as any).weaponSystem as WeaponSystem;
                     if (ws && this.equippedWeapon) {
+                        logger.debug("AutoFire", "FIRING!", { weapon: this.equippedWeapon.displayName, target: `(${target.x.toFixed(0)}, ${target.y.toFixed(0)})` });
                         ws.fire(this.equippedWeapon, {
-                            x: this.x, y: this.y, rotation: this.rotation - Math.PI / 2, id: this.id, // Fix rotation for fire
+                            x: this.x, y: this.y, rotation: this.rotation - Math.PI / 2, id: this.id,
                             isSiege: isSiege
                         } as any, this.currentStats, target);
+                    } else {
+                        logger.debug("AutoFire", `BLOCKED: ws=${!!ws}, equippedWeapon=${!!this.equippedWeapon}`);
                     }
                     this.lastFireTime = time;
 
-                    // Recoil (Apply inverse of shooting direction)
+                    // Recoil
                     const shootAngle = this.rotation - Math.PI / 2;
                     const body = this.body as Phaser.Physics.Arcade.Body;
                     body.setVelocity(
@@ -547,17 +519,7 @@ export class Player extends Phaser.GameObjects.Container {
                     );
                 }
             } else if (isSiege) {
-                // [SIEGE] Fire even without target? (Manual Aim)
-                // If MANUAL/HYBRID, we aim with joystick. We should fire if button held?
-                // But autoFire is "Auto".
-                // For now, let's keep it Target-Required to save ammo/logic, 
-                // UNLESS it's Manual Siege which usually implies manual firing. 
-                // But we don't have a "Fire Button". It's Joystick-based.
-                // So "Auto Fire" is the only fire.
-                // So we MUST fire if Siege is active, even without target, IF we want "Manual Fire feeling".
-                // Let's assume for MVP -> Must have Target. 
-                // Wait, "Moonwalk" is for Kiting. You want to shoot at the enemy chasing you.
-                // So ScanForTarget is correct.
+                // No target in siege mode
             }
         }
     }
@@ -630,6 +592,6 @@ export class Player extends Phaser.GameObjects.Container {
         // Core Logic for Auto-Fire moved here?
         // Or just keep it as hook.
         // For now, implementing empty to pass build, logic is handled in MainScene update -> commander.autoFire().
-        this.autoFire(this.scene.time.now, enemies);
+        // this.autoFire(this.scene.time.now, enemies);
     }
 }

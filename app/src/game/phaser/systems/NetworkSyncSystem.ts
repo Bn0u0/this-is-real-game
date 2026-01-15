@@ -65,7 +65,7 @@ export class NetworkSyncSystem {
             vecY = Math.sin(angle);
         }
 
-        network.broadcast({ type: 'INPUT', payload: { x: vecX, y: vecY } });
+        network.broadcast({ type: 'INPUT', payload: { x: vecX, y: vecY, angle: 0, force: 0 } }); // [FIX] Full JoystickData
         this.lastSentTime = time;
     }
 
@@ -88,7 +88,7 @@ export class NetworkSyncSystem {
                 c: { x: Math.round(this.commander.x), y: Math.round(this.commander.y), r: this.commander.rotation },
                 d: this.drone ? { x: Math.round(this.drone.x), y: Math.round(this.drone.y), r: this.drone.rotation } : { x: 0, y: 0, r: 0 },
                 s: { hp: scene.hp, sc: scene.score, w: this.waveManager.wave, l: scene.level }
-            }
+            } as any
         });
         this.lastSentTime = time;
     }
@@ -98,12 +98,14 @@ export class NetworkSyncSystem {
             EventBus.emit('START_MATCH', 'MULTI');
         }
         else if (data.type === 'INPUT' && network.isHost) {
-            this.remoteInputVector = data.payload;
+            // Check if payload is JoystickData
+            const input = data.payload as any; // Cast for now as we transition
+            this.remoteInputVector = { x: input.x, y: input.y };
         }
         else if (data.type === 'STATE' && !network.isHost) {
-            const s = data.payload;
-            if (this.commander) { this.commander.setPosition(s.c.x, s.c.y); this.commander.setRotation(s.c.r); }
-            if (this.drone) { this.drone.setPosition(s.d.x, s.d.y); this.drone.setRotation(s.d.r); }
+            const s = data.payload as any; // Cast needed due to loose definition in STATE currently
+            if (this.commander && s.c) { this.commander.setPosition(s.c.x, s.c.y); this.commander.setRotation(s.c.r); }
+            if (this.drone && s.d) { this.drone.setPosition(s.d.x, s.d.y); this.drone.setRotation(s.d.r); }
 
             // Sync Scene Stats
             const scene: any = this.scene;
@@ -116,11 +118,7 @@ export class NetworkSyncSystem {
             }
         }
         else if (data.type === 'GAME_OVER') {
-            // Scene handles game over via EventBus usually, but here we trigger directly?
-            // Scene should listen to GAME_OVER if we emit it, or calls method
-            // Existing logic called this.gameOver()
-            // Let's emit generic event
-            EventBus.emit('GAME_OVER_SYNC');
+            EventBus.emit('GAME_OVER_SYNC', data.payload);
         }
     }
 

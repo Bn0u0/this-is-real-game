@@ -38,6 +38,22 @@ export const Value = defineComponent({
     amount: Types.f32
 });
 
+// [NEW] Enemy Attack & Feedback Logic
+export const AttackCooldown = defineComponent({
+    lastHitTime: Types.f32,
+    cooldown: Types.f32
+});
+
+export const VisualEffect = defineComponent({
+    tintFlash: Types.ui32,   // Hex color to flash
+    flashTimer: Types.f32    // Duration in ms
+});
+
+export const Impact = defineComponent({
+    forceX: Types.f32,
+    forceY: Types.f32
+});
+
 // --- Tags (標籤，無數據) ---
 export const PlayerTag = defineComponent();
 export const EnemyTag = defineComponent();

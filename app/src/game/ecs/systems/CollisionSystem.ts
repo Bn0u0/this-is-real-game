@@ -1,5 +1,5 @@
 import { defineSystem, defineQuery, removeEntity, enterQuery, exitQuery } from 'bitecs';
-import { Transform, EnemyTag, ProjectileTag, Health, Damage, SpriteConfig, Velocity } from '../components';
+import { Transform, EnemyTag, ProjectileTag, Health, Damage, SpriteConfig, Velocity, VisualEffect } from '../components';
 
 export const createCollisionSystem = (scene: Phaser.Scene, world: any) => {
     // 查詢所有敵人
@@ -55,13 +55,21 @@ export const createCollisionSystem = (scene: Phaser.Scene, world: any) => {
                     const dmg = Damage.value[pid] || 10;
                     Health.current[eid] -= dmg;
 
-                    // 2. 顯示漂浮文字 (透過 EventBus)
-                    // console.log(`[Collision] Projectile ${pid} hit Enemy ${eid} for ${dmg} dmg`);
-                    // 注意：這裡假設全域 EventBus 可用，或者我們觸發 Scene 事件
-                    // scene.events.emit('SHOW_FLOATING_TEXT', ...); 
-                    // 暫時用 console log 驗證
+                    // 2. 擊退邏輯 (NEW)
+                    // 使用子彈速度方向作為擊退方向
+                    const vx = Velocity.x[pid];
+                    const vy = Velocity.y[pid];
+                    const speed = Math.sqrt(vx * vx + vy * vy) || 1;
+                    const knockbackForce = 120; // 基礎擊退力
 
-                    // 3. 銷毀子彈
+                    Velocity.x[eid] += (vx / speed) * knockbackForce;
+                    Velocity.y[eid] += (vy / speed) * knockbackForce;
+
+                    // 3. 視覺反饋 (NEW)
+                    VisualEffect.tintFlash[eid] = 0xFFFFFF; // 閃白
+                    VisualEffect.flashTimer[eid] = 100;     // 100ms
+
+                    // 4. 銷毀子彈
                     removeEntity(world, pid);
 
                     // 4. 不在這裡處理死亡

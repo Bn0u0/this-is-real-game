@@ -564,6 +564,16 @@ export class Player extends Phaser.GameObjects.Container {
             this.scene.cameras.main.shake(50, 0.001);
             EventBus.emit('SHOW_FLOATING_TEXT', { x: this.x, y: this.y, text: `-${Math.floor(amount)}`, color: '#FF0000' });
 
+            // [NEW] Visual Flash (Graphics based)
+            if (this.coreShape) {
+                this.coreShape.clear();
+                this.coreShape.fillStyle(0xff0000, 0.6);
+                this.coreShape.fillCircle(0, 0, 20); // Flash circle
+                this.scene.time.delayedCall(100, () => {
+                    if (this.coreShape) this.coreShape.clear();
+                });
+            }
+
             if (this.stats.hp <= 0) {
                 // [FIX] Player Death
                 this.stats.hp = 0;

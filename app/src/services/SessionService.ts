@@ -26,6 +26,7 @@ interface SessionState {
 class SessionService {
     private state: SessionState;
     private listeners: ((state: SessionState) => void)[] = [];
+    private sceneReadyHandled: boolean = false; // [FIX] Prevent double START_MATCH
 
     constructor() {
         this.state = {
@@ -40,6 +41,13 @@ class SessionService {
         this.handleMetaUpdate = this.handleMetaUpdate.bind(this);
         this.handleMissionEnd = this.handleMissionEnd.bind(this);
         this.handleExtraction = this.handleExtraction.bind(this);
+        this.handleLootPickup = this.handleLootPickup.bind(this); // [FIX] Bind for proper removal
+        this.handleStartMatchReset = this.handleStartMatchReset.bind(this); // [FIX] Bind
+    }
+
+    private handleStartMatchReset() {
+        this.updateState({ sessionLoot: 0 });
+        this.sceneReadyHandled = false; // Reset flag for next match
     }
 
     // --- Initialization ---
@@ -74,12 +82,9 @@ class SessionService {
         // [NEW] Loot Pickup
         EventBus.on('LOOT_PICKUP', this.handleLootPickup.bind(this));
         // [CRITICAL FIX] Reset session loot when starting a new match
-        EventBus.on('START_MATCH', () => {
-            this.updateState({ sessionLoot: 0 });
-        });
+        EventBus.on('START_MATCH', this.handleStartMatchReset);
 
-        // [FIX] Listen for FTUE triggers
-        EventBus.on('SHOW_CLASS_SELECTION', () => { /* Handled elsewhere? */ });
+        // [REMOVED] Empty SHOW_CLASS_SELECTION listener was causing confusion
 
         // [NEW] Workbench Focus Listener
         EventBus.on('WORKBENCH_FOCUS', (view: WorkbenchView) => {
@@ -126,9 +131,12 @@ class SessionService {
 
     private transitionToCombat(heroId: string) {
         logger.info("Session", "Combat Sequence Initiated.");
+        this.sceneReadyHandled = false; // [FIX] Reset flag
 
         // [ROBUST] Wait for Scene to be Ready (Register BEFORE starting scene)
         const onSceneReady = () => {
+            if (this.sceneReadyHandled) return; // [FIX] Prevent double trigger
+            this.sceneReadyHandled = true;
             logger.info("Session", "MainScene Ready. Starting Match...");
             EventBus.emit('START_MATCH', { mode: 'SINGLE', hero: heroId });
             EventBus.off('SCENE_READY', onSceneReady);
@@ -150,8 +158,9 @@ class SessionService {
 
         // [FALLBACK] Timeout in case event is missed (e.g. restart)
         setTimeout(() => {
-            if (EventBus.listenerCount('SCENE_READY') > 0) {
+            if (!this.sceneReadyHandled) { // [FIX] Check flag instead of listener count
                 logger.warn("Session", "Scene Ready Timeout. Forcing Start...");
+                this.sceneReadyHandled = true;
                 EventBus.emit('START_MATCH', { mode: 'SINGLE', hero: heroId });
                 EventBus.off('SCENE_READY', onSceneReady);
             }
@@ -244,10 +253,15 @@ class SessionService {
 
     public dispose() {
         this.listeners = [];
+        // [FIX] Remove ALL registered EventBus listeners
+        EventBus.off('BOOT_COMPLETE');
         EventBus.off('GAME_OVER', this.handleMissionEnd);
         EventBus.off('EXTRACTION_SUCCESS', this.handleExtraction);
+        EventBus.off('LOOT_PICKUP', this.handleLootPickup);
+        EventBus.off('START_MATCH', this.handleStartMatchReset);
         EventBus.off('WORKBENCH_FOCUS');
-        // metagame unsubscribe?
+        // Note: metaGame and inventoryService subscriptions return unsubscribe functions,
+        // but we currently don't store them. For a true cleanup, we should store and call them.
     }
 
     // --- Store Pattern ---

@@ -23,18 +23,8 @@ export const createPlayerCollisionSystem = (world: any) => {
 
         let totalDamage = 0;
 
-        // 1. Enemy Body Collision (Touch Damage)
-        for (let i = 0; i < enemies.length; ++i) {
-            const id = enemies[i];
-            const dx = Transform.x[id] - world.playerX;
-            const dy = Transform.y[id] - world.playerY;
-            const distSq = dx * dx + dy * dy;
-
-            if (distSq < killDistSq) {
-                // 敵人接觸玩家：每幀造成輕微傷害
-                totalDamage += 0.5;
-            }
-        }
+        // 1. Enemy Body Collision (MOVED to EnemyAttackSystem)
+        // This system now only handles Projectiles (Ranged)
 
         // 2. Enemy Projectile Collision
         for (let i = 0; i < projectiles.length; ++i) {
@@ -57,26 +47,8 @@ export const createPlayerCollisionSystem = (world: any) => {
         }
 
         // 3. Loot Pickup Collision
-        const loots = lootQuery(world);
-        const pickupDistSq = (playerRadius + 15) ** 2; // Slightly larger pickup range
-
-        for (let i = 0; i < loots.length; ++i) {
-            const lid = loots[i];
-            const dx = Transform.x[lid] - world.playerX;
-            const dy = Transform.y[lid] - world.playerY;
-            const distSq = dx * dx + dy * dy;
-
-            if (distSq < pickupDistSq) {
-                // Pick up loot
-                const val = Value.amount[lid] || 1;
-
-                // Emit event to Session Service
-                EventBus.emit('LOOT_PICKUP', { value: val });
-
-                // Remove from World
-                removeEntity(world, lid);
-            }
-        }
+        // [REMOVED] Dead Code. Loot is currently managed by LootService (OOP) + Phaser Physics Overlap.
+        // Future Refactor: specific ItemComponent mapping needed to move Loot to ECS.
 
         // 將傷害寫入 world context，交由 MainScene 處理
         world.playerDamageAccumulator = (world.playerDamageAccumulator || 0) + totalDamage;

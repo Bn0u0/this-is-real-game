@@ -157,12 +157,10 @@ class PersistenceService {
     async uploadScore(score: number, currentStats: any) {
         if (!this.userId) return;
 
-        logger.debug("Appwrite", `Attempting Score Sync: ${score}`);
-        // In local Appwrite, we update the profile stats
-        this.save({
-            ...currentStats,
-            totalKills: (currentStats.totalKills || 0) + (score > 100 ? 1 : 0),
-        } as any);
+        logger.debug("Appwrite", `Score Sync requested: ${score}`);
+        // [FIX] Stats are now managed by InventoryService (SSOT).
+        // This method is kept for potential future cloud leaderboard integration.
+        // The actual profile save is triggered by InventoryService.save() -> persistence.save().
     }
 
     // addInventory and generateGiftCode removed to maintain SSOT in InventoryService

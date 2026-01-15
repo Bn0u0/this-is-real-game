@@ -43,7 +43,9 @@ describe('InputSystem', () => {
         expect(axis.y).toBe(-0.5);
     });
 
-    it('should emit PLAYER_DASH on flick', () => {
+    // [FIX] Flick-to-Dash is currently DISABLED in InputSystem (commented out for MVP)
+    // These tests are updated to reflect current behavior
+    it('should NOT emit PLAYER_DASH on flick (feature disabled)', () => {
         // 1. Pull joystick (Time: 1000)
         mockScene.time.now = 1000;
         inputSystem.setVirtualAxis(0.8, 0); // High magnitude
@@ -52,10 +54,11 @@ describe('InputSystem', () => {
         mockScene.time.now = 1050;
         inputSystem.setVirtualAxis(0, 0);
 
-        expect(mockScene.events.emit).toHaveBeenCalledWith('PLAYER_DASH', { x: 0.8, y: 0 });
+        // Dash is disabled, so no event should be emitted
+        expect(mockScene.events.emit).not.toHaveBeenCalledWith('PLAYER_DASH', expect.any(Object));
     });
 
-    it('should NOT emit dash if release is too slow', () => {
+    it('should NOT emit dash if release is too slow (feature disabled anyway)', () => {
         // 1. Pull joystick
         mockScene.time.now = 1000;
         inputSystem.setVirtualAxis(0.8, 0);

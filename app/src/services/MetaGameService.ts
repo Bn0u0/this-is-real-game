@@ -85,14 +85,9 @@ class MetaGameService {
             return;
         }
 
-        // [DUAL-TRACK] Death Penalty
-        const lostItemName = inventoryService.punishDeath(this.state.selectedHeroId);
-
-        if (lostItemName) {
-            console.log(`[DEATH PENALTY] Hero died. Lost Item: ${lostItemName}`);
-        } else {
-            console.log(`[DEATH PENALTY] Hero died. Backpack lost (Empty).`);
-        }
+        // [FIX] Death Penalty is now ONLY handled by SessionService.handleMissionEnd()
+        // to prevent double punishment. This method only handles navigation.
+        console.log("[MetaGame] Game Over. Navigating to GAME_OVER screen.");
 
         this.navigateTo('GAME_OVER');
     }

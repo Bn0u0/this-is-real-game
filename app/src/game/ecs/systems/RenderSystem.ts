@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
 import { defineSystem, defineQuery, enterQuery, exitQuery } from 'bitecs';
-import { Transform, SpriteConfig } from '../components';
+import { Transform, SpriteConfig, VisualEffect } from '../components';
 
 // 簡單的 Texture 映射表 (暫時寫死，之後可移至 Config)
 const TEXTURE_MAP: Record<number, string> = {
@@ -58,6 +58,19 @@ export const createRenderSystem = (scene: Phaser.Scene, world: any) => {
             if (sprite) {
                 sprite.setPosition(Transform.x[id], Transform.y[id]);
                 sprite.setRotation(Transform.rotation[id]);
+
+                // [NEW] Hit Flash Rendering
+                // Check if the entity has a VisualEffect component and flashTimer is active
+                if (VisualEffect.flashTimer[id] > 0) {
+                    sprite.setTint(VisualEffect.tintFlash[id]);
+                } else {
+                    // Restore original tint
+                    if (SpriteConfig.tint[id] !== 0) {
+                        sprite.setTint(SpriteConfig.tint[id]);
+                    } else {
+                        sprite.clearTint();
+                    }
+                }
             }
         }
 

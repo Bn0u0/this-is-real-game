@@ -24,6 +24,8 @@ import { createLifetimeSystem } from '../ecs/systems/LifetimeSystem';
 import { createChaseSystem } from '../ecs/systems/ChaseSystem';
 import { createDeathSystem } from '../ecs/systems/DeathSystem';
 import { createPlayerCollisionSystem } from '../ecs/systems/PlayerCollisionSystem';
+import { createEnemyAttackSystem } from '../ecs/systems/EnemyAttackSystem';
+import { createVisualEffectSystem } from '../ecs/systems/VisualEffectSystem';
 import { Transform, Velocity, SpriteConfig } from '../ecs/components';
 
 // [NEW MANAGERS]
@@ -141,7 +143,7 @@ export class MainScene extends Phaser.Scene {
         EventBus.emit('GAME_OVER', {
             success,
             score: this.progression.score,
-            wave: this.waveManager.currentWave,
+            wave: this.waveManager.wave,
             level: this.playerManager.myUnit?.level || 1
         });
 
@@ -290,13 +292,15 @@ export class MainScene extends Phaser.Scene {
 
         // ???頂蝯?
         this.systems = [
-            createChaseSystem(this.world), // [NEW] ?€€?餈質馱)
-            createMovementSystem(this.world), // ????蝘餃?)
-            createPlayerCollisionSystem(this.world), // [NEW] 瑼Ｘ葫?拙振鋡急?
-            createCollisionSystem(this, this.world), // ?１??
-            createDeathSystem(this.world),           // [NEW] 瑼Ｘ葫甇颱滿銝行?撖?
-            createLifetimeSystem(this.world), // 瑼Ｘ憯賢
-            createRenderSystem(this, this.world) // ?€敺?箔?
+            createChaseSystem(this.world),
+            createMovementSystem(this.world),
+            createPlayerCollisionSystem(this.world), // Loot & Projectiles
+            createEnemyAttackSystem(this.world),
+            createVisualEffectSystem(),             // [NEW] Manage Flash Timers
+            createCollisionSystem(this, this.world),
+            createDeathSystem(this.world),
+            createLifetimeSystem(this.world),
+            createRenderSystem(this, this.world)
         ];
 
         // ?? ECS ?澆?香鈭∩?隞?
@@ -449,13 +453,22 @@ export class MainScene extends Phaser.Scene {
         this.systems.forEach(system => system(this.world));
 
         // [NEW] ???拙振?蝝舐?
-        if (this.world.playerDamageAccumulator && this.world.playerDamageAccumulator > 1 && this.playerManager.myUnit) {
-            // ?芣?蝝舐?頞? 1 暺摰單??瑁?嚗???潮蝜??
+        // [ECS] Apply Damage Accumulator from Systems
+        if (this.world.playerDamageAccumulator && this.world.playerDamageAccumulator > 0 && this.playerManager.myUnit) {
             const damage = Math.floor(this.world.playerDamageAccumulator);
             this.playerManager.myUnit.takeDamage(damage);
+            this.world.playerDamageAccumulator = 0;
+        }
 
-            // ??撌脰????瑕拿 (靽?撠暺??
-            this.world.playerDamageAccumulator -= damage;
+        // [ECS] Apply Knockback Accumulator from EnemyAttackSystem
+        if ((this.world.knockbackX || this.world.knockbackY) && this.playerManager.myUnit) {
+            const body = this.playerManager.myUnit.body as Phaser.Physics.Arcade.Body;
+            if (body) {
+                body.velocity.x += this.world.knockbackX;
+                body.velocity.y += this.world.knockbackY;
+            }
+            this.world.knockbackX = 0;
+            this.world.knockbackY = 0;
         }
 
         // [CLEANUP] Remove old Manager updates that drive OOP objects
@@ -474,7 +487,7 @@ export class MainScene extends Phaser.Scene {
         }
 
         // Keep WaveManager only for spawning timer
-        this.waveManager.update(time, delta, this.progression.survivalTime);
+        this.waveManager.update(time, delta);
 
         // Ally Manager (ECS-incompatible features disabled)
         this.allyManager.update(time, delta);

@@ -14,7 +14,7 @@ export class WorkbenchScene extends Phaser.Scene {
     private blueprints!: Phaser.GameObjects.Container;
 
     // State
-    private currentFocus: 'NONE' | 'CRATE' | 'HERO' | 'DEPLOY' | 'BLUEPRINTS' = 'NONE';
+    private currentFocus: 'NONE' | 'CRATE' | 'HERO' | 'DEPLOY' | 'BLUEPRINTS' | 'WORKBENCH' = 'NONE';
 
     constructor() {
         super('WorkbenchScene');
@@ -39,13 +39,16 @@ export class WorkbenchScene extends Phaser.Scene {
         // Agent (Top), Arsenal (Bottom Left), Deploy (Bottom Right)
 
         // [CENTER/TOP] AGENT
-        this.createInteractionZone(0, -120, 160, 220, 0x00FFFF, languageService.t('WB_HERO'), 'HERO');
+        this.createInteractionZone(0, -140, 180, 220, 0x00FFFF, languageService.t('WB_HERO'), 'HERO');
 
-        // [LEFT/BOTTOM-LEFT] ARSENAL
-        this.createInteractionZone(-90, 100, 140, 180, 0xD4A017, languageService.t('HOME_BTN_ARSENAL'), 'CRATE');
+        // [MID LEFT] ARSENAL
+        this.createInteractionZone(-110, 20, 160, 160, 0xD4A017, languageService.t('HOME_BTN_ARSENAL'), 'CRATE');
 
-        // [RIGHT/BOTTOM-RIGHT] DEPLOY - [REMOVED] Duplicate UI
-        // this.createInteractionZone(90, 100, 140, 180, 0xFF4500, languageService.t('WB_GO'), 'DEPLOY');
+        // [MID RIGHT] WORKTABLE (Permanent Growth)
+        this.createInteractionZone(110, 20, 160, 160, 0xFF4500, languageService.t('HOME_BTN_WORKBENCH') || '工作桌', 'WORKBENCH');
+
+        // [BOTTOM CENTER] BLUEPRINTS
+        this.createInteractionZone(0, 180, 160, 100, 0x0078D4, languageService.t('HOME_BTN_BLUEPRINTS') || '藍圖總管', 'BLUEPRINTS');
 
         // 3. Input Setup
         this.input.on('pointerdown', (pointer: Phaser.Input.Pointer, gameObjects: any[]) => {

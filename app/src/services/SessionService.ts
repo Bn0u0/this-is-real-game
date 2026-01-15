@@ -8,7 +8,7 @@ import { logger } from './LoggerService';
 export type AppState = 'BOOT' | 'MAIN_MENU' | 'HIDEOUT' | 'COMBAT' | 'GAME_OVER' | 'TUTORIAL_DEBRIEF';
 
 // [NEW] Workbench Focus State
-export type WorkbenchView = 'NONE' | 'CRATE' | 'HERO' | 'DEPLOY' | 'BLUEPRINTS';
+export type WorkbenchView = 'NONE' | 'CRATE' | 'HERO' | 'DEPLOY' | 'BLUEPRINTS' | 'WORKBENCH';
 
 interface SessionState {
     appState: AppState;

@@ -7,6 +7,7 @@ import { HideoutScreen } from '../components/screens/HideoutScreen';
 // import { ArsenalScreen } from '../components/screens/ArsenalScreen'; // DEAD
 import { ArsenalOverlay } from '../components/workbench/ArsenalOverlay';
 import { BlueprintOverlay } from '../components/workbench/BlueprintOverlay';
+import { HeroStatsOverlay } from '../components/workbench/HeroStatsOverlay';
 import { GameOverScreen } from '../components/screens/GameOverScreen';
 import { HTML_LAYER } from '../game/constants/Depth';
 import { EventBus } from '../services/EventBus';
@@ -67,6 +68,23 @@ const App: React.FC = () => {
                             />
                         )}
                         {session.workbenchView === 'BLUEPRINTS' && <BlueprintOverlay />}
+                        {session.workbenchView === 'HERO' && <HeroStatsOverlay />}
+                        {session.workbenchView === 'WORKBENCH' && (
+                            <div className="absolute inset-x-0 bottom-24 flex justify-center pointer-events-none">
+                                <div className="bg-black/90 border-t-4 border-red-500 p-8 w-full max-w-sm pointer-events-auto animate-in slide-in-from-bottom">
+                                    <h3 className="text-red-500 font-bold text-center text-xl mb-4 tracking-widest uppercase">
+                                        SYSTEM UPGRADE // 工作桌
+                                    </h3>
+                                    <p className="text-gray-400 text-center mb-6">永久強化系統正在初始化...<br />(META-PROGRESSION OFFLINE)</p>
+                                    <button
+                                        className="w-full py-4 bg-white text-black font-black hover:bg-red-500 transition-colors"
+                                        onClick={() => EventBus.emit('WORKBENCH_ACTION', 'BACK')}
+                                    >
+                                        [ ESC ] 返回
+                                    </button>
+                                </div>
+                            </div>
+                        )}
                     </div>
                 )}
 

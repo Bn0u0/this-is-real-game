@@ -12,6 +12,8 @@ const DICTIONARY = {
         HIDEOUT_HEADER: 'HIDEOUT',
         DEPLOY_BUTTON: 'DEPLOY LINK',
         HOME_BTN_ARSENAL: 'ARSENAL',
+        HOME_BTN_BLUEPRINTS: 'BLUEPRINTS',
+        HOME_BTN_WORKBENCH: 'WORKBENCH',
         ARSENAL_STORAGE: 'ARSENAL STORAGE',
         BTN_SELL_MODE: 'SELL ITEMS',
         BTN_SELL_ACTIVE: 'SELL MODE ACTIVE',
@@ -21,6 +23,9 @@ const DICTIONARY = {
         WB_GEAR: 'GEAR',
         WB_HERO: 'HERO',
         WB_CLASS_SELECT: 'CLASS SELECT',
+        HERO_STATS_HEADER: 'AGENT PROFILE',
+        UNLOCK_TECH_HEADER: 'TECH RESEARCH',
+        BP_COLLECTION: 'BLUEPRINT ARCHIVE',
 
         // Main Menu
         MM_TITLE_1: 'THIS IS CALLED',
@@ -91,6 +96,8 @@ const DICTIONARY = {
         HIDEOUT_HEADER: '藏身處',
         DEPLOY_BUTTON: '啟動連結',
         HOME_BTN_ARSENAL: '軍械庫',
+        HOME_BTN_BLUEPRINTS: '藍圖總管',
+        HOME_BTN_WORKBENCH: '工作桌',
         ARSENAL_STORAGE: '軍械庫存',
         BTN_SELL_MODE: '販售模式',
         BTN_SELL_ACTIVE: '販售中',
@@ -100,6 +107,9 @@ const DICTIONARY = {
         WB_GEAR: '裝備',
         WB_HERO: '特工',
         WB_CLASS_SELECT: '職業選擇',
+        HERO_STATS_HEADER: '特工檔案',
+        UNLOCK_TECH_HEADER: '核心科技研發',
+        BP_COLLECTION: '藍圖資料庫',
 
         // Hideout
         ROOT_ACCESS: '// 根目錄權限',

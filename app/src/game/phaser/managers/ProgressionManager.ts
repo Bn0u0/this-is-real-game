@@ -1,7 +1,7 @@
 import Phaser from 'phaser';
-import { EventBus } from '../../services/EventBus';
+import { EventBus } from '../../../services/EventBus';
 // import { Enemy } from '../classes/Enemy'; // [REMOVED]
-import { Player } from '../classes/Player';
+import { Player } from '../actors/Player';
 
 export class ProgressionManager {
     private scene: Phaser.Scene;

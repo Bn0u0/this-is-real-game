@@ -1,5 +1,5 @@
-import { Player } from '../classes/Player';
-import { PlayerClassID } from '../../types';
+import { Player } from '../actors/Player';
+import { PlayerClassID } from '../../../types';
 
 export interface ClassConfig {
     name: string;

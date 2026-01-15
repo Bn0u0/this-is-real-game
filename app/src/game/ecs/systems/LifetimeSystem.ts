@@ -1,5 +1,5 @@
 import { defineSystem, defineQuery, removeEntity } from 'bitecs';
-import { Lifetime } from '../Components';
+import { Lifetime } from '../components';
 
 export const createLifetimeSystem = (world: any) => {
     // 查詢所有擁有生命週期的實體

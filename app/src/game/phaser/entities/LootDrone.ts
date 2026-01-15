@@ -1,7 +1,7 @@
 import Phaser from 'phaser';
-import { Player } from '../classes/Player';
-import { inventoryService } from '../../services/InventoryService';
-import { EventBus } from '../../services/EventBus';
+import { Player } from '../actors/Player';
+import { inventoryService } from '../../../services/InventoryService';
+import { EventBus } from '../../../services/EventBus';
 
 export enum DroneState {
     SPAWNING,
@@ -69,7 +69,7 @@ export class LootDrone extends Phaser.GameObjects.Container {
             ease: 'Bounce.Out',
             onComplete: () => {
                 this.droneState = DroneState.IDLE;
-                EventBus.emit('SHOW_TOAST', '物資無人機已抵達 (Supply Drone Arrived)');
+                EventBus.emit('SHOW_TOAST', '?��??�人機已?��? (Supply Drone Arrived)');
             }
         });
     }
@@ -121,7 +121,7 @@ export class LootDrone extends Phaser.GameObjects.Container {
         // [LOGIC] Secure Loot
         // Ensure inventoryService has secureBackpack
         const count = inventoryService.secureBackpack();
-        EventBus.emit('SHOW_TOAST', `上傳成功: ${count} 物品 (Upload Complete)`);
+        EventBus.emit('SHOW_TOAST', `上傳?��?: ${count} ?��? (Upload Complete)`);
         EventBus.emit('PLAY_SFX', 'UPLOAD_DONE');
 
         this.depart();

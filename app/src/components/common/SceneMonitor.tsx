@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { sessionService } from '../services/SessionService';
+import { sessionService } from '../../services/SessionService';
 
 export const SceneMonitor: React.FC = () => {
     const [info, setInfo] = useState<string[]>([]);

@@ -1,7 +1,7 @@
 import Phaser from 'phaser';
-import { ExtractionZone } from '../classes/ExtractionZone';
-import { Player } from '../classes/Player';
-import { EventBus } from '../../services/EventBus';
+import { ExtractionZone } from '../entities/ExtractionZone';
+import { Player } from '../actors/Player';
+import { EventBus } from '../../../services/EventBus';
 
 export enum ExtractionState {
     CLOSED = 'CLOSED',

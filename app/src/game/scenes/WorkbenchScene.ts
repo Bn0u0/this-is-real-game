@@ -1,8 +1,8 @@
 import Phaser from 'phaser';
 import { EventBus } from '../../services/EventBus';
-import { CameraDirector } from '../utils/CameraDirector';
+import { CameraDirector } from '../phaser/managers/CameraDirector';
 import { sessionService } from '../../services/SessionService';
-import { SafeArea } from '../utils/SafeArea';
+import { SafeArea } from '../phaser/utils/SafeArea';
 import { languageService } from '../../services/LanguageService';
 
 export class WorkbenchScene extends Phaser.Scene {
@@ -26,7 +26,7 @@ export class WorkbenchScene extends Phaser.Scene {
 
     create() {
         console.log("🛠️ [WorkbenchScene] STARTING...");
-        this.cameraDirector = new CameraDirector(this);
+        this.cameraDirector = new CameraDirector(this, this.cameras.main.width, this.cameras.main.height);
 
         // 1. Setup Environment
         this.createEnvironment();

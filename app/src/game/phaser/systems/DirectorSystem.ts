@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { EventBus } from '../../services/EventBus';
+import { EventBus } from '../../../services/EventBus';
 
 export type DirectorState = 'BUILDUP' | 'PEAK' | 'RELAX';
 
@@ -161,6 +161,6 @@ export class DirectorSystem {
         // Force a massive wave
         // In a real implementation this might spawn specific "Reaper" units
         // For now, we rely on the inflated credits and difficulty to just flood everything
-        console.log("💀 SUDDEN DEATH TRIGGERED 💀");
+        console.log("?? SUDDEN DEATH TRIGGERED ??");
     }
 }

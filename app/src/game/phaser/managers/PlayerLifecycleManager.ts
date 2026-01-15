@@ -1,10 +1,10 @@
 import Phaser from 'phaser';
-import { Player } from '../classes/Player';
+import { Player } from '../actors/Player';
 import { PlayerFactory } from '../factories/PlayerFactory';
 import { NetworkSyncSystem } from '../systems/NetworkSyncSystem';
 import { WaveManager } from './WaveManager';
-import { LootService } from '../../services/LootService';
-import { EventBus } from '../../services/EventBus';
+import { LootService } from '../../../services/LootService';
+import { EventBus } from '../../../services/EventBus';
 
 export class PlayerLifecycleManager {
     private scene: Phaser.Scene;

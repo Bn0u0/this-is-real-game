@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
 import { defineSystem, defineQuery, enterQuery, exitQuery } from 'bitecs';
-import { Transform, SpriteConfig } from '../Components';
+import { Transform, SpriteConfig } from '../components';
 
 // 簡單的 Texture 映射表 (暫時寫死，之後可移至 Config)
 const TEXTURE_MAP: Record<number, string> = {

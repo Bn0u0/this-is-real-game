@@ -1,11 +1,10 @@
 import Phaser from 'phaser';
-import { EventBus } from '../../services/EventBus';
-import { ItemInstance } from '../../types';
-import { ItemLibrary } from '../data/library/items';
-import { STRATEGIES, WeaponPipeline } from './weapons/WeaponRegistry';
+import { EventBus } from '../../../services/EventBus';
+import { ItemInstance } from '../../../types';
+import { ItemLibrary } from '../../data/library/items';
 
 import { addEntity, addComponent } from 'bitecs';
-import { Transform, Velocity, ProjectileTag, SpriteConfig, Damage, Lifetime } from '../ecs/Components';
+import { Transform, Velocity, ProjectileTag, SpriteConfig, Damage, Lifetime } from '../../ecs/components';
 
 export class WeaponSystem {
     private scene: Phaser.Scene;
@@ -47,8 +46,25 @@ export class WeaponSystem {
 
         if (!def || !def.behavior) return;
 
-        // 1. Pipeline: Calculate Final Stats
-        const stats = WeaponPipeline.resolveStats(weapon, playerStats, source);
+        // 1. Pipeline: Calculate Final Stats (Inlined after WeaponRegistry deletion)
+        let dmg = weapon.computedStats?.damage || 1;
+        let rng = weapon.computedStats?.range || 500;
+        let spd = weapon.computedStats?.speed || 600;
+
+        if (source.isSiege) {
+            dmg *= 1.25;
+            rng *= 1.5;
+        }
+
+        const stats = {
+            damage: dmg,
+            range: rng,
+            fireRate: weapon.computedStats?.fireRate,
+            speed: spd,
+            projectileCount: 1,
+            spreadMod: source.isSiege ? 0.5 : 1.0,
+            duration: (rng / spd) * 1000
+        };
 
         // 2. Juice: Trigger generic effects
         this.playFireJuice(source, def.behavior);

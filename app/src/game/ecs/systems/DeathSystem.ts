@@ -1,5 +1,5 @@
 import { defineSystem, defineQuery, removeEntity, enterQuery, exitQuery } from 'bitecs';
-import { Health, Transform, EnemyTag, SpriteConfig } from '../Components';
+import { Health, Transform, EnemyTag, SpriteConfig } from '../components';
 import { EventBus } from '../../../services/EventBus';
 
 export const createDeathSystem = (world: any) => {

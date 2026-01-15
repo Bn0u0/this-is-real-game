@@ -1,9 +1,9 @@
 import Phaser from 'phaser';
-import { network } from '../../services/NetworkService';
-import { EventBus } from '../../services/EventBus';
-import { Player } from '../classes/Player';
+import { network } from '../../../services/NetworkService';
+import { EventBus } from '../../../services/EventBus';
+import { Player } from '../actors/Player';
 import { WaveManager } from '../managers/WaveManager';
-import { NetworkPacket } from '../../types';
+import { NetworkPacket } from '../../../types';
 
 export class NetworkSyncSystem {
     private scene: Phaser.Scene;

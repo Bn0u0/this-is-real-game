@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { ItemInstance, ItemRarity } from '../types';
+import { ItemInstance, ItemRarity } from '../../types';
 
 interface Props {
     item: ItemInstance;

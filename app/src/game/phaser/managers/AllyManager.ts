@@ -1,7 +1,7 @@
 import Phaser from 'phaser';
-import { MainScene } from '../scenes/MainScene';
+import { MainScene } from '../../scenes/MainScene';
 import { SentryTurret } from '../entities/SentryTurret';
-import { EventBus } from '../../services/EventBus';
+import { EventBus } from '../../../services/EventBus';
 
 export class AllyManager {
     private scene: MainScene;

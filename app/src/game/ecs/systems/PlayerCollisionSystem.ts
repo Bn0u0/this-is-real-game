@@ -1,5 +1,5 @@
 import { defineSystem, defineQuery, removeEntity } from 'bitecs';
-import { Transform, EnemyTag, ProjectileTag, Damage, LootTag, Value } from '../Components';
+import { Transform, EnemyTag, ProjectileTag, Damage, LootTag, Value } from '../components';
 import { EventBus } from '../../../services/EventBus';
 
 export const createPlayerCollisionSystem = (world: any) => {

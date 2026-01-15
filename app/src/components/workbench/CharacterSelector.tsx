@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { CLASSES } from '../../game/factories/PlayerFactory';
+import { CLASSES } from '../../game/phaser/factories/PlayerFactory';
 import { PlayerClassID } from '../../types';
 import { HapticService } from '../../services/HapticService';
 import { languageService } from '../../services/LanguageService';

@@ -1,5 +1,5 @@
 import { defineSystem, defineQuery, removeEntity, enterQuery, exitQuery } from 'bitecs';
-import { Transform, EnemyTag, ProjectileTag, Health, Damage, SpriteConfig, Velocity } from '../Components';
+import { Transform, EnemyTag, ProjectileTag, Health, Damage, SpriteConfig, Velocity } from '../components';
 
 export const createCollisionSystem = (scene: Phaser.Scene, world: any) => {
     // 查詢所有敵人

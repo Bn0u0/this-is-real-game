@@ -1,7 +1,7 @@
 import Phaser from 'phaser';
 import { BaseMechanic } from './ClassMechanic';
-import { Player } from '../classes/Player';
-import { EventBus } from '../../services/EventBus';
+import { Player } from '../Player';
+import { EventBus } from '../../../../services/EventBus';
 // import { SentryTurret } from '../entities/SentryTurret'; // Future
 
 export class WeaverLogic extends BaseMechanic {

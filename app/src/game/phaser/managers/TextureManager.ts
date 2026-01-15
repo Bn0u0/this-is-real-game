@@ -13,7 +13,7 @@ export class TextureManager {
         this.createCircle();
         this.createIconPlaceholders();
         this.createClutter();
-        console.log("ðŸŽ¨ [TextureManager] Procedural Textures Generated.");
+        console.log("?Ž¨ [TextureManager] Procedural Textures Generated.");
     }
 
     private createFlare() {

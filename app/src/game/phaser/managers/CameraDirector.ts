@@ -13,56 +13,45 @@ export class CameraDirector {
         this.worldWidth = width;
         this.worldHeight = height;
 
-        // Init
-        this.updateZoomBasedOnScreen();
+        // Auto-Zoom based on screen size
+        const { width: screenWidth } = scene.scale;
+        this.defaultZoom = screenWidth < 600 ? 0.8 : 1.0;
+        this.camera.setZoom(this.defaultZoom);
     }
 
-    public follow(target: Phaser.GameObjects.GameObject) {
-        // Increased lerp from 0.1 to 0.25 for tighter "Action Cam" feel
-        this.camera.startFollow(target, true, 0.25, 0.25);
-        this.camera.setBounds(0, 0, this.worldWidth, this.worldHeight);
-        console.log(`🎥 [CameraDirector] Following target at ${target.body?.position.x}, ${target.body?.position.y}`);
+    public follow(target: Phaser.GameObjects.GameObject | { x: number, y: number }) {
+        this.camera.startFollow(target, true, 0.1, 0.1);
+        // Set lerp to 0.1 for smooth panning
     }
 
-    public resize(width: number, height: number) {
-        this.camera.setViewport(0, 0, width, height);
-        this.updateZoomBasedOnScreen();
+    public updateLookahead(vx: number, vy: number) {
+        // Simple lookahead based on velocity
+        const magnitude = 100;
+        const targetX = vx * magnitude;
+        const targetY = vy * magnitude;
+
+        this.camera.followOffset.x = Phaser.Math.Linear(this.camera.followOffset.x, -targetX, 0.05);
+        this.camera.followOffset.y = Phaser.Math.Linear(this.camera.followOffset.y, -targetY, 0.05);
     }
 
-    private updateZoomBasedOnScreen() {
-        const width = this.scene.scale.width;
-        let zoom = 1.0;
-        if (width < 600) zoom = 0.8; // Mobile
-        else zoom = 1.0; // Desktop
-
-        this.defaultZoom = zoom;
-        this.camera.zoomTo(zoom, 500, 'Power2');
-    }
-
-    public updateLookahead(inputX: number, inputY: number) {
-        // [JUICE] Camera Lookahead
-        if (Math.abs(inputX) > 0.1 || Math.abs(inputY) > 0.1) {
-            // Negative because offset is "camera offset from center", so "push camera left" allows "see more right"?
-            // Actually followOffset: The amount of horizontal/vertical offset the camera has from the target.
-            // If target moves right, camera moves right.
-            // If we want to look AHEAD right, we need camera to be FURTHER right? 
-            // Experimentation says: followOffset is subtracted? 
-            // Let's stick to the verified logic from MainScene: -pad * 100
-
-            this.camera.followOffset.x = Phaser.Math.Linear(this.camera.followOffset.x, -inputX * 100, 0.05);
-            this.camera.followOffset.y = Phaser.Math.Linear(this.camera.followOffset.y, -inputY * 100, 0.05);
-        } else {
-            // Return to center
-            this.camera.followOffset.x = Phaser.Math.Linear(this.camera.followOffset.x, 0, 0.05);
-            this.camera.followOffset.y = Phaser.Math.Linear(this.camera.followOffset.y, 0, 0.05);
-        }
+    public reset(angle: number = 0) {
+        this.camera.stopFollow();
+        this.camera.setScroll(this.worldWidth / 2 - this.camera.width / 2, this.worldHeight / 2 - this.camera.height / 2);
+        this.camera.followOffset.set(0, 0);
+        this.camera.setRotation(angle);
     }
 
     public shake(intensity: number = 0.01, duration: number = 200) {
         this.camera.shake(duration, intensity);
     }
 
-    public flash(duration: number = 50, r: number = 255, g: number = 0, b: number = 0) {
-        this.camera.flash(duration, r, g, b, false, undefined);
+    public flash(duration: number = 50, r: number = 255, g: number = 255, b: number = 255) {
+        this.camera.flash(duration, r, g, b);
+    }
+
+    public resize(width: number, height: number) {
+        this.camera.setViewport(0, 0, width, height);
+        this.defaultZoom = width < 600 ? 0.8 : 1.0;
+        this.camera.setZoom(this.defaultZoom);
     }
 }

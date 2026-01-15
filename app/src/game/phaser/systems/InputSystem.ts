@@ -1,6 +1,6 @@
-import Phaser from 'phaser';
-import { Player } from '../classes/Player';
-import { PHYSICS } from '../../constants';
+﻿import Phaser from 'phaser';
+import { Player } from '../actors/Player';
+import { PHYSICS } from '../../../constants';
 
 // ONE-THUMB REVOLUTION: INPUT CORE
 // 1. Inputs come from EventBus 'JOYSTICK_MOVE' (from VirtualJoystick.tsx)
@@ -33,7 +33,7 @@ export class InputSystem {
     }
 
     public setVirtualAxis(x: number, y: number) {
-        console.log(`🕹️ [InputSystem] Axis: ${x.toFixed(2)}, ${y.toFixed(2)}`);
+        console.log(`?儭?[InputSystem] Axis: ${x.toFixed(2)}, ${y.toFixed(2)}`);
         this.virtualAxis.set(x, y);
         this.moveVector.x = x;
         this.moveVector.y = y;
@@ -146,7 +146,7 @@ export class InputSystem {
 
             // [DEBUG] Physics State
             if (Math.random() < 0.05) { // Sample logs 5% to avoid spam
-                console.log(`🚀 [Physics] Accel: ${body.acceleration.x.toFixed(0)}, ${body.acceleration.y.toFixed(0)} | Vel: ${body.velocity.x.toFixed(0)}, ${body.velocity.y.toFixed(0)} | Drag: ${body.drag.x}`);
+                console.log(`?? [Physics] Accel: ${body.acceleration.x.toFixed(0)}, ${body.acceleration.y.toFixed(0)} | Vel: ${body.velocity.x.toFixed(0)}, ${body.velocity.y.toFixed(0)} | Drag: ${body.drag.x}`);
             }
 
             // Rotation: Face Move Direction

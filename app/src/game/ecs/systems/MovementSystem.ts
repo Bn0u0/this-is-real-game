@@ -1,5 +1,5 @@
 import { defineSystem, defineQuery } from 'bitecs';
-import { Transform, Velocity } from '../Components';
+import { Transform, Velocity } from '../components';
 
 export const createMovementSystem = (world: any) => {
     // 查詢所有同時擁有 Transform 和 Velocity 的實體

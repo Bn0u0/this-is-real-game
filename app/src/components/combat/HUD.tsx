@@ -4,7 +4,7 @@ import { inventoryService } from '../../services/InventoryService';
 import { metaGame } from '../../services/MetaGameService';
 import { sessionService } from '../../services/SessionService'; // [FIX] Import
 import { PlayerClassID, ItemInstance } from '../../types';
-import { AcquisitionModal } from '../AcquisitionModal';
+import { AcquisitionModal } from '../common/AcquisitionModal';
 
 /**
  * HUD Component

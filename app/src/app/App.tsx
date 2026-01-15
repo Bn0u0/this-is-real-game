@@ -1,17 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import './App.css';
-import { PhaserGame } from './game/PhaserGame';
-import { BootScreen } from './components/BootScreen';
-import { CombatInterface } from './components/combat/CombatInterface';
-import { HideoutScreen } from './components/screens/HideoutScreen';
-// import { ArsenalScreen } from './components/screens/ArsenalScreen'; // DEAD
-import { ArsenalOverlay } from './components/workbench/ArsenalOverlay';
-import { BlueprintOverlay } from './components/workbench/BlueprintOverlay';
-import { GameOverScreen } from './components/screens/GameOverScreen';
-import { HTML_LAYER } from './game/constants/Depth';
-import { EventBus } from './services/EventBus';
-import { sessionService, AppState } from './services/SessionService';
-import { SceneMonitor } from './components/SceneMonitor';
+import { PhaserGame } from '../game/PhaserGame';
+import { BootScreen } from '../components/common/BootScreen';
+import { CombatInterface } from '../components/combat/CombatInterface';
+import { HideoutScreen } from '../components/screens/HideoutScreen';
+// import { ArsenalScreen } from '../components/screens/ArsenalScreen'; // DEAD
+import { ArsenalOverlay } from '../components/workbench/ArsenalOverlay';
+import { BlueprintOverlay } from '../components/workbench/BlueprintOverlay';
+import { GameOverScreen } from '../components/screens/GameOverScreen';
+import { HTML_LAYER } from '../game/constants/Depth';
+import { EventBus } from '../services/EventBus';
+import { sessionService, AppState } from '../services/SessionService';
+import { SceneMonitor } from '../components/common/SceneMonitor';
 
 const App: React.FC = () => {
     // Single Source of Truth

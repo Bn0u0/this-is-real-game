@@ -1,10 +1,10 @@
 import Phaser from 'phaser';
-import { EventBus } from '../../services/EventBus';
+import { EventBus } from '../../../services/EventBus';
 import { LootDrone } from '../entities/LootDrone';
-import { ENEMY_LIBRARY } from '../data/library/enemies';
+import { ENEMY_LIBRARY } from '../../data/library/enemies';
 
 import { addEntity, addComponent, defineQuery } from 'bitecs';
-import { Transform, Velocity, Health, EnemyTag, SpriteConfig, Stats, CombatState, LootTag, Value } from '../ecs/Components';
+import { Transform, Velocity, Health, EnemyTag, SpriteConfig, Stats, CombatState, LootTag, Value } from '../../ecs/components';
 
 export class WaveManager {
     private scene: Phaser.Scene;
@@ -13,7 +13,7 @@ export class WaveManager {
     // [FIX] Management & Safety
     private enemyQuery: any;
     private drones: LootDrone[] = [];
-    private readonly MAX_ENEMIES = 300; // 硬上限
+    private readonly MAX_ENEMIES = 300; // 硬�???
 
     public wave: number = 1;
     private spawnTimer: number = 0;
@@ -62,7 +62,7 @@ export class WaveManager {
         const drone = new LootDrone(this.scene, x, y);
         this.drones.push(drone); // [FIX] Add to list
 
-        console.log(`🚁 [WaveManager] Supply Drone deployed at ${x},${y}`);
+        console.log(`?? [WaveManager] Supply Drone deployed at ${x},${y}`);
     }
 
     public onEnemyKilled(enemy: any) {

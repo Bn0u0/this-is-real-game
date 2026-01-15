@@ -1,22 +1,22 @@
 import Phaser from 'phaser';
-import { COLORS, PHYSICS } from '../../constants';
+import { COLORS, PHYSICS } from '../../../constants';
 // import { ItemDef } from '../data/Items'; // [VOID]
-import { ItemInstance, ItemDef, ItemRarity } from '../../types';
-import { ItemLibrary } from '../data/library/items';
+import { ItemInstance, ItemDef, ItemRarity } from '../../../types';
+import { ItemLibrary } from '../../data/library/items';
 import { ClassConfig } from '../factories/PlayerFactory';
 import { WeaponSystem } from '../systems/WeaponSystem';
-import { inventoryService } from '../../services/InventoryService'; // [NEW]
-import { EventBus } from '../../services/EventBus';
+import { inventoryService } from '../../../services/InventoryService'; // [NEW]
+import { EventBus } from '../../../services/EventBus';
 // import { cardSystem } from '../systems/CardSystem'; // [VOID]
 // import { WeaponInstance } from '../../types'; // [VOID]
 
-import { ClassMechanic } from '../mechanics/ClassMechanic';
-import { ScavengerLogic } from '../mechanics/ScavengerLogic';
-import { SkirmisherLogic } from '../mechanics/SkirmisherLogic';
-import { WeaverLogic } from '../mechanics/WeaverLogic';
+import { ClassMechanic } from './mechanics/ClassMechanic';
+import { ScavengerLogic } from './mechanics/ScavengerLogic';
+import { SkirmisherLogic } from './mechanics/SkirmisherLogic';
+import { WeaverLogic } from './mechanics/WeaverLogic';
 
 import { defineQuery } from 'bitecs';
-import { Transform, EnemyTag } from '../ecs/Components';
+import { Transform, EnemyTag } from '../../ecs/components';
 
 export class Player extends Phaser.GameObjects.Container {
     public id: string;

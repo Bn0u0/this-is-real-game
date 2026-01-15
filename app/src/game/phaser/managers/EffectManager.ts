@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
-import { EventBus } from '../../services/EventBus';
-import { GAME_LAYER } from '../constants/Depth';
+import { EventBus } from '../../../services/EventBus';
+import { GAME_LAYER } from '../../constants/Depth';
 
 export class EffectManager {
     private scene: Phaser.Scene;

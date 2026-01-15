@@ -1,21 +1,21 @@
-import Phaser from 'phaser';
-import { Player } from '../classes/Player';
+﻿import Phaser from 'phaser';
+import { Player } from '../phaser/actors/Player';
 // import { Enemy } from '../classes/Enemy'; // [REMOVED]
 import { COLORS, PHYSICS } from '../../constants';
 import { EventBus } from '../../services/EventBus';
 import { LootService } from '../../services/LootService';
 import { inventoryService } from '../../services/InventoryService';
-import { WeaponSystem } from '../systems/WeaponSystem';
-import { WaveManager } from '../managers/WaveManager';
-import { ExtractionManager } from '../managers/ExtractionManager';
+import { WeaponSystem } from '../phaser/systems/WeaponSystem';
+import { WaveManager } from '../phaser/managers/WaveManager';
+import { ExtractionManager } from '../phaser/managers/ExtractionManager';
 // import { CombatManager } from '../managers/CombatManager'; [REMOVED]
-import { TerrainManager } from '../managers/TerrainManager';
-import { InputSystem } from '../systems/InputSystem';
-import { EffectManager } from '../managers/EffectManager';
-import { NetworkSyncSystem } from '../systems/NetworkSyncSystem';
-import { GlitchPipeline } from '../pipelines/GlitchPipeline';
-import { InputRecorder } from '../systems/InputRecorder';
-import { SoundManager } from '../managers/SoundManager';
+import { TerrainManager } from '../phaser/managers/TerrainManager';
+import { InputSystem } from '../phaser/systems/InputSystem';
+import { EffectManager } from '../phaser/managers/EffectManager';
+import { NetworkSyncSystem } from '../phaser/systems/NetworkSyncSystem';
+import { GlitchPipeline } from '../phaser/pipelines/GlitchPipeline';
+import { InputRecorder } from '../phaser/systems/InputRecorder';
+import { SoundManager } from '../phaser/managers/SoundManager';
 import { createWorld, addEntity, addComponent, System } from 'bitecs';
 import { createMovementSystem } from '../ecs/systems/MovementSystem';
 import { createRenderSystem } from '../ecs/systems/RenderSystem';
@@ -24,14 +24,14 @@ import { createLifetimeSystem } from '../ecs/systems/LifetimeSystem';
 import { createChaseSystem } from '../ecs/systems/ChaseSystem';
 import { createDeathSystem } from '../ecs/systems/DeathSystem';
 import { createPlayerCollisionSystem } from '../ecs/systems/PlayerCollisionSystem';
-import { Transform, Velocity, SpriteConfig } from '../ecs/Components';
+import { Transform, Velocity, SpriteConfig } from '../ecs/components';
 
 // [NEW MANAGERS]
-import { CameraDirector } from '../managers/CameraDirector';
-import { PlayerLifecycleManager } from '../managers/PlayerLifecycleManager';
-import { ProgressionManager } from '../managers/ProgressionManager';
-import { WaypointManager } from '../managers/WaypointManager';
-import { AllyManager } from '../managers/AllyManager'; // [NEW]
+import { CameraDirector } from '../phaser/managers/CameraDirector';
+import { PlayerLifecycleManager } from '../phaser/managers/PlayerLifecycleManager';
+import { ProgressionManager } from '../phaser/managers/ProgressionManager';
+import { WaypointManager } from '../phaser/managers/WaypointManager';
+import { AllyManager } from '../phaser/managers/AllyManager'; // [NEW]
 
 type GameMode = 'SINGLE' | 'MULTI';
 
@@ -93,7 +93,7 @@ export class MainScene extends Phaser.Scene {
 
     // [FIX] Missing Methods stub
     public handleStartMatch(data: any) {
-        console.log("⚔️ [MainScene] START_MATCH Received:", data);
+        console.log("?? [MainScene] START_MATCH Received:", data);
         this.isGameActive = true;
         this.isPaused = false;
         this.cleanStart();
@@ -136,7 +136,7 @@ export class MainScene extends Phaser.Scene {
         this.isGameActive = false;
         this.physics.pause();
 
-        console.log(`🏁 [MainScene] GAME OVER. Success: ${success}`);
+        console.log(`?? [MainScene] GAME OVER. Success: ${success}`);
         EventBus.emit('GAME_OVER', { success, score: 0, wave: this.waveManager.currentWave });
 
         // Visuals
@@ -150,7 +150,7 @@ export class MainScene extends Phaser.Scene {
         // Check overlap with extraction zones
         if (this.extractionManager.checkExtraction(this.playerManager.myUnit)) {
             // [CORE LOOP] Success!
-            console.log("🚁 [MainScene] Extraction Successful!");
+            console.log("?? [MainScene] Extraction Successful!");
 
             // 1. Secure Loot
             const securedCount = inventoryService.secureBackpack();
@@ -208,13 +208,13 @@ export class MainScene extends Phaser.Scene {
     // ... (Lines 60-118 skipped) ...
 
     create() {
-        console.log("🚀 [MainScene] Creating Scene...");
+        console.log("?? [MainScene] Creating Scene...");
 
         // [CRITICAL FIX] Initialize ECS World FIRST
         // This ensures all Managers/Systems that receive it in constructor have a valid reference.
         this.world = createWorld();
         this.world.playerDamageAccumulator = 0; // [FIX] Initialize
-        console.log("🚀 [ECS] World Initialized.");
+        console.log("?? [ECS] World Initialized.");
 
         this.physics.world.setBounds(0, 0, this.worldWidth, this.worldHeight);
 
@@ -256,32 +256,32 @@ export class MainScene extends Phaser.Scene {
         this.soundManager = new SoundManager();
 
         // ECS (Phase 1: bitecs)
-        console.log("🚀 [ECS] Initializing Phase 1 Systems...");
+        console.log("?? [ECS] Initializing Phase 1 Systems...");
         // this.world = createWorld(); // [REMOVED] Moved to top of create()
 
-        // 初始化系統
+        // ???頂蝯?
         this.systems = [
-            createChaseSystem(this.world), // [NEW] 先思考(追蹤)
-            createMovementSystem(this.world), // 再行動(移動)
-            createPlayerCollisionSystem(this.world), // [NEW] 檢測玩家被撞
-            createCollisionSystem(this, this.world), // 再碰撞
-            createDeathSystem(this.world),           // [NEW] 檢測死亡並掉寶
-            createLifetimeSystem(this.world), // 檢查壽命
-            createRenderSystem(this, this.world) // 最後畫出來
+            createChaseSystem(this.world), // [NEW] ??餈質馱)
+            createMovementSystem(this.world), // ????蝘餃?)
+            createPlayerCollisionSystem(this.world), // [NEW] 瑼Ｘ葫?拙振鋡急?
+            createCollisionSystem(this, this.world), // ?１??
+            createDeathSystem(this.world),           // [NEW] 瑼Ｘ葫甇颱滿銝行?撖?
+            createLifetimeSystem(this.world), // 瑼Ｘ憯賢
+            createRenderSystem(this, this.world) // ?敺?箔?
         ];
 
-        // 監聯 ECS 發出的死亡事件
+        // ?? ECS ?澆?香鈭∩?隞?
         EventBus.on('ENEMY_KILLED_AT', (data: { x: number, y: number, textureId: number }) => {
-            // 觸發 ECS 掉寶 (直接傳座標和類型)
+            // 閫貊 ECS ?窄 (?湔?喳漣璅?憿?)
             this.waveManager.spawnLootAt(data.x, data.y, data.textureId);
-            // 加分
+            // ??
             EventBus.emit('ADD_SCORE', 10);
         });
 
-        // 🧪 測試：生成 100 個 ECS 實體
-        // 確保有 'tex_orb' 圖片，如果沒有，請用你專案現有的圖片 key 替換
+        // ?妒 皜祈岫嚗???100 ??ECS 撖阡?
+        // 蝣箔???'tex_orb' ??嚗?????隢雿?獢???? key ?踵?
         if (!this.textures.exists('tex_orb')) {
-            // 創建一個臨時的白色圓形紋理作為 fallback
+            // ?萄遣銝????質?耦蝝?雿 fallback
             const graphics = this.make.graphics({ x: 0, y: 0, add: false } as any);
             graphics.fillStyle(0xffffff);
             graphics.fillCircle(10, 10, 10);
@@ -291,37 +291,39 @@ export class MainScene extends Phaser.Scene {
         for (let i = 0; i < 100; i++) {
             const eid = addEntity(this.world);
 
-            // 添加組件
+            // 瘛餃?蝯辣
             addComponent(this.world, Transform, eid);
             addComponent(this.world, Velocity, eid);
             addComponent(this.world, SpriteConfig, eid);
 
-            // 初始化數據
+            // ?????
             Transform.x[eid] = this.worldWidth / 2;
             Transform.y[eid] = this.worldHeight / 2;
 
-            // 隨機爆炸速度
+            // ?冽???漲
             Velocity.x[eid] = (Math.random() - 0.5) * 400;
             Velocity.y[eid] = (Math.random() - 0.5) * 400;
 
-            // 視覺設定
-            SpriteConfig.textureId[eid] = 1; // 對應 'tex_orb'
+            // 閬死閮剖?
+            SpriteConfig.textureId[eid] = 1; // 撠? 'tex_orb'
             SpriteConfig.scale[eid] = 0.5 + Math.random() * 0.5;
-            SpriteConfig.tint[eid] = 0x00FF00; // 綠色粒子
+            SpriteConfig.tint[eid] = 0x00FF00; // 蝬蝎?
         }
 
-        // ... (Skipping Test Entity & Lighting & Glitch & Events) ...
-
-        // ... (Skipping Test Entity & Lighting & Glitch & Events) ...
+        // Register Glitch Pipeline
+        if (this.renderer instanceof Phaser.Renderer.WebGL.WebGLRenderer) {
+            this.renderer.pipelines.addPostPipeline('GlitchPipeline', GlitchPipeline);
+            this.cameras.main.setPostPipeline('GlitchPipeline');
+        }
 
         EventBus.on('JOYSTICK_MOVE', (vec: { x: number, y: number }) => {
             this.inputSystem.setVirtualAxis(vec.x, vec.y);
         });
         EventBus.on('TRIGGER_SKILL', (skill: string) => this.inputSystem.triggerSkill(skill));
 
-        console.log("🔊 [MainScene] Registering START_MATCH Listener...");
+        console.log("?? [MainScene] Registering START_MATCH Listener...");
         EventBus.on('START_MATCH', this.handleStartMatch, this);
-        console.log(`🔊 [MainScene] Listener Registered. Count: ${EventBus.listenerCount('START_MATCH')}`);
+        console.log(`?? [MainScene] Listener Registered. Count: ${EventBus.listenerCount('START_MATCH')}`);
 
         (window as any).SceneEventBus = EventBus;
 
@@ -336,13 +338,13 @@ export class MainScene extends Phaser.Scene {
 
         // [FIX] Player Death Listener
         EventBus.on('PLAYER_DEATH', () => {
-            console.log("💀 [MainScene] Player Died!");
+            console.log("?? [MainScene] Player Died!");
             this.gameOver(false);
         });
 
         // [FIX] Listen for Return to Base
         EventBus.once('RETURN_TO_BASE', () => {
-            console.log("🏠 [MainScene] Returning to Workbench...");
+            console.log("?? [MainScene] Returning to Workbench...");
             this.scene.start('WorkbenchScene');
         });
     }
@@ -350,7 +352,7 @@ export class MainScene extends Phaser.Scene {
     // ... (Handles & CleanStart) ...
 
     private cleanStart() {
-        console.log("[MainScene] 🧹 Cleaning up previous match state...");
+        console.log("[MainScene] ?完 Cleaning up previous match state...");
 
         // [FIX] Safety Check
         if (this.physics && this.physics.world) {
@@ -405,22 +407,22 @@ export class MainScene extends Phaser.Scene {
         this.world.dt = delta;
         this.world.time = time; // [NEW] Time Injection for Systems
 
-        // [NEW] 告訴 ECS 玩家在哪裡
+        // [NEW] ?迄 ECS ?拙振?典鋆?
         if (this.playerManager.myUnit) {
             this.world.playerX = this.playerManager.myUnit.x;
             this.world.playerY = this.playerManager.myUnit.y;
         }
 
-        // 執行所有系統
+        // ?瑁???頂蝯?
         this.systems.forEach(system => system(this.world));
 
-        // [NEW] 處理玩家受傷累積
+        // [NEW] ???拙振?蝝舐?
         if (this.world.playerDamageAccumulator && this.world.playerDamageAccumulator > 1 && this.playerManager.myUnit) {
-            // 只有累積超過 1 點傷害才執行，避免過於頻繁呼叫
+            // ?芣?蝝舐?頞? 1 暺摰單??瑁?嚗???潮蝜??
             const damage = Math.floor(this.world.playerDamageAccumulator);
             this.playerManager.myUnit.takeDamage(damage);
 
-            // 扣除已處理的傷害 (保留小數點部分)
+            // ??撌脰????瑕拿 (靽?撠暺??
             this.world.playerDamageAccumulator -= damage;
         }
 
@@ -451,6 +453,7 @@ export class MainScene extends Phaser.Scene {
         this.handleExtraction();
 
         if (this.lootService && this.lootService.group && myUnit) {
+            this.lootService.update(time, delta, myUnit);
             this.physics.overlap(myUnit, this.lootService.group, (p, l) => this.handleLootPickup(l));
         }
 

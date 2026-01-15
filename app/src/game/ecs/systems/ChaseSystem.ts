@@ -1,5 +1,5 @@
 import { defineSystem, defineQuery, addEntity, addComponent } from 'bitecs';
-import { Transform, Velocity, EnemyTag, Stats, CombatState, ProjectileTag, Damage, Lifetime, SpriteConfig } from '../Components';
+import { Transform, Velocity, EnemyTag, Stats, CombatState, ProjectileTag, Damage, Lifetime, SpriteConfig } from '../components';
 
 export const createChaseSystem = (world: any) => {
     // 查詢所有「是敵人」且「有位置、有速度」的實體

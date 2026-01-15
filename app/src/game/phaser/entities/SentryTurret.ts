@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { EventBus } from '../../services/EventBus';
+import { EventBus } from '../../../services/EventBus';
 import { WeaponSystem } from '../systems/WeaponSystem';
 
 export class SentryTurret extends Phaser.GameObjects.Container {

@@ -1,8 +1,8 @@
 import Phaser from 'phaser';
-import { MainScene } from '../scenes/MainScene';
-import { COLORS } from '../../constants';
-import { MapGenerator, TILE_FLOOR, TILE_WALL, TILE_VOID } from '../generators/MapGenerator';
-import { GAME_LAYER } from '../constants/Depth';
+import { MainScene } from '../../scenes/MainScene';
+import { COLORS } from '../../../constants';
+import { MapGenerator, TILE_FLOOR, TILE_WALL, TILE_VOID } from '../../generators/MapGenerator';
+import { GAME_LAYER } from '../../constants/Depth';
 
 // 2.5D Tiling System
 export enum TileType {

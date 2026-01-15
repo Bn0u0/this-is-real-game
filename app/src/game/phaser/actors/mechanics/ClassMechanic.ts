@@ -1,4 +1,4 @@
-import { Player } from '../classes/Player';
+import { Player } from '../Player';
 
 export interface ClassMechanic {
     /**

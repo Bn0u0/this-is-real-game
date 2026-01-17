@@ -1,59 +1,38 @@
----
-name: Communication Protocol
-description: Enforces the user's strict communication and operational rules regarding language, confirmation, and tool usage.
----
+# 🗣️ Communication Protocol V2.0 (High Agency)
 
-# 🗣️ Communication Protocol (溝通協定)
-
-此技能將用户的《溝通準則》轉化為系統化的行為規範。作為 Agent，你必須隨時遵守以下四大核心規則。
+此技能將用户的《溝通準則》轉化為系統化的行為規範。
 
 ## 1. 語言核心 (Language Core)
-> **"所有產出除了指令與程式碼外，全部都要是繁體中文"**
+> **"所有產出文件與對話，必須使用全繁體中文"**
 
 - **回應語言**：對話回應必須使用 **繁體中文**。
-- **文件產出 (Critical)**：
-    - `task.md` (任務清單)：說明文字、任務名稱、狀態描述必須是中文。
-    - `implementation_plan.md` (實作計畫)：所有章節標題、說明內容必須是中文。
-    - `walkthrough.md` (回顧)：所有描述必須是中文。
+- **文件產出 (Artifacts)**：
+    - **絕對規則**：所有計畫書 (`implementation_plan.md`)、任務清單 (`task.md`)、回顧報告 (`walkthrough.md`) 的內容**必須全數使用繁體中文**。
+    - **包含**：標題、章節說明、步驟描述、注意事項。
+    - **禁止**：禁止使用英文撰寫描述性文字（如 "Goal Description" 需寫 "目標描述"）。
 - **例外**：
-    - 檔案路徑 (File Paths)
-    - 程式碼片段 (Code Blocks)
-    - 專有名詞 (如 React, Phaser, ECS) 可維持英文。
+    - 檔案路徑 (e.g., `src/App.tsx`)
+    - 程式碼變數/函數名 (e.g., `WobblePipeline`)
+    - 專有用詞 (e.g., Phaser, React, GLSL)
 
 ## 2. 行動優先級 (Action Priority)
-> **"疑問句優先，禁止更改或新增內容"**
+> **"高效率執行，但保持計畫透明"**
 
-- **檢測機制**：分析用戶訊息是否包含疑問詞。
-- **處理流程**：偵測到疑問 -> 暫停 Coding -> 優先回答。
+- **計畫優先**：在進行複雜修改前，必須先產生 `implementation_plan.md` 並取得用戶同意。
+- **自主執行**：一旦計畫獲准，Agent 有權自主修改相關檔案，**無需**逐一確認。
+- **例外中止**：若遇到計畫外且具破壞性的修改（如刪檔、重構核心架構），必須暫停並請求確認。
 
-## 3. 安全確認機制 (Safety Confirmation)
-> **"只有要動到專案程式碼的時候才要問過我"**
+## 3. 工具使用權限 (Tool Authority)
+> **"你需要工具來驗證你的工作"**
 
-- **觸發條件**：當準備修改 **專案源碼 (`app/src/...`)** 或 **專案配置** 時。
-- **免責情況**：
-    - 修改 Agent 內部的 Artifacts (如 `task.md`, `implementation_plan.md`) **不需要**確認。
-    - 用戶**主動下令**要求執行的特定修改 (如「幫我把A改成B」) **不需要**再次確認。
-- **確認範本**：
-    ```markdown
-    ### 🛡️ 修改確認
-    準備修改專案代碼：
-    target: app/src/game/scenes/MainScene.ts
-    reason: 修復轉場 Bug
+- **瀏覽器 (Browser)**：
+    - **允許**：主動開啟瀏覽器進行開局測試、視覺驗證、查找技術文檔。
+    - **限制**：不得進行與任務無關的瀏覽。
+- **終端機 (Terminal)**：
+    - **允許**：執行構建 (`npm run build`)、測試 (`npm run test`)、哨兵檢查 (`npm run sentinel`)。
 
-    [等待指令...]
-    ```
-
-## 4. 工具使用限制 (Tool Restrictions)
-> **"你要開啟瀏覽器前要經過我的同意"**
-
-- **預設封鎖**：禁止主動使用 `browser_subagent` 或 `open_browser` 工具。
-- **解鎖條件**：只有在用戶明確指令（如「打開瀏覽器幫我查...」、「驗證一下這個網址...」）時才可使用。
-
----
-
-## 🚀 自我檢核清單 (Self-Check Protocol)
+## 4. 自我檢核清單 (Self-Check Protocol)
 每次回應前，請在內心（Thinking Process）執行此檢查：
 1. [ ] 我是用繁體中文回應嗎？
-2. [ ] 用戶這句話是問題嗎？如果是，我有先回答問題嗎？
-3. [ ] 我即將修改檔案嗎？我有先取得同意嗎？
-4. [ ] 我打算開瀏覽器嗎？用戶有叫我開嗎？
+2. [ ] 我即將修改的檔案是否在「已批准的計畫」範圍內？
+3. [ ] 如果是計畫外的修改，我是否已解釋原因？

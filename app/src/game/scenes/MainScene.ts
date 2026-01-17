@@ -8,6 +8,7 @@ import { inventoryService } from '../../services/InventoryService';
 import { WeaponSystem } from '../phaser/systems/WeaponSystem';
 import { WaveManager } from '../phaser/managers/WaveManager';
 import { ExtractionManager } from '../phaser/managers/ExtractionManager';
+// import { WobblePipeline } from '../phaser/pipelines/WobblePipeline';
 // import { CombatManager } from '../managers/CombatManager'; [REMOVED]
 import { TerrainManager } from '../phaser/managers/TerrainManager';
 import { InputSystem } from '../phaser/systems/InputSystem';
@@ -246,6 +247,19 @@ export class MainScene extends Phaser.Scene {
         this.world = createWorld();
         this.world.playerDamageAccumulator = 0; // [FIX] Initialize
         logger.info("ECS", "World Initialized.");
+
+        // [VISUAL STYLE] Apply Global Wobble (Baba Is You 100%)
+        const renderer = this.game.renderer as Phaser.Renderer.WebGL.WebGLRenderer;
+        try {
+            if (!renderer.pipelines.has('Wobble')) {
+                renderer.pipelines.addPostPipeline('Wobble', WobblePipeline);
+            }
+            // Global Post-Processing Pipeline removed to fix dizziness
+            // this.cameras.main.setPostPipeline('Wobble');
+            logger.info("MainScene", "Wobble Pipeline Applied.");
+        } catch (e) {
+            logger.error("MainScene", "Failed to apply Wobble Pipeline", e);
+        }
 
         this.physics.world.setBounds(0, 0, this.worldWidth, this.worldHeight);
 

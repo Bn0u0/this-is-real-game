@@ -16,6 +16,7 @@ import { SkirmisherLogic } from './mechanics/SkirmisherLogic';
 import { WeaverLogic } from './mechanics/WeaverLogic';
 
 import { defineQuery } from 'bitecs';
+import { GAME_LAYER } from '../../constants/Depth';
 import { logger } from '../../../services/LoggerService';
 import { Transform, EnemyTag } from '../../ecs/components';
 
@@ -65,6 +66,8 @@ export class Player extends Phaser.GameObjects.Container {
     public maxCooldowns: { [key: string]: number } = {};
     public speedMultiplier: number = 1.0;
     public shielded: boolean = false;
+    private footprintEmitter: Phaser.GameObjects.Particles.ParticleEmitter;
+    private lastFootprintTime: number = 0;
 
     // Derived Stats (calculated from Base + Cards + Loot)
     public currentStats = {
@@ -119,6 +122,19 @@ export class Player extends Phaser.GameObjects.Container {
         // 3. Mechanic Visuals (Overlay)
         this.mechanicGraphics = scene.add.graphics();
         this.add(this.mechanicGraphics);
+
+        // [VISUAL] Footprint Emitter
+        // Uses 'flare' texture but tinted dark to look like indentations in sand
+        this.footprintEmitter = scene.add.particles(0, 0, 'flare', {
+            lifespan: 1500,
+            speed: 0,           // Static on ground
+            scaleX: 0.15,       // Small
+            scaleY: 0.08,       // Flattened oval
+            alpha: { start: 0.3, end: 0 },
+            tint: 0x3E2723,     // Dark Mud/Shadow color
+            emitting: false
+        });
+        this.footprintEmitter.setDepth(GAME_LAYER.GROUND + 1);
 
         // Direction Arrow
         if (isLocal) {
@@ -224,92 +240,58 @@ export class Player extends Phaser.GameObjects.Container {
     }
 
     drawGuardian(color: number) {
-        // Redirect to new Architecture
-        this.drawArchitecture(this.classId, color);
-
+        // [POTATO MODE] Redirect to Potato Architecture
+        this.drawPotato(color);
         // Clear legacy graphics if any
         this.coreShape.clear();
     }
 
     /**
-     * High-Fidelity Procedural Avatar Generator
-     * Draws complex, multi-layered vector art based on class identity.
+     * The Potato Scavenger Architecture
+     * Concept: Rice-white irregular blob, deadpan face, giant backpack.
      */
-    private drawArchitecture(classId: string, color: number) {
+    private drawPotato(primaryColor: number) {
         const g = this.graphics;
         g.clear();
 
-        // AMBER-GLITCH STYLE: 1px Dark Outline (#1B1020)
-        g.lineStyle(1, COLORS.shadow, 1);
+        // [LAYER 1] The Giant Backpack (Behind Body)
+        // Color: Worn Brown/Green
+        g.fillStyle(0x5D4037, 1); // Dark Leather/Rust
+        g.lineStyle(2, 0x1B1020, 1); // Dark Outline 
 
-        // Palette
-        const primary = color;
-        const dark = Phaser.Display.Color.IntegerToColor(color).darken(40).color;
-        const bright = Phaser.Display.Color.IntegerToColor(color).lighten(40).color;
-        const white = 0xffffff;
+        // Shape: Big Rounded Rect, slightly wider than body
+        g.fillRoundedRect(-22, -25, 44, 40, 8);
+        g.strokeRoundedRect(-22, -25, 44, 40, 8);
 
-        // "Cult of the Lamb" Ratios: 
-        // Bobblehead (Head > Body). Cute but menacing.
+        // Bedroll on top?
+        g.fillStyle(0x556B2F, 1); // Olive Drab
+        g.fillRoundedRect(-20, -32, 40, 10, 4);
+        g.strokeRoundedRect(-20, -32, 40, 10, 4);
 
-        switch (classId) {
-            case 'SCAVENGER':
-                // "THE SURVIVOR" - Chunky, Armored
-                // Body
-                g.fillStyle(dark, 1);
-                g.fillRoundedRect(-12, -5, 24, 25, 4);
-                g.strokeRoundedRect(-12, -5, 24, 25, 4);
-                // Head (Helmet)
-                g.fillStyle(primary, 1);
-                g.fillRoundedRect(-15, -20, 30, 20, 6);
-                g.strokeRoundedRect(-15, -20, 30, 20, 6);
-                // Visor
-                g.fillStyle(0x00FFFF, 0.8);
-                g.fillRect(-10, -15, 20, 6);
-                break;
 
-            case 'SKIRMISHER':
-                // "THE DUELIST" - Sleek, Hooded
-                // Cape/Body (Triangle)
-                g.fillStyle(dark, 1);
-                g.beginPath();
-                g.moveTo(0, -10); g.lineTo(15, 20); g.lineTo(-15, 20);
-                g.closePath();
-                g.fillPath();
-                g.strokePath();
+        // [LAYER 2] The Potato Body
+        // Color: Rice White / Off-White
+        const potatoColor = 0xF8F8F0;
+        g.fillStyle(potatoColor, 1);
+        g.lineStyle(2, 0x1B1020, 1); // Dark Outline
 
-                // Head (Hood)
-                g.fillStyle(primary, 1);
-                g.fillCircle(0, -12, 14);
-                g.strokeCircle(0, -12, 14);
-                // Eye (Mono)
-                g.fillStyle(white, 1);
-                g.fillCircle(4, -12, 3);
-                break;
+        // Shape: Irregular Oval (Stacked Circles for organic look)
+        // Main Body
+        g.beginPath();
+        g.fillEllipse(0, 5, 20, 18); // Bottom heavy
+        g.strokeEllipse(0, 5, 20, 18);
 
-            case 'WEAVER':
-                // "THE ENGINEER" - Tech, Floating Bits
-                // Body (Orb-like)
-                g.fillStyle(dark, 1);
-                g.fillCircle(0, 5, 12);
-                g.strokeCircle(0, 5, 12);
+        // Head/Top
+        g.fillEllipse(0, -5, 18, 16);
+        g.strokeEllipse(0, -5, 18, 16);
 
-                // Head (Floating)
-                g.fillStyle(primary, 1);
-                g.fillCircle(0, -15, 10);
-                g.strokeCircle(0, -15, 10);
+        // [LAYER 3] The Deadpan Face
+        // Eyes: Small black dots, wide set
+        g.fillStyle(0x000000, 1);
+        g.fillCircle(-8, -5, 2.5); // Left Eye
+        g.fillCircle(8, -5, 2.5);  // Right Eye
 
-                // Antenna
-                g.lineStyle(2, primary, 1);
-                g.lineBetween(0, -25, 0, -32);
-                g.fillCircle(0, -34, 2);
-                break;
-
-            default:
-                // Fallback
-                g.fillStyle(primary, 1);
-                g.fillCircle(0, 0, 15);
-                break;
-        }
+        // No Mouth (Deadpan)
     }
 
     public level: number = 1; // [OPERATION ESCALATION] Step 3: Stat Scaling
@@ -417,14 +399,28 @@ export class Player extends Phaser.GameObjects.Container {
 
         // Update Sprite Y for jump effect (and other attached visuals)
         // this.sprite.y = -this.z; // Deprecated
-        this.graphics.y = -this.z + Math.sin(this.scene.time.now / 300) * 2; // Idle Breathing
+        // [POTATO MODE] GLOBAL SHADER ACTIVE
+        // Manual wobble removed to prevents double-distortion.
+        // The Global 'Wobble' pipeline now handles the boiling effect.
+        const time = this.scene.time.now;
+
+        // Jump Bounce remains
+        this.graphics.y = -this.z + Math.sin(time / 300) * 2; // Idle Breathing Y
         this.coreShape.y = -this.z;
 
-        // Emitter
         if (speed > 50) {
             this.emitter.active = true;
             const angle = this.rotation + Math.PI / 2;
             this.emitter.followOffset.set(-Math.cos(angle) * 10, -Math.sin(angle) * 10);
+
+            // [VISUAL] Footprint Logic
+            // Emit footprint every 250ms if moving
+            const now = this.scene.time.now;
+            if (now > this.lastFootprintTime + 250) {
+                this.footprintEmitter.emitParticleAt(this.x, this.y + 10); // Offset to feet
+                this.lastFootprintTime = now;
+            }
+
         } else {
             this.emitter.active = false;
         }

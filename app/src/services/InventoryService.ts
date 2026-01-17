@@ -276,6 +276,19 @@ class InventoryService {
         this.save();
     }
 
+    // [NEW] Smart Equip Wrapper for UI
+    public equipItem(itemUid: string) {
+        const item = this.state.stash.find(i => i.uid === itemUid);
+        if (!item) return;
+
+        // Auto-detect slot from item definition
+        // Assuming item.def.slot is reliable from Types logic
+        const targetSlot = item.def.slot || 'mainWeapon';
+
+        console.log(`[Inventory] Auto-Equipping ${item.name} to ${targetSlot}`);
+        this.equipFromStash(itemUid, targetSlot);
+    }
+
     public unequipToStash(slot: keyof Loadout) {
         const current = this.state.loadout[slot];
         if (!current) return;

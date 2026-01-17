@@ -5,6 +5,7 @@ const colors = {
     reset: "\x1b[0m",
     red: "\x1b[31m",
     green: "\x1b[32m",
+    yellow: "\x1b[33m",
     blue: "\x1b[34m"
 };
 
@@ -52,6 +53,10 @@ async function main() {
                 if (text.includes('favicon.ico') || (location.url && location.url.includes('favicon.ico'))) {
                     return;
                 }
+                // Ignore Appwrite offline-mode errors
+                if (text.includes('ERR_CONNECTION_REFUSED') || text.includes('/v1/') || text.includes('Appwrite')) {
+                    return;
+                }
                 log(`[BROWSER ERROR] ${text} @ ${location.url || 'unknown'}`, colors.red);
                 errorCount++;
             }
@@ -61,7 +66,12 @@ async function main() {
             const url = request.url();
             const failure = request.failure();
             const errorText = failure ? failure.errorText : 'Unknown';
+            // Ignore expected offline-mode failures
             if (url.includes('favicon.ico')) return;
+            if (url.includes('/v1/account') || url.includes('/v1/')) {
+                log(`[NETWORK WARN] Appwrite offline: ${url}`, colors.yellow);
+                return; // Don't count Appwrite failures as errors
+            }
             log(`[NETWORK FAIL] ${url} : ${errorText}`, colors.red);
             errorCount++;
         });

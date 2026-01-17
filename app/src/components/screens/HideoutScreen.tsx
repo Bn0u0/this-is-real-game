@@ -73,24 +73,6 @@ export const HideoutScreen: React.FC = () => {
                 </div>
             </div>
 
-            {/* === BOTTOM LEFT: CLASS SELECTION === */}
-            <div className="pointer-events-auto absolute bottom-6 left-6 flex flex-col gap-2">
-                <div className="text-xs text-white/50 font-mono mb-1">// SELECT CLASS</div>
-                {(['SCAVENGER', 'SKIRMISHER', 'WEAVER'] as PlayerClassID[]).map((classId) => (
-                    <button
-                        key={classId}
-                        onClick={() => metaGame.selectHero(classId)}
-                        className={`px-4 py-2 border-2 font-bold text-sm transition-all
-                            ${metaGame.getState().selectedHeroId === classId
-                                ? 'bg-amber-500 border-amber-300 text-black'
-                                : 'bg-black/50 border-white/20 text-white hover:border-amber-500/50'}`}
-                    >
-                        {classId === 'SCAVENGER' && '🛡️ 拾荒者'}
-                        {classId === 'SKIRMISHER' && '🔫 游擊者'}
-                        {classId === 'WEAVER' && '🤖 織命者'}
-                    </button>
-                ))}
-            </div>
 
             {/* === BOTTOM RIGHT: DEPLOY (Restored) === */}
             {/* Only show when NO overlay is open (Immersive Mode) */}

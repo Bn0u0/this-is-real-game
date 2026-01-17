@@ -1,6 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { ItemInstance } from '../../types';
 import { sessionService } from '../../services/SessionService';
+import { inventoryService } from '../../services/InventoryService'; // [NEW] Import for equip
 import { EventBus } from '../../services/EventBus';
 import { languageService } from '../../services/LanguageService';
 import classNames from 'classnames';
@@ -18,26 +19,28 @@ interface Props {
 
 export const ArsenalOverlay: React.FC<Props> = ({ currentWeapon, inventory }) => {
     const [isClosing, setIsClosing] = useState(false);
-    const touchStartY = useRef<number | null>(null);
 
     // --- Logic ---
-    const [sellingMode, setSellingMode] = useState(false); // [NEW] Sell Mode Toggle
+    const [sellingMode, setSellingMode] = useState(false); // Sell Mode Toggle
 
-    // --- Logic ---
     const handleItemClick = (item: ItemInstance) => {
         if (sellingMode) {
             // Sell Logic
-            if (confirm(`Sell ${item.name} for credits?`)) {
-                // We need to import inventoryService or use EventBus?
-                // Ideally EventBus to decouple, but direct service is faster for prototype
-                const val = sessionService.sellItem(item.uid); // Need to expose sell via Session or import Inventory
-                // Force Update? React might not know inventory changed unless props update.
-                // SessionService emits change, parent updates props.
+            if (confirm(`Sell ${item.name} for 50 Credits?`)) {
+                // Mock sell for MVP
+                console.log(`[Arsenal] Sold ${item.name}`);
+                // In real implementation: inventoryService.removeItem(item.uid);
+                // sessionService.addCredits(50);
             }
         } else {
             // Equip Logic
             console.log("Equipping:", item.name);
-            EventBus.emit('EQUIP_ITEM', item.uid);
+            inventoryService.equipItem(item.uid); // [NEW] Direct equip via service
+            // Haptic Feedback
+            if (navigator.vibrate) navigator.vibrate(50);
+
+            // Return to Hero view to show result
+            handleBackToHero();
         }
     };
 
@@ -46,6 +49,14 @@ export const ArsenalOverlay: React.FC<Props> = ({ currentWeapon, inventory }) =>
         setTimeout(() => {
             EventBus.emit('WORKBENCH_ACTION', 'BACK');
         }, 200); // Wait for exit animation
+    };
+
+    const handleBackToHero = () => {
+        setIsClosing(true);
+        setTimeout(() => {
+            // Switch back to HERO view to see new loadout
+            EventBus.emit('WORKBENCH_FOCUS', 'HERO');
+        }, 200);
     };
 
     // --- Render Components ---
@@ -58,9 +69,14 @@ export const ArsenalOverlay: React.FC<Props> = ({ currentWeapon, inventory }) =>
 
     return (
         <div className="absolute inset-0 z-50 flex flex-col pointer-events-none overflow-hidden bg-black/80 backdrop-blur-sm">
-            {/* ... (Zone A) ... */}
+            {/* Header / Top Bar */}
+            <div className="w-full h-24 bg-gradient-to-b from-black to-transparent pointer-events-auto flex justify-between items-center px-6 pt-4">
+                <button onClick={handleBack} className="text-white/50 hover:text-white font-mono text-xs">
+                    &lt; RETURN TO BASE
+                </button>
+            </div>
 
-            <div className={classNames(/* ... */)}>
+            <div className={`mt-auto w-full bg-[#111] border-t-4 border-[#FFAA00] p-4 pointer-events-auto transition-transform duration-300 ${isClosing ? 'translate-y-full' : 'translate-y-0'}`}>
                 {/* Drag Handle */}
                 <div className="w-full flex justify-center mb-4 pt-2" onClick={handleBack}>
                     <div className="w-12 h-1 bg-white/20 rounded-full" />
@@ -92,7 +108,7 @@ export const ArsenalOverlay: React.FC<Props> = ({ currentWeapon, inventory }) =>
                 </div>
 
                 {/* Grid Container */}
-                <div className="grid grid-cols-3 gap-3 overflow-y-auto custom-scrollbar pb-8 max-h-[300px] pointer-events-auto">
+                <div className="grid grid-cols-4 md:grid-cols-6 gap-3 overflow-y-auto custom-scrollbar pb-8 max-h-[400px]">
                     {[...inventory, ...MOCK_ITEMS].map((item, idx) => (
                         <div
                             key={idx}
@@ -120,7 +136,7 @@ export const ArsenalOverlay: React.FC<Props> = ({ currentWeapon, inventory }) =>
                     ))}
 
                     {/* Empty Slots */}
-                    {[...Array(6)].map((_, i) => <EmptySlot key={`empty-${i}`} />)}
+                    {[...Array(12)].map((_, i) => <EmptySlot key={`empty-${i}`} />)}
                 </div>
             </div>
         </div>

@@ -18,7 +18,7 @@ class MetaGameService {
     constructor() {
         this.state = {
             currentScreen: 'HIDEOUT',
-            selectedHeroId: 'Vanguard',
+            selectedHeroId: 'SCAVENGER',
             isMobile: window.innerWidth < 768,
             profile: inventoryService.getState()
         };
@@ -52,7 +52,8 @@ class MetaGameService {
     }
 
     public selectHero(heroId: string) {
-        this.state.selectedHeroId = heroId;
+        // [MVP 1.0] Locked to Scavenger
+        this.state.selectedHeroId = 'SCAVENGER';
         this.emitChange();
     }
 

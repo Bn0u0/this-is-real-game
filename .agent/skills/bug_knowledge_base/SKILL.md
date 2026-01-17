@@ -1,3 +1,8 @@
+---
+name: Bug Knowledge Base
+description: A permanent record of identified bugs, architectural pitfalls, and logic errors. MUST be referenced before major refactors.
+---
+
 # Bug Knowledge Base (Bug 紀錄與防範指南)
 
 This skill serves as a permanent record of identified bugs, architectural pitfalls, and logic errors found during the development of "This is Real Grass Cutting". Antigravity **MUST** reference this file before major refactors or when encountering similar symptoms.

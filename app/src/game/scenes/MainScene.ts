@@ -349,19 +349,26 @@ export class MainScene extends Phaser.Scene {
             this.cameras.main.setPostPipeline('GlitchPipeline');
         }
 
+        // [FIX] Prevent duplicate listener registration on scene restart
+        EventBus.off('JOYSTICK_MOVE');
         EventBus.on('JOYSTICK_MOVE', (vec: { x: number, y: number }) => {
             this.inputSystem.setVirtualAxis(vec.x, vec.y);
         });
+        EventBus.off('TRIGGER_SKILL');
         EventBus.on('TRIGGER_SKILL', (skill: string) => this.inputSystem.triggerSkill(skill));
 
         logger.debug("MainScene", "Registering START_MATCH Listener...");
+        EventBus.off('START_MATCH'); // [FIX] Prevent duplicate
         EventBus.on('START_MATCH', this.handleStartMatch, this);
         logger.debug("MainScene", `Listener Registered. Count: ${EventBus.listenerCount('START_MATCH')}`);
 
         (window as any).SceneEventBus = EventBus;
 
+        EventBus.off('ENEMY_KILLED'); // [FIX] Prevent duplicate
         EventBus.on('ENEMY_KILLED', (enemy: any) => this.handleEnemyKill(enemy));
+        EventBus.off('GAME_OVER_SYNC'); // [FIX] Prevent duplicate
         EventBus.on('GAME_OVER_SYNC', this.gameOver, this);
+        EventBus.off('RESUME_GAME'); // [FIX] Prevent duplicate
         EventBus.on('RESUME_GAME', () => { this.isPaused = false; this.physics.resume(); });
 
         this.physics.add.collider(this.projectileGroup, this.terrainManager.wallGroup, (proj: any) => proj.destroy());
@@ -370,6 +377,7 @@ export class MainScene extends Phaser.Scene {
         EventBus.emit('SCENE_READY');
 
         // [FIX] Player Death Listener
+        EventBus.off('PLAYER_DEATH'); // [FIX] Prevent duplicate
         EventBus.on('PLAYER_DEATH', () => {
             logger.info("MainScene", "Player Died!");
             this.gameOver(false);

@@ -87,6 +87,11 @@ export class Player extends Phaser.GameObjects.Container {
     // Systems
     // We assume Scene has weaponSystem. We can access via (scene as any).weaponSystem
 
+    // Weapon Visuals
+    private weaponContainer: Phaser.GameObjects.Container;
+    private weaponSprite: Phaser.GameObjects.Graphics;
+    private swingEffect: Phaser.GameObjects.Graphics;
+
     constructor(scene: Phaser.Scene, x: number, y: number, id: string, isLocal: boolean) {
         super(scene, x, y);
         this.id = id;
@@ -97,14 +102,23 @@ export class Player extends Phaser.GameObjects.Container {
         this.shadow.setDepth(-1); // [FIX] Behind Character
         this.add(this.shadow);
 
-        // Particle Trail
-        if (!scene.textures.exists('flare')) {
-            // Fallback handled in MainScene now
+        // Particle Trail (Dust)
+        if (!scene.textures.exists('tex_particle_square')) {
+            const g = scene.make.graphics({ x: 0, y: 0, add: false } as any);
+            g.fillStyle(0xFFFFFF);
+            g.fillRect(0, 0, 4, 4);
+            g.generateTexture('tex_particle_square', 4, 4);
         }
-        this.emitter = scene.add.particles(0, 0, 'flare', {
-            speed: 10, scale: { start: 0.6, end: 0 }, alpha: { start: 0.5, end: 0 },
-            lifespan: 800, blendMode: Phaser.BlendModes.ADD, frequency: 50, follow: this,
-            tint: COLORS.primary
+
+        this.emitter = scene.add.particles(0, 0, 'tex_particle_square', {
+            speed: 20,
+            scale: { start: 1, end: 0 },
+            alpha: { start: 0.6, end: 0 },
+            lifespan: 600,
+            // blendMode: Phaser.BlendModes.NORMAL, // Flat style
+            frequency: 40,
+            follow: this,
+            tint: [0x8B4513, 0xD2B48C, 0xA9A9A9] // Rust, Tan, Gray
         });
         this.emitter.setDepth(-1);
 
@@ -123,16 +137,29 @@ export class Player extends Phaser.GameObjects.Container {
         this.mechanicGraphics = scene.add.graphics();
         this.add(this.mechanicGraphics);
 
+        // [WEAPON] Container
+        this.weaponContainer = scene.add.container(0, 0);
+        this.add(this.weaponContainer);
+
+        // Weapon Sprite
+        this.weaponSprite = scene.add.graphics();
+        this.weaponContainer.add(this.weaponSprite);
+
+        // Swing Effect (Behind weapon)
+        this.swingEffect = scene.add.graphics();
+        this.swingEffect.setVisible(false);
+        this.weaponContainer.addAt(this.swingEffect, 0); // Behind
+
         // [VISUAL] Footprint Emitter
-        // Uses 'flare' texture but tinted dark to look like indentations in sand
-        this.footprintEmitter = scene.add.particles(0, 0, 'flare', {
-            lifespan: 1500,
-            speed: 0,           // Static on ground
-            scaleX: 0.15,       // Small
-            scaleY: 0.08,       // Flattened oval
-            alpha: { start: 0.3, end: 0 },
-            tint: 0x3E2723,     // Dark Mud/Shadow color
-            emitting: false
+        // Square pixels for footprints
+        this.footprintEmitter = scene.add.particles(0, 0, 'tex_particle_square', {
+            lifespan: 2000,
+            speed: 0,
+            scale: { start: 1, end: 1 }, // Constant pixel size
+            alpha: { start: 0.4, end: 0 },
+            tint: 0x1a1a1a,     // Dark Ash
+            emitting: false,
+            angle: 0
         });
         this.footprintEmitter.setDepth(GAME_LAYER.GROUND + 1);
 
@@ -153,6 +180,10 @@ export class Player extends Phaser.GameObjects.Container {
         body.setDamping(false);
         body.setMaxVelocity(PHYSICS.maxVelocity);
         body.setCollideWorldBounds(true);
+
+        // Setup Melee Listener
+        EventBus.off('PLAYER_MELEE_ANIM');
+        EventBus.on('PLAYER_MELEE_ANIM', () => this.playMeleeAnimation());
     }
 
     public configure(config: ClassConfig, classId: string) {
@@ -209,6 +240,9 @@ export class Player extends Phaser.GameObjects.Container {
         }
 
         this.drawGuardian(config.stats.markColor);
+
+        // Initial Weapon Draw
+        this.drawWeapon(def?.id || '');
     }
 
     public equipWeapon(item: ItemDef | ItemInstance) {
@@ -244,6 +278,60 @@ export class Player extends Phaser.GameObjects.Container {
         this.drawPotato(color);
         // Clear legacy graphics if any
         this.coreShape.clear();
+    }
+
+    private drawWeapon(defId: string) {
+        const g = this.weaponSprite;
+        g.clear();
+
+        // Default: Hidden
+        this.weaponContainer.setVisible(false);
+
+        if (defId.includes('crowbar')) {
+            this.weaponContainer.setVisible(true);
+            this.weaponContainer.setPosition(15, 10); // Hold at side
+
+            // Crowbar Visual (L-Shape Pixel Art)
+            // Color: Rust Orange (#D35400) + Dark Grey (#444)
+            g.fillStyle(0x444444, 1);
+            g.fillRect(0, 0, 4, 20); // Handle
+
+            g.fillStyle(0xD35400, 1);
+            g.fillRect(0, -4, 4, 16); // Grip Area ?
+
+            g.fillStyle(0x888888, 1); // Head
+            g.fillRect(0, 20, 10, 4); // L-Hook
+        }
+    }
+
+    private playMeleeAnimation() {
+        if (!this.weaponContainer.visible) return;
+
+        // 1. Visual Swing
+        this.scene.tweens.add({
+            targets: this.weaponContainer,
+            angle: { from: -60, to: 100 },
+            duration: 120,
+            yoyo: true,
+            hold: 50,
+            onStart: () => {
+                // 2. Smear Frame (Solid Fan)
+                this.swingEffect.clear();
+                this.swingEffect.setVisible(true);
+                this.swingEffect.fillStyle(0xFFFFFF, 0.8);
+                this.swingEffect.slice(0, 0, 50, Phaser.Math.DegToRad(-20), Phaser.Math.DegToRad(120), false);
+                this.swingEffect.fillPath();
+            },
+            onYoyo: () => {
+                this.swingEffect.setVisible(false);
+            },
+            onComplete: () => {
+                this.weaponContainer.angle = 0;
+            }
+        });
+
+        // 3. Screen Shake (Juice)
+        this.scene.cameras.main.shake(50, 0.002);
     }
 
     /**
@@ -602,6 +690,7 @@ export class Player extends Phaser.GameObjects.Container {
     destroy(fromScene?: boolean) {
         this.emitter.destroy();
         EventBus.off('PLAYER_RECOIL');
+        EventBus.off('PLAYER_MELEE_ANIM'); // [FIX] Cleanup
         super.destroy(fromScene);
     }
 

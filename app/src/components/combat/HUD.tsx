@@ -110,27 +110,14 @@ export const HUD: React.FC = () => {
                     </div>
                 </div>
 
-                {/* TIMER & GOLD */}
+                {/* TIMER (Center) */}
                 <div className="flex flex-col items-center grow">
                     <div className="bg-black/50 border border-white/20 px-2 md:px-4 py-1 backdrop-blur-sm rounded mb-1">
                         <span className="text-xl md:text-2xl font-bold text-amber-400 tracking-widest">{timeString}</span>
                     </div>
                 </div>
 
-                {/* Top Right: Gold (Credits) */}
-                <div className="flex flex-col items-end mr-4">
-                    <div className="flex items-center gap-2">
-                        <span className="text-2xl font-black text-amber-500 tracking-widest leading-none">
-                            {gold}
-                        </span>
-                        <div className="w-4 h-4 bg-amber-500" /> {/* Gold Square Icon */}
-                    </div>
-                    <div className="text-[10px] text-amber-500/50 font-bold uppercase tracking-[0.2em]">
-                        CREDITS
-                    </div>
-                </div>
-
-                {/* LEVEL Info */}
+                {/* LEVEL Info (Top Right) */}
                 <div className="text-right shrink-0">
                     <div className="text-xl md:text-2xl font-black text-amber-500 italic">LV. {stats.level}</div>
                     <div className="w-20 md:w-32 h-1 bg-gray-800 mt-1 ml-auto">
@@ -139,6 +126,19 @@ export const HUD: React.FC = () => {
                             style={{ width: `${(stats.xp / stats.xpToNextLevel) * 100}%` }}
                         />
                     </div>
+                </div>
+            </div>
+
+            {/* --- HUD: BOTTOM LEFT (GOLD) --- */}
+            <div className="absolute bottom-20 left-4 flex flex-col items-start pointer-events-none z-20">
+                <div className="flex items-center gap-2 bg-black/60 border border-amber-900/50 px-3 py-1 rounded-sm backdrop-blur-md">
+                    <div className="w-4 h-4 bg-amber-500 rotate-45 border border-amber-200" /> {/* Gold Diamond */}
+                    <span className="text-2xl font-black text-amber-500 tracking-widest leading-none">
+                        {gold}
+                    </span>
+                </div>
+                <div className="text-[10px] text-amber-500/70 font-bold uppercase tracking-[0.2em] ml-1 mt-1">
+                    CREDITS
                 </div>
             </div>
 

@@ -70,5 +70,6 @@ export const Damage = defineComponent({
 export const SpriteConfig = defineComponent({
     textureId: Types.ui8, // 0: None, 1: 'circle', 2: 'square', 3: 'triangle', etc.
     tint: Types.ui32,
-    scale: Types.f32
+    scale: Types.f32,
+    alpha: Types.f32 // [NEW] Transparency
 });

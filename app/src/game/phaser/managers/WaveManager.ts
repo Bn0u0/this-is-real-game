@@ -1,6 +1,7 @@
 ﻿import Phaser from 'phaser';
 import { addEntity, addComponent } from 'bitecs';
 import { Transform, Velocity, Health, EnemyTag, Stats, CombatState, SpriteConfig, AttackCooldown, LootTag, Value, VisualEffect } from '../../ecs/components';
+import { TerrainManager } from './TerrainManager';
 
 export class WaveManager {
     private scene: Phaser.Scene;
@@ -12,9 +13,12 @@ export class WaveManager {
     // Wave Config
     private baseSpawnRate: number = 2000; // ms
 
-    constructor(scene: Phaser.Scene, world: any) {
+    private terrainManager: TerrainManager; // [NEW]
+
+    constructor(scene: Phaser.Scene, world: any, terrainManager: TerrainManager) {
         this.scene = scene;
         this.world = world;
+        this.terrainManager = terrainManager;
         this.reset();
     }
 
@@ -51,20 +55,54 @@ export class WaveManager {
     }
 
     private spawnEnemy() {
-        // Random Position outside screen
+        // Random Position around Camera Viewport
         const cam = this.scene.cameras.main;
-        const pad = 50;
+        const pad = 100; // Spawn just outside view
         let x = 0, y = 0;
+        let attempts = 0;
+        const maxAttempts = 10;
+        let validSpawn = false;
 
-        // Simple edge spawn
-        const bounds = this.scene.physics.world.bounds;
-        if (Math.random() < 0.5) {
-            x = Math.random() < 0.5 ? -pad : bounds.width + pad;
-            y = Math.random() * bounds.height;
-        } else {
-            x = Math.random() * bounds.width;
-            y = Math.random() < 0.5 ? -pad : bounds.height + pad;
+        // Use worldView to get current camera bounds
+        const view = cam.worldView;
+
+        while (attempts < maxAttempts && !validSpawn) {
+            attempts++;
+
+            // 0: Top, 1: Bottom, 2: Left, 3: Right
+            const side = Math.floor(Math.random() * 4);
+
+            switch (side) {
+                case 0: // Top
+                    x = view.x + Math.random() * view.width;
+                    y = view.y - pad;
+                    break;
+                case 1: // Bottom
+                    x = view.x + Math.random() * view.width;
+                    y = view.y + view.height + pad;
+                    break;
+                case 2: // Left
+                    x = view.x - pad;
+                    y = view.y + Math.random() * view.height;
+                    break;
+                case 3: // Right
+                    x = view.x + view.width + pad;
+                    y = view.y + Math.random() * view.height;
+                    break;
+            }
+
+            // Check if valid ground
+            if (this.terrainManager.isGround(x, y)) {
+                validSpawn = true;
+            }
         }
+
+        if (!validSpawn) {
+            console.log(`[WaveManager] Failed to find valid spawn after ${maxAttempts} attempts.`);
+            return;
+        }
+
+        console.log(`[WaveManager] Spawning Enemy at (${x.toFixed(0)}, ${y.toFixed(0)}) | Wave: ${this.wave}`);
 
         const eid = addEntity(this.world);
 
@@ -92,10 +130,14 @@ export class WaveManager {
         AttackCooldown.cooldown[eid] = 500; // 0.5s Cooldown
         AttackCooldown.lastHitTime[eid] = 0;
 
-        // Visuals
-        SpriteConfig.textureId[eid] = 3; // Triangle
+        // Visuals (Random: 3=Triangle, 4=Square, 5=Pentagon)
+        const types = [3, 4, 5];
+        const typeIndex = Math.floor(Math.random() * types.length);
+        SpriteConfig.textureId[eid] = types[typeIndex];
         SpriteConfig.scale[eid] = 1;
-        SpriteConfig.tint[eid] = 0xFF0000;
+        // Color based on type for clarity
+        const tints = [0xFF0000, 0x00FF00, 0x0000FF]; // R, G, B
+        SpriteConfig.tint[eid] = tints[typeIndex];
     }
 
     public spawnLootAt(x: number, y: number, enemyTextureId: number) {

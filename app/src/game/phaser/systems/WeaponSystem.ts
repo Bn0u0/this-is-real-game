@@ -46,6 +46,11 @@ export class WeaponSystem {
 
         if (!def || !def.behavior) return;
 
+        // [DEBUG] Trace Weapon Fire
+        if (source.id === 'player') {
+            console.log(`[WeaponSystem] Firing: ${def.id} | Behavior: ${def.behavior} | Def Loaded: ${!!def}`);
+        }
+
         // 1. Pipeline: Calculate Final Stats (Inlined after WeaponRegistry deletion)
         let dmg = weapon.computedStats?.damage || 1;
         let rng = weapon.computedStats?.range || 500;
@@ -87,14 +92,25 @@ export class WeaponSystem {
         let projDamage = damage;
         let projDuration = duration;
 
+        // [SAFETY] Prevent Default Bullet Firing if Behavior is improper
+        let valid = false;
+
         switch (def.behavior) {
             case 'MELEE_SWEEP':
-                textureId = 2; // Square
-                tint = 0x22C55E; // Green
-                scale = 0.8;
-                projSpeed = 200;
-                projDamage = damage * 2;
-                projDuration = 200;
+                // [MELEE 2.0] Static Hitbox + Visual Swing
+                textureId = 0; // Invisible (Logic Entity)
+                tint = 0xFFFFFF; // Invisible in game (handled by alpha or debug) - Actually let's make it faint white for debug or style
+                scale = 2.0; // Large Area
+                projSpeed = 0; // Static
+                projDamage = damage * 1.5;
+                projDuration = 100; // Short 100ms Box
+
+                // Trigger Visual Swing on Player
+                if (source.id === 'player') {
+                    EventBus.emit('PLAYER_MELEE_ANIM');
+                    EventBus.emit('PLAY_SFX', 'SWING');
+                }
+                valid = true;
                 break;
             case 'DRONE_BEAM':
                 textureId = 1; // Circle
@@ -103,12 +119,19 @@ export class WeaponSystem {
                 projSpeed = 800;
                 projDamage = damage * 0.3;
                 projDuration = 600;
+                valid = true;
                 break;
             case 'PISTOL_SHOT':
-            default:
                 // Use defaults above
+                valid = true;
+                break;
+            default:
+                console.warn(`[WeaponSystem] Unknown Behavior: ${def.behavior}. Defaulting to NO-OP to prevent Ghost Bullets.`);
+                valid = false; // [FIX] Disable default bullets
                 break;
         }
+
+        if (!valid) return;
 
         for (let i = 0; i < count; i++) {
             let angle = source.rotation;
@@ -126,8 +149,18 @@ export class WeaponSystem {
             addComponent(this.world, Damage, eid);
             addComponent(this.world, Lifetime, eid);
 
-            Transform.x[eid] = source.x;
-            Transform.y[eid] = source.y;
+            // Offset for Melee (Static) logic
+            let spawnX = source.x;
+            let spawnY = source.y;
+
+            if (projSpeed === 0 && def.behavior === 'MELEE_SWEEP') {
+                const offset = 40; // 40px in front
+                spawnX += Math.cos(angle) * offset;
+                spawnY += Math.sin(angle) * offset;
+            }
+
+            Transform.x[eid] = spawnX;
+            Transform.y[eid] = spawnY;
             Transform.rotation[eid] = angle;
 
             Velocity.x[eid] = Math.cos(angle) * projSpeed;

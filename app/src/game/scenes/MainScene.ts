@@ -65,7 +65,8 @@ export class MainScene extends Phaser.Scene {
     public allyManager!: AllyManager; // [NEW]
 
     private enemyGroup!: Phaser.GameObjects.Group;
-    private projectileGroup!: Phaser.GameObjects.Group;
+    // enemyGroup duplicate removed
+    // private projectileGroup legacy removed
     // allyGroup removed (Moved to Manager)
 
     // [NEW] Declarations for Build Fix
@@ -264,8 +265,9 @@ export class MainScene extends Phaser.Scene {
         this.physics.world.setBounds(0, 0, this.worldWidth, this.worldHeight);
 
         // Groups
+        // duplicate enemyGroup init removed
         this.enemyGroup = this.add.group();
-        this.projectileGroup = this.add.group();
+        // this.projectileGroup legacy removed
 
         // Init Managers
         this.cameraDirector = new CameraDirector(this, this.worldWidth, this.worldHeight);
@@ -297,7 +299,7 @@ export class MainScene extends Phaser.Scene {
             });
         });
 
-        this.waveManager = new WaveManager(this, this.world);
+        this.waveManager = new WaveManager(this, this.world, this.terrainManager);
         this.soundManager = new SoundManager();
 
         // ECS (Phase 1: bitecs)
@@ -388,7 +390,7 @@ export class MainScene extends Phaser.Scene {
         EventBus.off('RESUME_GAME'); // [FIX] Prevent duplicate
         EventBus.on('RESUME_GAME', () => { this.isPaused = false; this.physics.resume(); });
 
-        this.physics.add.collider(this.projectileGroup, this.terrainManager.wallGroup, (proj: any) => proj.destroy());
+        // Legacy Projectile Collider removed
 
         this.setupDevTools();
         EventBus.emit('SCENE_READY');
@@ -425,7 +427,7 @@ export class MainScene extends Phaser.Scene {
         this.isGameActive = false;
 
         if (this.enemyGroup) this.enemyGroup.clear(true, true);
-        if (this.projectileGroup) this.projectileGroup.clear(true, true);
+        // projectileGroup removed
 
         // [NEW] Clean Allies
         if (this.allyManager) this.allyManager.clear();

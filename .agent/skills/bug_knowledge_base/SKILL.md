@@ -66,3 +66,21 @@ This skill serves as a permanent record of identified bugs, architectural pitfal
 ---
 **Status**: ACTIVE
 **Last Updated**: 2026-01-17
+### [BUG-011] Duplicate Switch Defaults
+- **Description**: TypeScript error "Duplicate default label" in switch statement.
+- **Root Cause**: Adding a `default:` block without removing the existing one, or grouping it with a case label `case 'X': default:`.
+- **Prevention**: Always inspect the existing `default` case before adding a new one. Remove or merge legacy cases.
+
+### [BUG-012] Class Method Boundary
+- **Description**: "Statement expected" or "Method definition outside class" error.
+- **Root Cause**: Using `replace_file_content` near the end of a file and inadvertently appending a method *after* the closing `}` of the class.
+- **Prevention**: When adding methods, locate the last method's closing brace `}` and insert *before* the class's final closing brace.
+
+### [BUG-013] Missing Type Dependency
+- **Description**: "Cannot find name 'X'" when 'X' is used as a Type Hint in constructor.
+- **Root Cause**: Forgetting to import the class used in the type definition, especially when only adding it to the constructor signature.
+- **Prevention**: Always double-check imports when introducing new dependency injections. Use VSCode's "Organize Imports" or manually verify.
+
+---
+**Status**: ACTIVE
+**Last Updated**: 2026-01-18

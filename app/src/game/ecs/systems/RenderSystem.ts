@@ -25,7 +25,11 @@ export const createRenderSystem = (scene: Phaser.Scene, world: any) => {
         for (let i = 0; i < newEntities.length; ++i) {
             const id = newEntities[i];
             const texId = SpriteConfig.textureId[id];
-            const textureKey = TEXTURE_MAP[texId] || 'tex_orb'; // 預設圖
+            // [FIX] Allow invisible entities (textureId 0)
+            const textureKey = TEXTURE_MAP[texId];
+            if (!textureKey) continue; // Skip rendering for invisible/logic entities
+
+            console.log(`[RenderSystem] Creating Sprite for ID ${id}. Texture: ${textureKey} (ID: ${texId})`);
 
             // 創建 Phaser Sprite
             const sprite = scene.add.sprite(Transform.x[id], Transform.y[id], textureKey);

@@ -8,7 +8,7 @@ export const T0_WEAPONS: ItemDef[] = [
         slot: 'mainWeapon',
         tier: 0,
         rarity: 'COMMON',
-        baseStats: { damage: 15, range: 60, fireRate: 400, speed: 1.0, critChance: 0.05, defense: 0, hpMax: 0 },
+        baseStats: { damage: 25, range: 60, fireRate: 800, speed: 1.0, critChance: 0.05, defense: 0, hpMax: 0 },
         description: '一把普通的撬棍',
         icon: 'icon_scrap_metal',
         behavior: 'MELEE_SWEEP',

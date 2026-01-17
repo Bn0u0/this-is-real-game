@@ -151,4 +151,15 @@ export class TerrainManager {
         // [VISUAL] Object-Based Wobble Removed per user request
         // Static background fits better with the "Paper" aesthetic and prevents dizziness/distraction.
     }
+    /**
+     * Checks if the world coordinate is valid walkable ground.
+     */
+    public isGround(worldX: number, worldY: number): boolean {
+        const gridX = Math.floor(worldX / this.tileSize);
+        const gridY = Math.floor(worldY / this.tileSize);
+        const key = `${gridX},${gridY}`;
+
+        const tile = this.tiles.get(key);
+        return tile !== undefined && tile.type === TileType.GROUND;
+    }
 }

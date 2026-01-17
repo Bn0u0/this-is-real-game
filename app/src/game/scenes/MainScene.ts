@@ -293,7 +293,7 @@ export class MainScene extends Phaser.Scene {
                 x: z.x,
                 y: z.y,
                 label: 'EXIT',
-                color: 0x00FF00
+                color: 0xD35400 // Rust Orange
             });
         });
 

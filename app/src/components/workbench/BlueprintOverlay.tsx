@@ -1,57 +1,65 @@
 import React from 'react';
-import { EventBus } from '../../services/EventBus';
+import { sessionService } from '../../services/SessionService';
 import { inventoryService } from '../../services/InventoryService';
-import { languageService } from '../../services/LanguageService';
 
 export const BlueprintOverlay: React.FC = () => {
     const blueprints = inventoryService.getState().blueprints || [];
 
+    const getBlueprintName = (bp: string) => {
+        if (bp.includes('scavenger')) return '拾荒者核心';
+        if (bp.includes('skirmisher')) return '游擊者核心';
+        return '織命者核心';
+    };
+
     return (
-        <div className="absolute inset-0 flex flex-col items-center justify-center p-6 bg-blue-950/40 backdrop-blur-md z-50">
-            <div className="w-full max-w-sm bg-black border-2 border-blue-500 shadow-[0_0_15px_rgba(59,130,246,0.5)] rounded-lg flex flex-col animate-in slide-in-from-bottom duration-300">
+        <div className="absolute inset-0 flex items-center justify-center p-4 z-50 pointer-events-auto">
+            <div className="baba-box p-6 w-full max-w-sm">
+
                 {/* Header */}
-                <div className="bg-blue-600 p-4 flex justify-between items-center">
-                    <h3 className="text-white font-black tracking-tighter uppercase text-lg">
-                        {languageService.t('BP_COLLECTION')}
-                    </h3>
+                <div className="flex items-center justify-between mb-6 border-b-2 border-rust pb-3">
+                    <h2 className="text-2xl text-rust uppercase tracking-widest">
+                        // 藍圖收藏
+                    </h2>
                 </div>
 
-                {/* Archive List */}
-                <div className="p-4 max-h-[300px] overflow-y-auto space-y-2">
+                {/* Blueprint List */}
+                <div className="space-y-3 mb-6 max-h-[300px] overflow-y-auto">
                     {blueprints.length > 0 ? (
                         blueprints.map((bp) => (
-                            <div key={bp} className="bg-blue-900/20 border border-blue-500/30 p-3 flex items-center justify-between group hover:bg-blue-500/10 transition-colors">
+                            <div
+                                key={bp}
+                                className="baba-slot p-3 flex items-center justify-between"
+                            >
                                 <div className="flex flex-col">
-                                    <span className="text-blue-400 font-mono text-[10px]">{bp.toUpperCase()}</span>
-                                    <span className="text-white font-bold text-sm tracking-widest">
-                                        {bp.includes('scavenger') ? '拾荒者核心' : bp.includes('skirmisher') ? '游擊者核心' : '織命者核心'}
-                                    </span>
+                                    <span className="text-ash text-xs uppercase">{bp}</span>
+                                    <span className="text-bone text-lg">{getBlueprintName(bp)}</span>
                                 </div>
-                                <div className="text-blue-500 text-xs font-black">ARCHIVED</div>
+                                <div className="text-acid text-xs uppercase">
+                                    [收錄]
+                                </div>
                             </div>
                         ))
                     ) : (
-                        <div className="text-gray-500 text-center py-10 font-mono text-xs">
-                            - NO ARCHIVED DATA DETECTED -
+                        <div className="text-center py-10 text-ash">
+                            // 尚未發現任何藍圖
                         </div>
                     )}
                 </div>
 
                 {/* Footer Info */}
-                <div className="p-4 bg-blue-900/10 border-t border-blue-500/20">
-                    <p className="text-[9px] text-blue-400/60 font-mono mb-4 leading-tight">
-                        SYSTEM://DATABASE_QUERY_SUCCESS<br />
-                        RECOVERED_FRAGMENTS: {blueprints.length}<br />
-                        ENCRYPTION_LAYER: 0
+                <div className="border-t-2 border-dashed border-ash pt-4 mb-4">
+                    <p className="text-ash text-sm">
+                        已收錄: {blueprints.length} 張
                     </p>
-
-                    <button
-                        onClick={() => EventBus.emit('WORKBENCH_ACTION', 'BACK')}
-                        className="w-full py-3 bg-blue-600 hover:bg-blue-500 text-white font-bold transition-transform active:scale-95"
-                    >
-                        [{languageService.t('BTN_CLOSE')}]
-                    </button>
                 </div>
+
+                {/* Close Button */}
+                <button
+                    onClick={() => sessionService.openWorkbench('NONE')}
+                    className="baba-btn-ghost w-full py-3"
+                >
+                    [ 關閉 ]
+                </button>
             </div>
         </div>
     );

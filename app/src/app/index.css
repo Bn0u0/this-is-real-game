@@ -1,82 +1,173 @@
-@import url('https://fonts.googleapis.com/css2?family=Caveat:wght@400;700&family=Permanent+Marker&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=VT323&display=swap');
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 :root {
-    /* [THEME] Hand-Drawn Wasteland */
-    --font-hand: 'Caveat', cursive;
-    --font-marker: 'Permanent Marker', cursive;
+    /* [THEME] Baba Is You + Wasteland */
+    --font-pixel: 'VT323', monospace;
 
-    --col-paper: #F5F5DC;
-    --col-paper-dark: #E8E8C0;
-    --col-ink: #2A2A2A;
-    --col-ink-faint: #2A2A2A80;
-    --col-alert: #D32F2F;
-    --col-tape: #F0E68C;
+    /* Wasteland Color Palette */
+    --col-void: #0D0D0D;
+    /* Deep black background */
+    --col-rust: #D35400;
+    /* Rust orange - primary accent */
+    --col-dust: #8B4513;
+    /* Dusty brown - secondary */
+    --col-rad: #39FF14;
+    /* Radiation green - warnings */
+    --col-acid: #E6C833;
+    /* Acid yellow - rare items */
+    --col-bone: #E8E0D0;
+    /* Bone white - text */
+    --col-ash: #6B6B6B;
+    /* Ash gray - muted text */
+    --col-blood: #8B0000;
+    /* Dried blood - danger */
 
-    font-family: var(--font-hand);
-    line-height: 1.2;
-    font-weight: 700;
-    font-size: 1.2rem;
-    /* Larger base size for handwritten font */
+    font-family: var(--font-pixel);
+    line-height: 1.4;
+    font-weight: 400;
+    font-size: 1.1rem;
 
-    color-scheme: light;
-    color: var(--col-ink);
-
-    /* Transparent background to reveal the Phaser canvas */
+    color-scheme: dark;
+    color: var(--col-bone);
     background-color: transparent;
 
     font-synthesis: none;
     text-rendering: optimizeLegibility;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
+    -webkit-font-smoothing: none;
+    /* Pixel font shouldn't be smoothed */
+    -moz-osx-font-smoothing: auto;
 }
 
-/* [COMPONENT] Wobbly Box (Hand-Drawn Frame) */
-.wobbly-box {
-    background-color: var(--col-paper);
-    border: 3px solid var(--col-ink);
-    border-radius: 2px 255px 3px 25px / 255px 5px 225px 3px;
-    /* Sketchy Border Radius */
-    box-shadow: 2px 3px 0px var(--col-ink);
-    /* Hard Shadow */
-    color: var(--col-ink);
+/* ===================================
+   [COMPONENT] Baba Box 
+   Crude, thick bordered container
+   =================================== */
+.baba-box {
+    background-color: rgba(13, 13, 13, 0.95);
+    border: 4px solid var(--col-bone);
+    box-shadow:
+        inset 0 0 0 2px var(--col-void),
+        0 0 0 2px var(--col-bone);
+    color: var(--col-bone);
 }
 
-/* [COMPONENT] Sketch Button */
-.sketch-btn {
-    font-family: var(--font-marker);
-    background-color: var(--col-alert);
-    color: #FFF;
-    border: 3px solid var(--col-ink);
-    border-radius: 255px 15px 225px 15px / 15px 225px 15px 255px;
-    padding: 0.5rem 1.5rem;
+/* Rust variant */
+.baba-box-rust {
+    background-color: rgba(13, 13, 13, 0.95);
+    border: 4px solid var(--col-rust);
+    box-shadow:
+        inset 0 0 0 2px var(--col-void),
+        0 0 0 2px var(--col-rust);
+    color: var(--col-bone);
+}
+
+/* ===================================
+   [COMPONENT] Baba Button
+   Flat, chunky, pixelated feel
+   =================================== */
+.baba-btn {
+    font-family: var(--font-pixel);
+    font-size: 1.2rem;
+    background-color: var(--col-rust);
+    color: var(--col-bone);
+    border: 3px solid var(--col-bone);
+    padding: 0.6rem 1.5rem;
     cursor: pointer;
-    transition: transform 0.1s ease;
-    box-shadow: 2px 3px 0px var(--col-ink);
+    transition: all 0.1s ease;
+    text-transform: uppercase;
+    letter-spacing: 2px;
 }
 
-.sketch-btn:hover {
-    transform: scale(1.05) rotate(-1deg);
+.baba-btn:hover {
+    background-color: var(--col-acid);
+    color: var(--col-void);
 }
 
-.sketch-btn:active {
+.baba-btn:active {
     transform: scale(0.95);
-    box-shadow: 0px 0px 0px var(--col-ink);
 }
 
-/* [UTILITY] Tape Label */
-.tape-label {
-    background-color: var(--col-tape);
-    color: var(--col-ink);
-    padding: 2px 8px;
-    transform: rotate(-2deg);
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
-    font-family: var(--font-marker);
+/* Secondary button style */
+.baba-btn-ghost {
+    font-family: var(--font-pixel);
+    font-size: 1rem;
+    background-color: transparent;
+    color: var(--col-bone);
+    border: 2px solid var(--col-bone);
+    padding: 0.4rem 1rem;
+    cursor: pointer;
+    transition: all 0.1s ease;
+    text-transform: uppercase;
 }
 
+.baba-btn-ghost:hover {
+    background-color: var(--col-bone);
+    color: var(--col-void);
+}
+
+/* ===================================
+   [COMPONENT] Item Slot
+   Equipment/inventory slot
+   =================================== */
+.baba-slot {
+    background-color: rgba(13, 13, 13, 0.8);
+    border: 2px solid var(--col-ash);
+    transition: all 0.15s ease;
+}
+
+.baba-slot:hover {
+    border-color: var(--col-rust);
+    background-color: rgba(211, 84, 0, 0.1);
+}
+
+.baba-slot-highlight {
+    border-color: var(--col-acid) !important;
+    box-shadow: 0 0 8px var(--col-acid);
+}
+
+/* ===================================
+   [UTILITY] Stat colors
+   =================================== */
+.stat-hp {
+    color: #FF6B6B;
+}
+
+.stat-speed {
+    color: #4ECDC4;
+}
+
+.stat-atk {
+    color: var(--col-rust);
+}
+
+/* Rarity colors */
+.rarity-common {
+    color: var(--col-ash);
+}
+
+.rarity-uncommon {
+    color: #7CB342;
+}
+
+.rarity-rare {
+    color: #42A5F5;
+}
+
+.rarity-epic {
+    color: #AB47BC;
+}
+
+.rarity-legendary {
+    color: var(--col-acid);
+}
+
+/* ===================================
+   [BASE] HTML resets
+   =================================== */
 html,
 body,
 #root {
@@ -85,7 +176,37 @@ body,
     width: 100vw;
     height: 100vh;
     overflow: hidden;
-    background-color: transparent;
-    /* Let Phaser show through */
+    background-color: var(--col-void);
     touch-action: none;
+}
+
+/* ===================================
+   [UTILITY] Font helpers
+   =================================== */
+.font-pixel {
+    font-family: var(--font-pixel);
+}
+
+.text-rust {
+    color: var(--col-rust);
+}
+
+.text-bone {
+    color: var(--col-bone);
+}
+
+.text-ash {
+    color: var(--col-ash);
+}
+
+.text-rad {
+    color: var(--col-rad);
+}
+
+.text-acid {
+    color: var(--col-acid);
+}
+
+.bg-void {
+    background-color: var(--col-void);
 }

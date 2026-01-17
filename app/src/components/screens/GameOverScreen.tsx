@@ -15,37 +15,34 @@ export const GameOverScreen: React.FC = () => {
 
     return (
         <div className="absolute inset-0 flex items-center justify-center p-6 bg-black/90 pointer-events-auto z-[100]">
-            {/* Paper Card */}
-            <div className="wobbly-box p-8 w-full max-w-sm text-center shadow-xl">
+            {/* Baba-style Box */}
+            <div className={`baba-box p-8 w-full max-w-sm text-center shadow-xl ${isSuccess ? 'border-rust' : 'border-blood'}`}>
 
-                {/* Title Stamp */}
-                <h1
-                    className={`text-4xl font-black mb-4 ${isSuccess ? 'text-amber-600' : 'text-red-600'}`}
-                    style={{ fontFamily: 'var(--font-marker)' }}
-                >
-                    {isSuccess ? '成功撤離' : '任務失敗'}
+                {/* Title */}
+                <h1 className={`text-4xl uppercase mb-4 tracking-widest ${isSuccess ? 'text-rust' : 'text-blood'}`}>
+                    {isSuccess ? '// 任務完成' : '// 訊號丟失'}
                 </h1>
 
                 {/* Status */}
-                <div className={`text-lg font-hand mb-6 ${isSuccess ? 'text-amber-500' : 'text-red-500'}`}>
-                    {isSuccess ? '[ 訊號穩定 ]' : '[ 訊號丟失 ]'}
+                <div className="text-xl text-ash mb-6 uppercase">
+                    {isSuccess ? '[ 成功撤離 ]' : '[ 任務失敗 ]'}
                 </div>
 
                 {/* Results Box */}
-                <div className="bg-white/50 border-2 border-dashed border-gray-400 p-4 mb-6 text-left space-y-2">
-                    <div className="flex justify-between font-hand text-lg">
-                        <span>任務狀態:</span>
-                        <span className={isSuccess ? 'text-green-600 font-bold' : 'text-red-600 font-bold'}>
-                            {isSuccess ? '成功' : '失敗'}
+                <div className="border-2 border-dashed border-ash p-4 mb-6 text-left space-y-2 bg-void/50">
+                    <div className="flex justify-between text-lg">
+                        <span className="text-ash">狀態:</span>
+                        <span className={isSuccess ? 'text-rad uppercase' : 'text-blood uppercase'}>
+                            {isSuccess ? 'SUCCESS' : 'KIA'}
                         </span>
                     </div>
-                    <div className="flex justify-between font-hand text-lg">
-                        <span>獲得金幣:</span>
-                        <span className="text-amber-600 font-bold">+{earn}</span>
+                    <div className="flex justify-between text-lg">
+                        <span className="text-ash">收益:</span>
+                        <span className="text-acid">+{earn} G</span>
                     </div>
                     {!isSuccess && (
-                        <div className="text-sm text-red-500 mt-2 font-hand italic">
-                            裝備已永久損失...
+                        <div className="text-sm text-blood mt-2 italic">
+                            &gt; 裝備已遺失
                         </div>
                     )}
                 </div>
@@ -56,9 +53,9 @@ export const GameOverScreen: React.FC = () => {
                         metaGame.navigateTo('HIDEOUT');
                         sessionService.enterHideout();
                     }}
-                    className={`sketch-btn w-full py-4 text-xl ${isSuccess ? 'bg-amber-500 text-white' : 'bg-red-600 text-white'}`}
+                    className={`baba-btn w-full py-4 text-xl ${isSuccess ? '' : 'bg-blood border-blood text-bone'}`}
                 >
-                    {isSuccess ? '返回基地' : '重新開始'}
+                    {isSuccess ? '>> 返回基地' : '>> 重新初始化'}
                 </button>
             </div>
         </div>

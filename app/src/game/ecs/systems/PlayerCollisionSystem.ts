@@ -47,8 +47,27 @@ export const createPlayerCollisionSystem = (world: any) => {
         }
 
         // 3. Loot Pickup Collision
-        // [REMOVED] Dead Code. Loot is currently managed by LootService (OOP) + Phaser Physics Overlap.
-        // Future Refactor: specific ItemComponent mapping needed to move Loot to ECS.
+        const loots = lootQuery(world);
+        const magnetDistSq = (playerRadius + 20) ** 2; // Pickup range
+
+        for (let i = 0; i < loots.length; ++i) {
+            const lid = loots[i];
+            const dx = Transform.x[lid] - world.playerX;
+            const dy = Transform.y[lid] - world.playerY;
+            const distSq = dx * dx + dy * dy;
+
+            if (distSq < magnetDistSq) {
+                // Pickup!
+                const val = Value.amount[lid] || 10;
+
+                // Emit Event for UI/Logic
+                EventBus.emit('ADD_SCORE', val);
+                EventBus.emit('PLAY_SFX', 'LOOT_PICKUP');
+
+                // Cleanup ECS Entity
+                removeEntity(world, lid);
+            }
+        }
 
         // 將傷害寫入 world context，交由 MainScene 處理
         world.playerDamageAccumulator = (world.playerDamageAccumulator || 0) + totalDamage;

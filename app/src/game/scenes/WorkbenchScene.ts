@@ -38,11 +38,9 @@ export class WorkbenchScene extends Phaser.Scene {
         // Layout: TRIANGLE 
         // Agent (Top), Arsenal (Bottom Left), Deploy (Bottom Right)
 
-        // [CENTER/TOP] AGENT
-        this.createInteractionZone(0, -50, 180, 220, 0x00FFFF, languageService.t('WB_HERO'), 'HERO');
-
-        // [BOTTOM CENTER] ARSENAL - Main Storage Access
-        this.createInteractionZone(0, 150, 200, 160, 0xD4A017, languageService.t('HOME_BTN_ARSENAL'), 'CRATE');
+        // [NOTE] Interaction Zones removed - UI is now fully handled by React (HideoutScreen.tsx)
+        // this.createInteractionZone(0, -50, 180, 220, 0x00FFFF, languageService.t('WB_HERO'), 'HERO');
+        // this.createInteractionZone(0, 150, 200, 160, 0xD4A017, languageService.t('HOME_BTN_ARSENAL'), 'CRATE');
 
         // [DISABLED] MVP 1.0 Downscale
         // this.createInteractionZone(110, 20, 160, 160, 0xFF4500, languageService.t('HOME_BTN_WORKBENCH') || '工作桌', 'WORKBENCH');
@@ -134,29 +132,8 @@ export class WorkbenchScene extends Phaser.Scene {
     }
 
     private createBlueprints() {
-        // [BOTTOM] Blueprints - Character Switch
-        // [AUTO-ADAPT] Place relative to bottom Safe Area
-        const viewHeight = this.cameras.main.height;
-        const bottomEdge = viewHeight / 2;
-        const safeY = bottomEdge - 50 - Math.max(SafeArea.bottom, 20);
-
-        this.blueprints = this.add.container(0, safeY);
-
-        // Rolled papers
-        const paper = this.add.rectangle(0, 0, 200, 40, 0xEEEEEE);
-        paper.setStrokeStyle(1, 0x999999);
-
-        // [REMOVED] Text Label
-        // const text = ...
-
-        this.blueprints.add([paper]);
-        this.blueprints.setSize(200, 50);
-        this.blueprints.setInteractive();
-
-        this.blueprints.on('pointerdown', (pointer: Phaser.Input.Pointer) => {
-            this.focusOn('BLUEPRINTS');
-            pointer.event.stopPropagation();
-        });
+        // [NOTE] Blueprints UI is now handled by usage of React (BlueprintOverlay.tsx)
+        // Legacy Phaser container removed to ensure clean dark aesthetic.
     }
 
     // --- Interaction Logic ---

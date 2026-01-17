@@ -8,8 +8,8 @@ body {
     padding: 0;
     overflow: hidden;
     /* 禁止捲動 */
-    background-color: #000;
-    /* Body stays black */
+    background-color: transparent;
+    /* Body stays transparent to show Phaser */
     /* 防止加載時閃白 */
     touch-action: none;
     /* 禁止手機預設的雙擊縮放 */

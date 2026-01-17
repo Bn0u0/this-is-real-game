@@ -48,6 +48,21 @@ This skill serves as a permanent record of identified bugs, architectural pitfal
 - **Root Cause**: Phaser physics body continues coasting due to low drag. Velocity never reaches the firing threshold even when joystick is released.
 - **Prevention**: Set high drag (`4000`) on joystick release and snap velocity to zero when below a threshold (`50`).
 
+### [BUG-008] Motion Sickness from Global Shader
+- **Description**: Applying a wobble/distortion shader to the entire MainCamera caused significant dizziness and motion sickness for the user.
+- **Root Cause**: The shader distorted stable reference points (ground, UI overlay, empty space), mimicking "heat haze" or "drunk vision" rather than a stylized animation.
+- **Prevention**: **Object-Based Wobble** is superior for gameplay comfort. Only animate dynamic entities (player, enemies, debris). The background/ground must remain visually stable to provide a reference frame.
+
+### [BUG-009] JSX Special Characters in Text
+- **Description**: Using `>` or `>>>` directly in JSX text content causes "Unexpected token" build errors.
+- **Root Cause**: React JSX parser interprets `>` as a potential tag closing or invalid token sequence in certain contexts.
+- **Prevention**: Always wrap special characters in curly braces like `{'>>>'}` or use HTML entities `&gt;`.
+
+### [BUG-010] Phaser lineStyle Strict Arguments
+- **Description**: calling `graphics.lineStyle(0)` caused TS error "Expected 2-3 arguments, but got 1".
+- **Root Cause**: The project's TypeScript definition for Phaser demands clear arguments for width, color, and alpha, not allowing the shorthand found in some JS examples.
+- **Prevention**: Always utilize the full signature: `lineStyle(width, color, alpha)`. Use `lineStyle(0, 0, 0)` for reset.
+
 ---
 **Status**: ACTIVE
-**Last Updated**: 2026-01-15
+**Last Updated**: 2026-01-17

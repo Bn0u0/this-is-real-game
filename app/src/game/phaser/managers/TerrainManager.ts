@@ -147,5 +147,8 @@ export class TerrainManager {
         }
 
         this.clutterGroup.add(decorG);
+
+        // [VISUAL] Object-Based Wobble Removed per user request
+        // Static background fits better with the "Paper" aesthetic and prevents dizziness/distraction.
     }
 }

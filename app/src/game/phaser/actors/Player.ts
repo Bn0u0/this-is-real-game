@@ -257,33 +257,35 @@ export class Player extends Phaser.GameObjects.Container {
         // [LAYER 1] The Giant Backpack (Behind Body)
         // Color: Worn Brown/Green
         g.fillStyle(0x5D4037, 1); // Dark Leather/Rust
-        g.lineStyle(2, 0x1B1020, 1); // Dark Outline 
+        // No Outline
+        g.lineStyle(0, 0, 0);
 
         // Shape: Big Rounded Rect, slightly wider than body
         g.fillRoundedRect(-22, -25, 44, 40, 8);
-        g.strokeRoundedRect(-22, -25, 44, 40, 8);
+        // g.strokeRoundedRect(-22, -25, 44, 40, 8);
 
         // Bedroll on top?
         g.fillStyle(0x556B2F, 1); // Olive Drab
         g.fillRoundedRect(-20, -32, 40, 10, 4);
-        g.strokeRoundedRect(-20, -32, 40, 10, 4);
+        // g.strokeRoundedRect(-20, -32, 40, 10, 4);
 
 
         // [LAYER 2] The Potato Body
         // Color: Rice White / Off-White
         const potatoColor = 0xF8F8F0;
         g.fillStyle(potatoColor, 1);
-        g.lineStyle(2, 0x1B1020, 1); // Dark Outline
+        // No Outline
+        g.lineStyle(0, 0, 0);
 
         // Shape: Irregular Oval (Stacked Circles for organic look)
         // Main Body
         g.beginPath();
         g.fillEllipse(0, 5, 20, 18); // Bottom heavy
-        g.strokeEllipse(0, 5, 20, 18);
+        // g.strokeEllipse(0, 5, 20, 18);
 
         // Head/Top
         g.fillEllipse(0, -5, 18, 16);
-        g.strokeEllipse(0, -5, 18, 16);
+        // g.strokeEllipse(0, -5, 18, 16);
 
         // [LAYER 3] The Deadpan Face
         // Eyes: Small black dots, wide set
@@ -400,12 +402,21 @@ export class Player extends Phaser.GameObjects.Container {
         // Update Sprite Y for jump effect (and other attached visuals)
         // this.sprite.y = -this.z; // Deprecated
         // [POTATO MODE] GLOBAL SHADER ACTIVE
-        // Manual wobble removed to prevents double-distortion.
-        // The Global 'Wobble' pipeline now handles the boiling effect.
+        // [VISUAL] Manual Wobble (Re-enabled for Object-Based Wobble)
+        // Only wobble the body parts, not the world position
         const time = this.scene.time.now;
 
-        // Jump Bounce remains
-        this.graphics.y = -this.z + Math.sin(time / 300) * 2; // Idle Breathing Y
+        // Body Breathing
+        this.graphics.rotation = Math.sin(time / 200) * 0.05; // Gentle rotation
+        this.graphics.scaleX = 1 + Math.sin(time / 150) * 0.02; // Squash
+        this.graphics.scaleY = 1 + Math.cos(time / 150) * 0.02; // Stretch
+
+        // Backpack Counter-Wobble (Lag behind)
+        this.mechanicGraphics.rotation = Math.sin((time - 100) / 200) * 0.05;
+        this.mechanicGraphics.y = Math.sin(time / 300) * 2; // Bobbing
+
+        // Z-Height Animation
+        this.graphics.y = -this.z;
         this.coreShape.y = -this.z;
 
         if (speed > 50) {

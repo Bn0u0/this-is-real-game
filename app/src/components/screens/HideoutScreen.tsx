@@ -22,79 +22,80 @@ export const HideoutScreen: React.FC = () => {
     const t = (key: any) => languageService.t(key);
 
     return (
-        <div className="absolute inset-0 pointer-events-none flex flex-col justify-between p-4 md:p-6 overflow-hidden">
+        /* [LAYOUT] Full-screen paper filling the phone frame */
+        <div className="absolute inset-0 flex flex-col wobbly-box m-2 overflow-hidden">
 
-            {/* === HEADER ROW (Profile + System) === */}
-            <div className="w-full flex justify-between items-start pointer-events-none">
+            {/* === TOP SECTION: Header + Profile === */}
+            <div className="p-4 pb-0">
+                {/* Paper Title Bar */}
+                <div className="flex items-center justify-between mb-4">
+                    <div className="bg-[#F0E68C] px-4 py-2 transform -rotate-1 shadow-md wobbly-box">
+                        <h1 className="text-2xl font-black tracking-wider text-[#2A2A2A]" style={{ fontFamily: 'var(--font-marker)' }}>
+                            任務簡報
+                        </h1>
+                    </div>
+                    {/* Decorative Clip */}
+                    <div className="w-3 h-10 bg-gray-400 rounded-full shadow-inner opacity-80 mr-4" />
+                </div>
 
-                {/* TOP LEFT: PROFILE */}
-                <div className="pointer-events-auto flex items-center gap-3">
-                    {/* Avatar Box */}
-                    <div className="w-12 h-12 bg-black/80 border border-amber-500/30 flex items-center justify-center overflow-hidden">
-                        <span className="text-xl">😎</span>
+                {/* Agent Profile Row */}
+                <div className="flex justify-between items-start gap-4">
+                    {/* Photo (Polaroid) */}
+                    <div className="bg-white p-2 shadow-sm transform -rotate-2 w-28 shrink-0">
+                        <div className="w-full aspect-square bg-gray-200 border border-gray-300 flex items-center justify-center overflow-hidden">
+                            <span className="text-4xl">🥔</span>
+                        </div>
+                        <div className="text-center font-hand text-lg mt-1 text-gray-600">
+                            #8842
+                        </div>
                     </div>
 
-                    {/* Info Text */}
-                    <div className="flex flex-col">
-                        <div className="flex items-baseline gap-2">
-                            <h2 className="text-lg font-bold text-white tracking-wider">
-                                {t('ROOT_ACCESS').replace('// ', '')} 8842
-                            </h2>
-                            <span className="text-xs text-amber-500 font-mono bg-amber-500/10 px-1 rounded">
-                                LV.{profile.toolkitLevel || 1}
+                    {/* Stats Panel */}
+                    <div className="flex flex-col items-end gap-2 flex-1">
+                        <div className="tape-label py-2 px-3 text-lg transform rotate-1 shadow-sm">
+                            <span className="font-bold">LV.{profile.toolkitLevel || 1} 拾荒者</span>
+                        </div>
+                        <div className="flex flex-col items-end gap-1 font-hand text-xl text-[#2A2A2A]">
+                            <span>金幣: {profile.wallet?.gold || 0} G</span>
+                            <span>寶石: {profile.wallet?.gems || 0}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {/* === MIDDLE SECTION: Character Preview (Flexible Space) === */}
+            <div className="flex-1 flex items-center justify-center p-4">
+                <div className="w-full h-full border-dashed border-2 border-gray-300 rounded-lg flex items-center justify-center opacity-40">
+                    <span className="font-hand text-3xl rotate-[-5deg] text-gray-500">[ 角色預覽區 ]</span>
+                </div>
+            </div>
+
+            {/* === BOTTOM SECTION: Action Buttons === */}
+            <div className="p-4 pt-0">
+                <div className="flex justify-between items-end gap-4">
+                    {/* Upgrade Button (Sticky Note) */}
+                    <button
+                        onClick={() => sessionService.openWorkbench('HERO')}
+                        className="wobbly-box bg-[#E8E8C0] px-5 py-4 transform rotate-2 hover:rotate-0 transition-transform shadow-sm hover:shadow-md"
+                    >
+                        <span className="font-hand text-2xl font-bold block leading-none">裝備</span>
+                        <span className="font-hand text-sm block leading-none text-gray-600 mt-1">強化</span>
+                    </button>
+
+                    {/* GO Button (Big Stamp) */}
+                    <button
+                        onClick={() => metaGame.startMatch()}
+                        className="group flex-1 max-w-[200px]"
+                    >
+                        <div className="sketch-btn w-full px-6 py-5 bg-[#D32F2F] text-white flex items-center justify-center gap-3 transform -rotate-1 group-hover:scale-105 transition-transform shadow-lg">
+                            <span className="text-3xl font-black" style={{ fontFamily: 'var(--font-marker)' }}>
+                                出擊
                             </span>
+                            <span className="text-2xl animate-pulse">!</span>
                         </div>
-                    </div>
-                </div>
-
-                {/* TOP RIGHT: UTILITY STACK */}
-                <div className="flex flex-col items-end gap-2 pointer-events-auto">
-                    {/* Currencies */}
-                    <div className="flex flex-col items-end gap-1">
-                        <div className="flex items-center gap-2">
-                            <span className="text-amber-500 font-mono text-base">{profile.wallet?.gold || 0}</span>
-                            <div className="w-2 h-2 bg-amber-500 rounded-full" title={t('CREDITS')} />
-                        </div>
-                        <div className="flex items-center gap-2">
-                            <span className="text-cyan-400 font-mono text-sm">{profile.wallet?.gems || 0}</span>
-                            <div className="w-1.5 h-1.5 bg-cyan-400 rotate-45" title={t('SHARDS')} />
-                        </div>
-                    </div>
-
-                    {/* System Menu (Moved from Bottom Left) */}
-                    <div className="flex items-center gap-1 opacity-50 hover:opacity-100 transition-opacity">
-                        <button className="p-1 text-white/30 hover:text-white transition-colors">
-                            <span className="text-lg">⚙️</span>
-                        </button>
-                        <button className="p-1 text-white/30 hover:text-white transition-colors">
-                            <span className="text-lg">✉️</span>
-                        </button>
-                    </div>
+                    </button>
                 </div>
             </div>
-
-
-            {/* === BOTTOM RIGHT: DEPLOY (Restored) === */}
-            {/* Only show when NO overlay is open (Immersive Mode) */}
-            <div className="pointer-events-auto">
-                <button
-                    onClick={() => metaGame.startMatch()}
-                    className="absolute bottom-6 right-6 group bg-amber-500 hover:bg-amber-400 active:scale-95 transition-all"
-                >
-                    {/* Yellow Block (Flat) */}
-                    <div className="px-12 py-6 flex items-center gap-4 border-2 border-white/20">
-                        <span className="text-4xl font-black text-black tracking-widest italic">
-                            {t('WB_GO')}
-                        </span>
-                        <span className="text-2xl animate-pulse delay-75 text-black/50">
-                            ►►
-                        </span>
-                    </div>
-                </button>
-            </div>
-
-            {/* === DECORATIVE OVERLAY LINES === */}
-            <div className="absolute inset-x-0 bottom-8 h-[1px] bg-gradient-to-r from-transparent via-white/20 to-transparent pointer-events-none" />
         </div>
     );
 };

@@ -251,9 +251,9 @@ export class MainScene extends Phaser.Scene {
         // [VISUAL STYLE] Apply Global Wobble (Baba Is You 100%)
         const renderer = this.game.renderer as Phaser.Renderer.WebGL.WebGLRenderer;
         try {
-            if (!renderer.pipelines.has('Wobble')) {
-                renderer.pipelines.addPostPipeline('Wobble', WobblePipeline);
-            }
+            // if (!renderer.pipelines.has('Wobble')) {
+            //     renderer.pipelines.addPostPipeline('Wobble', WobblePipeline);
+            // }
             // Global Post-Processing Pipeline removed to fix dizziness
             // this.cameras.main.setPostPipeline('Wobble');
             logger.info("MainScene", "Wobble Pipeline Applied.");
@@ -335,28 +335,31 @@ export class MainScene extends Phaser.Scene {
             graphics.generateTexture('tex_orb', 20, 20);
         }
 
-        for (let i = 0; i < 100; i++) {
-            const eid = addEntity(this.world);
+        // [REMOVED] Test orb spawn - was creating 100 green circles at game start
+        // for (let i = 0; i < 100; i++) { ... }
 
-            // 瘛餃?蝯辣
-            addComponent(this.world, Transform, eid);
-            addComponent(this.world, Velocity, eid);
-            addComponent(this.world, SpriteConfig, eid);
 
-            // ?????
-            Transform.x[eid] = this.worldWidth / 2;
-            Transform.y[eid] = this.worldHeight / 2;
 
-            // ?冽???漲
-            Velocity.x[eid] = (Math.random() - 0.5) * 400;
-            Velocity.y[eid] = (Math.random() - 0.5) * 400;
 
-            // 閬死閮剖?
-            SpriteConfig.textureId[eid] = 1; // 撠? 'tex_orb'
-            SpriteConfig.scale[eid] = 0.5 + Math.random() * 0.5;
-            SpriteConfig.tint[eid] = 0x00FF00; // 蝬蝎?
-        }
+        // 瘛餃?蝯辣
+        // [REMOVED] Orphaned code - eid is no longer defined
 
+
+        // ?????
+
+
+
+        // ?冽???漲
+
+
+
+        // 閬死閮剖?
+
+        // 撠? 'tex_orb'
+
+
+
+        // 蝬蝎?
         // Register Glitch Pipeline
         if (this.renderer instanceof Phaser.Renderer.WebGL.WebGLRenderer) {
             this.renderer.pipelines.addPostPipeline('GlitchPipeline', GlitchPipeline);

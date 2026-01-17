@@ -230,6 +230,12 @@ class SessionService {
         EventBus.emit('RETURN_TO_BASE');
     }
 
+    // [NEW] Open workbench view from HideoutScreen buttons
+    public openWorkbench(view: WorkbenchView) {
+        logger.debug("Session", `Opening Workbench: ${view}`);
+        this.updateState({ workbenchView: view });
+    }
+
     public returnToMainMenu() {
         this.updateState({ appState: 'MAIN_MENU' });
     }

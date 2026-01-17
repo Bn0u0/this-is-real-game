@@ -17,7 +17,7 @@ export const CLASSES: Record<PlayerClassID, ClassConfig> = {
     SCAVENGER: {
         name: '拾荒者',
         role: 'SURVIVAL',
-        stats: { hp: 120, speed: 1.1, markColor: 0xFFFF00, atk: 12 }
+        stats: { hp: 120, speed: 0.55, markColor: 0xFFFF00, atk: 12 }
     },
     // 2. SKIRMISHER (Mobility/Crit) - Formally RANGER
     SKIRMISHER: {

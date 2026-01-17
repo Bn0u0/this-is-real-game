@@ -41,23 +41,21 @@ const App: React.FC = () => {
     const handleReturnToBase = () => sessionService.enterHideout();
 
     return (
-        <div className="w-full h-screen bg-gray-900 flex justify-center items-center overflow-hidden">
+        /* [APP STORE STRATEGY] Mobile-First, Desktop Phone Simulator */
+        <div className="w-full h-screen bg-black flex justify-center items-center overflow-hidden">
             {/* 
-               [RESOLUTION STRATEGY]
-               Desktop: Phone Simulator (Height-First, Locked Aspect Ratio, Max Width)
-               Mobile: Full Screen (via CSS media queries implicitly handling resizing)
+               The Phone Frame:
+               - Mobile: Fills screen (handled by Tailwind breakpoints)
+               - Desktop: Centered, max-width 430px (iPhone 14 Pro Max width)
             */}
             <div
-                className="relative h-full w-auto aspect-[9/19.5] max-w-[480px] bg-black shadow-2xl overflow-hidden pointer-events-none sm:rounded-[2rem] sm:border-8 sm:border-gray-800"
-                style={{ maxHeight: '100vh' }}
+                className="relative w-full h-full sm:max-w-[430px] sm:aspect-[9/19.5] sm:h-auto sm:max-h-full bg-transparent overflow-hidden"
             >
-                {/* Background Effects */}
-                <div className="scanlines" />
-                <div className={`noise-overlay ${appState === 'BOOT' ? 'opacity-10' : 'opacity-5'}`} />
+                {/* All UI layers sit inside this phone frame */}
 
                 {/* State: MAIN_MENU / HIDEOUT */}
                 {(appState === 'MAIN_MENU' || appState === 'HIDEOUT') && (
-                    <div className="absolute inset-0 pointer-events-none" style={{ zIndex: HTML_LAYER.HUD }}>
+                    <div className="absolute inset-0 pointer-events-auto" style={{ zIndex: HTML_LAYER.HUD }}>
                         {/* Always show Main HUD when in Menu/Hideout */}
                         <HideoutScreen />
 
@@ -70,17 +68,19 @@ const App: React.FC = () => {
                         {session.workbenchView === 'BLUEPRINTS' && <BlueprintOverlay />}
                         {session.workbenchView === 'HERO' && <HeroStatsOverlay />}
                         {session.workbenchView === 'WORKBENCH' && (
-                            <div className="absolute inset-x-0 bottom-24 flex justify-center pointer-events-none">
-                                <div className="bg-black/90 border-t-4 border-red-500 p-8 w-full max-w-sm pointer-events-auto animate-in slide-in-from-bottom">
-                                    <h3 className="text-red-500 font-bold text-center text-xl mb-4 tracking-widest uppercase">
-                                        SYSTEM UPGRADE // 工作桌
+                            <div className="absolute inset-0 flex items-center justify-center p-4">
+                                <div className="wobbly-box p-6 w-full max-w-sm pointer-events-auto shadow-lg">
+                                    <h3 className="text-2xl font-bold text-center mb-4" style={{ fontFamily: 'var(--font-marker)' }}>
+                                        工坊
                                     </h3>
-                                    <p className="text-gray-400 text-center mb-6">永久強化系統正在初始化...<br />(META-PROGRESSION OFFLINE)</p>
+                                    <p className="text-center mb-6 font-hand text-lg text-gray-600">
+                                        升級系統初始化中...
+                                    </p>
                                     <button
-                                        className="w-full py-4 bg-white text-black font-black hover:bg-red-500 transition-colors"
+                                        className="sketch-btn w-full py-3 bg-white text-black"
                                         onClick={() => EventBus.emit('WORKBENCH_ACTION', 'BACK')}
                                     >
-                                        [ ESC ] 返回
+                                        返回
                                     </button>
                                 </div>
                             </div>
@@ -105,21 +105,22 @@ const App: React.FC = () => {
                     )}
                 </div>
 
-                {/* State: TUTORIAL DEBRIEF */}
                 {appState === 'TUTORIAL_DEBRIEF' && (
-                    <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-black/90 backdrop-blur-md animate-in fade-in p-8 text-center">
-                        <h2 className="text-4xl md:text-6xl font-black text-[#00FFFF] mb-6">SIGNAL ESTABLISHED</h2>
-                        <p className="text-gray-300 max-w-md mb-12 leading-relaxed tracking-wider">
-                            戰鬥數據已上傳。<br />
-                            指揮官權限已解鎖。<br />
-                            歡迎來到 SYNAPSE 神經網絡。
-                        </p>
-                        <button
-                            className="px-8 py-4 bg-[#00FFFF] text-black font-black tracking-widest text-xl uppercase skew-x-[-10deg] hover:bg-white hover:scale-105 transition-transform"
-                            onClick={handleReturnToBase}
-                        >
-                            進入基地
-                        </button>
+                    <div className="absolute inset-0 z-50 flex items-center justify-center p-6">
+                        <div className="wobbly-box p-8 text-center max-w-sm shadow-xl">
+                            <h2 className="text-3xl font-black mb-4" style={{ fontFamily: 'var(--font-marker)' }}>任務完成</h2>
+                            <p className="font-hand text-xl text-gray-600 mb-8 leading-relaxed">
+                                戰鬥數據已上傳。<br />
+                                指揮官權限已解鎖。<br />
+                                歡迎，拾荒者。
+                            </p>
+                            <button
+                                className="sketch-btn px-6 py-4 text-xl"
+                                onClick={handleReturnToBase}
+                            >
+                                進入基地
+                            </button>
+                        </div>
                     </div>
                 )}
 

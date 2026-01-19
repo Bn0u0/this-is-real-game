@@ -11,6 +11,12 @@ export const T0_WEAPONS: ItemDef[] = [
         baseStats: { damage: 25, range: 60, fireRate: 800, speed: 1.0, critChance: 0.05, defense: 0, hpMax: 0 },
         description: '一把普通的撬棍',
         icon: 'icon_scrap_metal',
+        hitbox: {
+            shape: 'CIRCLE',
+            offset: 40,
+            width: 60,
+            duration: 150
+        },
         behavior: 'MELEE_SWEEP',
         visualCategory: 'BLUNT', // [V2] Data-driven weapon visual
         controlType: 'HYBRID', // Exceptions handling: Melee Hybrid = Slow Forward

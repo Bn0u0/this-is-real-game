@@ -14,50 +14,39 @@ This document defines the visual identity for the project. All UI, assets, and e
 - **Pixel Perfect**: Fonts and effects should feel retro and grid-aligned.
 - **Wasteland Grime**: Colors should be muted, rusty, or starkly contrasting (Neon on Black).
 
-## Color Palette (Wasteland 8-bit)
+## Visual Identity V2: The "Trash-Crayon" Aesthetic
 
-| Name       | Hex       | Usage                          |
-| :---       | :---      | :---                           |
-| **Void**   | `#000000` | Backgrounds, Deep Shadows      |
-| **Bone**   | `#F5F5DC` | Primary Text, UI Borders       |
-| **Rust**   | `#D35400` | Warnings, Critical UI, Accents |
-| **Dust**   | `#A9A9A9` | Secondary Text, Debris         |
-| **Ash**    | `#555555` | Inactive Elements, Floor       |
-| **Blood**  | `#8B0000` | Health, Danger                 |
-| **Acid**   | `#556B2F` | Toxic zones, "Positive" low key|
-| **Rad**    | `#00FF00` | *(Rare)* High-tech, extraction |
-| **Gold**   | `#FFD700` | Currency, Loot                 |
+### 1. The "Baba" Core (Shape & Line)
+- **No Outlines**: Shapes should be defined by their solid color against the contrasting background.
+    - **Tech**: `lineStyle(0)` or transparent.
+    - **Animation**: The shape itself should "breathe" or wobble (Vertex wobble or Scale wobble).
+- **Primitives**: Characters are blobs, not anatomically correct.
+- **Text**: Hand-drawn style monospace (VT323 is good, but a jagged font is better).
 
-## Typography
-- **Primary Font**: `VT323` (Google Font) or similar monospace pixel font.
-- **Rules**:
-    - **Uppercase**: Use uppercase for headers and critical data.
-    - **Brackets**: Decorate text with `[ ]`, `//`, `>>`.
-    - **No Italics**: Pixel fonts read poorly in italics; use color for emphasis.
+### 2. The "Wasteland" Skin (Color & Texture)
+- **Palette Principles**:
+    - **Background**: Deep, noisy darks (`#1a1a1a`, `#2D1B2E`).
+    - **Foreground**: Desaturated "Bone" (`#E3DAC9`) or "Cardboard" (`#D2B48C`).
+    - **Accents**: Neon Radiation (`#39FF14`) or Rust Oxide (`#CD5C5C`).
+- **Texture Rule**: Objects are "Solid Color" but with "One Flaw".
+    - Example: A gray square (Solid) + 1 Orange Pixel (Rust).
+    - Example: A white blob (Solid) + 1 Black line (Scar).
 
-## Geometry Rules
-- **Player**: Potato-shaped (Stacked ellipses) or irregular circle.
-- **Enemies**: Strict geometric shapes.
-    - Triangle = Grunt / Fast
-    - Square = Tank / Slow
-    - Pentagon = Elite
-- **Loot**: Simple icons or geometric tokens (Diamond/Square).
+## Color Palette V2 (Refined)
 
-## Effect Rules (VFX)
-- **Particles**: ALWAYS use squares or rectangles. No round "flare" textures.
-- **Trails**: Solid pixel trails.
-- **Blending**: Use `NORMAL` blend mode mostly. Avoid excessive `ADD` (Glow) unless for specific "Rad" effects.
-- **Screenshake**: Minimal but sharp.
+| Role | Name | Hex | Notes |
+| :--- | :--- | :--- | :--- |
+| **Flesh** | **Bone** | `#E3DAC9` | Not white. Old paper color. |
+| **Gear** | **Scrap** | `#708090` | Slate gray, blue-ish tint. |
+| **Rust** | **Oxide** | `#CD5C5C` | Indian Red. Dried blood/rust. |
+| **Danger** | **Toxic** | `#39FF14` | Neon Green. High contrast. |
+| **Void** | **Abyss** | `#111111` | Almost black, for depth. |
 
-## UI Components
-- **Buttons**:
-    - **Primary**: Solid background (Rust/Ash) with Bone text.
-    - **Ghost**: Transparent background, colored border.
-- **Containers**:
-    - Dark background (`rgba(0,0,0,0.9)`).
-    - Double borders or dashed lines.
-    - "Terminal" aesthetic.
+## Implementation Rules (Strict)
 
-## "Baba" Wobble
-- Objects should feel "alive" by having slight, jagged animations (squash/stretch) or outlining wobbles.
-- Use `WobblePipeline` or manual scale/rotation sine waves sparingly.
+1.  **No Pure White (`#FFFFFF`)**: Use Bone (`#E3DAC9`) for "white" objects.
+2.  **No Clean Circles**: All circles must be slightly irregular (e.g. ellipses with varied x/y).
+3.  **The "Wobble"**:
+    - **Idle**: `scaleX` / `scaleY` must oscillate `+/- 2%` on distinct Sine waves.
+    - **Move**: "Trot" animation (Legs) is dominant.
+4.  **Shadows**: Sharp, hard ellipses. No soft blurs. `alpha=0.4`.

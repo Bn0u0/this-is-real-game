@@ -5,7 +5,7 @@ import { EventBus } from './EventBus';
 import { PlayerProfile } from '../types';
 import { logger } from './LoggerService';
 
-export type AppState = 'BOOT' | 'MAIN_MENU' | 'HIDEOUT' | 'COMBAT' | 'GAME_OVER' | 'TUTORIAL_DEBRIEF';
+export type AppState = 'BOOT' | 'MAIN_MENU' | 'HIDEOUT' | 'COMBAT' | 'GAME_OVER' | 'TUTORIAL_DEBRIEF' | 'ART_LAB';
 
 // [NEW] Workbench Focus State
 export type WorkbenchView = 'NONE' | 'CRATE' | 'HERO' | 'DEPLOY' | 'BLUEPRINTS' | 'WORKBENCH';
@@ -244,6 +244,12 @@ class SessionService {
 
     public returnToMainMenu() {
         this.updateState({ appState: 'MAIN_MENU' });
+    }
+
+    public enterArtLab() {
+        logger.info("Session", "Entering Art Lab Sandbox...");
+        this.updateState({ appState: 'ART_LAB' });
+        EventBus.emit('SCENE_SWITCH', 'ArtLabScene');
     }
 
     public startMatch(role: string) {

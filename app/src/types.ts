@@ -57,6 +57,16 @@ export interface ItemDef {
   // [NEW V2] Visual category for weapon rendering
   visualCategory?: 'BLUNT' | 'BLADE' | 'PISTOL' | 'RIFLE' | 'BOW' | 'GRENADE' | 'DRONE' | 'OTHER';
 
+  // [NEW V3] Hitbox Configuration (Data-Driven)
+  hitbox?: {
+    shape: 'CIRCLE' | 'RECTANGLE' | 'SECTOR';
+    offset: number;     // Distance from player center
+    width: number;      // Radius for Circle/Sector, Width for Rect
+    height?: number;    // Length for Rect
+    angle?: number;     // Arc angle for Sector
+    duration?: number;  // How long the hitbox persists
+  };
+
   // [NEW] Siege Mode
   controlType?: 'AUTO' | 'HYBRID' | 'MANUAL';
   siegeBehavior?: string; // Optional description of siege effect

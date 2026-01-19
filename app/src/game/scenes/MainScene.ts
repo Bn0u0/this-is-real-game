@@ -1,5 +1,6 @@
 ﻿import Phaser from 'phaser';
 import { Player } from '../phaser/actors/Player';
+import { generateCharacterTextures } from '../phaser/generators/TextureGenerator';
 // import { Enemy } from '../classes/Enemy'; // [REMOVED]
 import { COLORS, PHYSICS } from '../../constants';
 import { EventBus } from '../../services/EventBus';
@@ -242,6 +243,9 @@ export class MainScene extends Phaser.Scene {
 
     create() {
         logger.debug("MainScene", "Creating Scene...");
+
+        // [V2] Character Textures (Rig)
+        generateCharacterTextures(this);
 
         // [CRITICAL FIX] Initialize ECS World FIRST
         // This ensures all Managers/Systems that receive it in constructor have a valid reference.

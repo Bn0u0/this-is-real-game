@@ -18,7 +18,17 @@ export const BootScreen: React.FC<BootScreenProps> = ({ onStart }) => {
     return (
         <div className="absolute inset-0 bg-black flex flex-col items-center justify-center z-[99999] pointer-events-none font-mono selection:bg-white selection:text-black">
             {/* Terminal Container */}
-            <div className="flex flex-col items-center gap-8 w-full max-w-md p-8">
+            <div className="flex flex-col items-center gap-8 w-full max-w-md p-8 relative">
+                {/* [DEV] Art Lab Access */}
+                <button
+                    className="absolute top-0 right-0 p-2 text-xs text-transparent hover:text-gray-800 focus:text-gray-800 transition-colors cursor-help"
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        import('../../services/SessionService').then(m => m.sessionService.enterArtLab());
+                    }}
+                >
+                    π
+                </button>
 
                 {/* Header */}
                 <div className="text-center space-y-2">

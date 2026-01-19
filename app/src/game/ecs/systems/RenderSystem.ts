@@ -26,8 +26,17 @@ export const createRenderSystem = (scene: Phaser.Scene, world: any) => {
             const id = newEntities[i];
             const texId = SpriteConfig.textureId[id];
             // [FIX] Allow invisible entities (textureId 0)
-            const textureKey = TEXTURE_MAP[texId];
-            if (!textureKey) continue; // Skip rendering for invisible/logic entities
+            // [DEBUG] Force render invisible entities (textureId 0) with default orb
+            // const textureKey = TEXTURE_MAP[texId];
+            // if (!textureKey) continue;
+            const textureKey = TEXTURE_MAP[texId] || 'tex_orb'; // Fallback to orb for debug
+
+            // Debug Color for Hitboxes
+            if (texId === 0) {
+                scene.add.sprite(Transform.x[id], Transform.y[id], textureKey).setTint(0xFF00FF).setAlpha(0.5);
+                // We don't track debug sprites in spriteMap to avoid double-destroy issues or complex logic
+                // Actually let's just use the normal flow but override key
+            }
 
             console.log(`[RenderSystem] Creating Sprite for ID ${id}. Texture: ${textureKey} (ID: ${texId})`);
 

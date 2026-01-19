@@ -121,15 +121,43 @@ export class WeaponSystem {
 
         switch (def.behavior) {
             case 'MELEE_SWEEP':
-                // [MELEE 2.0] Static Hitbox + Visual Swing
-                textureId = 0; // Invisible (Logic Entity)
-                tint = 0xFFFFFF;
-                scale = 2.0; // Large Area
-                projSpeed = 0; // Static
-                projDamage = damage * 1.5;
-                projDuration = 100; // Short 100ms Box
+            case 'MELEE_THRUST':
+                // [MELEE V3] Universal Hitbox Logic
                 valid = true;
+
+                // 1. Calculate Universal Offset
+                // Default: 40px forward (if no config)
+                // New Config: def.hitbox.offset
+                const offsetDist = def.hitbox?.offset || 40;
+                const hitWidth = def.hitbox?.width || 60; // Radius or Width
+
+                // 2. Math: Project from Center using Rotation
+                // Rotation is in Radians in Phaser
+                const angle = source.rotation;
+                const originX = source.x + Math.cos(angle) * offsetDist;
+                const originY = source.y + Math.sin(angle) * offsetDist;
+
+                // 3. Set Properties
+                // Currently only supporting CIRCLE approximation for creating entities
+                // Future: Use Shape Component for collisions
+                textureId = 0; // Invisible
+                tint = 0xFF00FF; // Debug Pink (if rendered)
+                scale = hitWidth / 16; // 16px base size -> scaled to radius
+                projSpeed = 0; // Static relative to spawn (doesn't move)
+                projDuration = def.hitbox?.duration || 100;
+                projDamage = damage * 1.5;
+
+                // [DEBUG VISUAL] Force Render Pink Orb to verify offset
+                // This relies on RenderSystem debug override for textureId 0
+
+                // Override spawn position logic below (hacky but effective for this system)
+                // We need to inject originX/originY into the spawn loop
+                // Actually, the generic spawn below uses `source.x`. We need to override it.
+                // Let's create the entity HERE and skip the default spawn at bottom??
+                // No, better to set a flag or just modify `spawnX/Y` variables if we had them.
+                // Refactoring spawn logic to separate variables:
                 break;
+
             case 'DRONE_BEAM':
                 textureId = 1; // Circle
                 tint = 0x3B82F6; // Blue
@@ -167,12 +195,19 @@ export class WeaponSystem {
             addComponent(this.world, Damage, eid);
             addComponent(this.world, Lifetime, eid);
 
-            // Offset for Melee (Static) logic
+            // Offset for Melee V3 (Generic)
             let spawnX = source.x;
             let spawnY = source.y;
 
-            if (projSpeed === 0 && def.behavior === 'MELEE_SWEEP') {
-                const offset = 40; // 40px in front
+            if (projSpeed === 0 && def.hitbox) {
+                // Use Pre-calculated V3 Logic
+                const offsetDist = def.hitbox.offset;
+                const hitAngle = angle; // Use projective angle
+                spawnX += Math.cos(hitAngle) * offsetDist;
+                spawnY += Math.sin(hitAngle) * offsetDist;
+            } else if (projSpeed === 0 && def.behavior === 'MELEE_SWEEP') {
+                // Legacy Fallback (should be removed once all migrated)
+                const offset = 40;
                 spawnX += Math.cos(angle) * offset;
                 spawnY += Math.sin(angle) * offset;
             }

@@ -13,6 +13,7 @@ import { HTML_LAYER } from '../game/constants/Depth';
 import { EventBus } from '../services/EventBus';
 import { sessionService, AppState } from '../services/SessionService';
 import { SceneMonitor } from '../components/common/SceneMonitor';
+import { ArtLabOverlay } from '../art-lab/ArtLabOverlay';
 
 const App: React.FC = () => {
     // Single Source of Truth
@@ -87,6 +88,9 @@ const App: React.FC = () => {
                         )}
                     </div>
                 )}
+
+                {/* State: ART LAB */}
+                {appState === 'ART_LAB' && <ArtLabOverlay />}
 
                 {/* State: BOOT SCREEN */}
                 {appState === 'BOOT' && (

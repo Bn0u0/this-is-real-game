@@ -18,9 +18,9 @@ export const PhaserGameLab: React.FC = () => {
             },
             render: {
                 powerPreference: 'high-performance',
-                antialias: false,
-                pixelArt: true,
-                roundPixels: true,
+                antialias: true, // SMOOTH EDGES for Doodle Style
+                pixelArt: false, // Turn off pixelation
+                roundPixels: false,
             },
             // Only load ArtLabScene
             scene: [ArtLabScene],

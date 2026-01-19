@@ -1,7 +1,9 @@
 import Phaser from 'phaser';
 import { EventBus } from '../services/EventBus';
 import { ArtLabState, DEFAULT_LAB_CONFIG } from './ArtLabConfig';
+import { generateCharacterTextures, generateSpriteSheet, generateWeaponIcons } from '../game/phaser/generators/TextureGenerator';
 import { CharacterMode } from './modes/CharacterMode';
+import { WeaponMode } from './modes/WeaponMode';
 
 export class ArtLabScene extends Phaser.Scene {
     private config: ArtLabState = DEFAULT_LAB_CONFIG;
@@ -9,15 +11,24 @@ export class ArtLabScene extends Phaser.Scene {
 
     // Modes
     private charMode: CharacterMode;
-    // WeaponMode, etc.
+    private weaponMode: WeaponMode;
 
     constructor() {
         super('ArtLabScene');
         this.charMode = new CharacterMode(this);
+        this.weaponMode = new WeaponMode(this);
     }
+
+    // Debug
+    private debugText: Phaser.GameObjects.Text | null = null;
 
     create() {
         console.log("🧪 [Art Lab] Scene Created");
+
+        // 0. Generate Textures (Procedural)
+        generateCharacterTextures(this);
+        generateSpriteSheet(this);
+        generateWeaponIcons(this);
 
         // 1. Setup Grid Background
         this.grid = this.add.graphics();
@@ -25,12 +36,26 @@ export class ArtLabScene extends Phaser.Scene {
 
         // 2. Initialize Modes
         this.charMode.create();
+        this.weaponMode.create();
+        this.charMode.updateConfig(this.config);
+        this.weaponMode.updateConfig(this.config);
 
         // 3. Listen for Config Updates
-        EventBus.on('ART_LAB_UPDATE', (newConfig: ArtLabState) => {
+        const onUpdate = (newConfig: ArtLabState) => {
+            console.log("🧪 [Art Lab] Event Received:", newConfig);
             this.config = newConfig;
             this.updateResolution();
             this.charMode.updateConfig(this.config);
+            this.weaponMode.updateConfig(this.config);
+            this.updateDebugText();
+        };
+
+        EventBus.on('ART_LAB_UPDATE', onUpdate);
+
+        // Cleanup on Shutdown (Crucial for HMR / Restarting)
+        this.events.once('shutdown', () => {
+            EventBus.off('ART_LAB_UPDATE', onUpdate);
+            console.log("🧪 [Art Lab] Event Listeners Cleaned Up");
         });
 
         // 4. Initial Resolution Setup
@@ -38,21 +63,37 @@ export class ArtLabScene extends Phaser.Scene {
 
         // 5. Handle Resize
         this.scale.on('resize', this.drawGrid, this);
+
+        // 6. Debug Text
+        this.debugText = this.add.text(10, 10, '', {
+            font: '16px monospace', color: '#00ff00', backgroundColor: '#000000'
+        });
+        this.debugText.setScrollFactor(0); // Fixed on screen
+        this.updateDebugText();
     }
 
     update(time: number, delta: number) {
         // Delegate to Active Mode
         if (this.config.activeMode === 'CHARACTER') {
             this.charMode.update(time, delta);
+        } else if (this.config.activeMode === 'WEAPON') {
+            this.weaponMode.update(time, delta);
         }
     }
 
+    private updateDebugText() {
+        if (!this.debugText) return;
+        this.debugText.setText(
+            `ZOOM: ${this.config.cameraZoom.toFixed(1)}\n` +
+            `WOBBLE: ${this.config.wobbleSpeed.toFixed(1)}\n` +
+            `SCALE: ${this.config.charScaleX.toFixed(1)}`
+        );
+    }
+
     private updateResolution() {
-        // [PIXELATION PIPELINE]
-        // Instead of resizing global canvas, we zoom the camera to simulate low res
-        const zoom = this.config.pixelation;
-        this.cameras.main.setZoom(zoom);
-        this.cameras.main.centerOn(0, 0); // Always focus center
+        if (!this.cameras.main) return;
+        this.cameras.main.setZoom(this.config.cameraZoom);
+        this.cameras.main.centerOn(0, 0);
     }
 
     private drawGrid() {

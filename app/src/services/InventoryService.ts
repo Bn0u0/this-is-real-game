@@ -40,6 +40,22 @@ class InventoryService {
                     console.warn("⚠️ [Inventory] Detected Legacy Save. Wiping for V5 Schema.");
                     return this.createDefaultProfile();
                 }
+
+                // [HOTFIX V2] Check for broken weapon ID and auto-fix
+                if (data.loadout.mainWeapon) {
+                    const weaponDef = ItemLibrary.get(data.loadout.mainWeapon.defId);
+                    if (!weaponDef || !weaponDef.behavior) {
+                        console.warn(`⚠️ [Inventory] Detected broken weapon ID: ${data.loadout.mainWeapon.defId}. Auto-fixing to weapon_crowbar_t0.`);
+                        data.loadout.mainWeapon = this.createItem('weapon_crowbar_t0');
+                        localStorage.setItem(STORAGE_KEY_V4, JSON.stringify(data)); // Save fix immediately
+                    }
+                } else {
+                    // No weapon at all, grant default
+                    console.warn("⚠️ [Inventory] No weapon in loadout. Granting default crowbar.");
+                    data.loadout.mainWeapon = this.createItem('weapon_crowbar_t0');
+                    localStorage.setItem(STORAGE_KEY_V4, JSON.stringify(data));
+                }
+
                 return data;
             }
         } catch (e) { console.error(e); }
@@ -62,7 +78,7 @@ class InventoryService {
             inventory: ['W_T1_PISTA_01'],
             stash: [],
             loadout: {
-                mainWeapon: this.createItem('W_T1_PISTA_01'),
+                mainWeapon: this.createItem('weapon_crowbar_t0'), // [FIX] Use correct T0 weapon ID
                 head: null,
                 body: null,
                 legs: null,

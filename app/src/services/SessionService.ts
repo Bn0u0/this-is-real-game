@@ -148,9 +148,15 @@ class SessionService {
         // [FIX] Direct Phaser Access (Bypass EventBus if possible)
         const game = (window as any).phaserGame;
         if (game) {
-            logger.info("Session", "Direct Scene Switch Triggered (MainScene).");
-            game.scene.start('MainScene');
-            game.scene.stop('WorkbenchScene');
+            const mainScene = game.scene.getScene('MainScene');
+            if (mainScene && game.scene.isActive('MainScene')) {
+                logger.info("Session", "MainScene already active. Emitting START_MATCH directly.");
+                EventBus.emit('START_MATCH', { mode: 'SINGLE', hero: heroId });
+            } else {
+                logger.info("Session", "Starting MainScene...");
+                game.scene.start('MainScene');
+                game.scene.stop('WorkbenchScene');
+            }
         } else {
             logger.warn("Session", "Phaser Game not found on window. Using EventBus fallback.");
             EventBus.emit('SCENE_SWITCH', 'MainScene');

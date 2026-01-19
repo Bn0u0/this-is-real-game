@@ -84,3 +84,16 @@ This skill serves as a permanent record of identified bugs, architectural pitfal
 ---
 **Status**: ACTIVE
 **Last Updated**: 2026-01-18
+### [BUG-014] Invalid Default Weapon ID in Save Data
+- **Description**: "No weapon equipped" warning and failed initial combat logic.
+- **Root Cause**: `InventoryService` initialized default profiles with a hardcoded ID (`W_T1_PISTA_01`) that did not exist in the `ItemLibrary` (which uses `weapon_crowbar_t0`).
+- **Prevention**: When referencing Asset IDs in code (especially default values), always cross-check with the actual Asset Library or use a Type-Safe Enum/Constant. Don't use "Magic Strings".
+
+### [BUG-015] Scene Transition Race Condition (Double Click Stall)
+- **Description**: User has to click "Start" twice. First click logs "Navigating" but screen doesn't change.
+- **Root Cause**: Calling `game.scene.start('MainScene')` when `MainScene` is already active (but perhaps paused or transitioning) caused a silent failure or limbo state.
+- **Prevention**: always check `game.scene.isActive('Key')` before calling start. If active, emit a logic event (e.g., `START_MATCH`) instead of restarting the scene.
+
+---
+**Status**: ACTIVE
+**Last Updated**: 2026-01-19

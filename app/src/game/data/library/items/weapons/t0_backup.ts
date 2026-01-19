@@ -12,6 +12,7 @@ export const T0_WEAPONS: ItemDef[] = [
         description: '一把普通的撬棍',
         icon: 'icon_scrap_metal',
         behavior: 'MELEE_SWEEP',
+        visualCategory: 'BLUNT', // [V2] Data-driven weapon visual
         controlType: 'HYBRID', // Exceptions handling: Melee Hybrid = Slow Forward
         siegeBehavior: 'SLOW_CHARGE'
     },
@@ -26,6 +27,7 @@ export const T0_WEAPONS: ItemDef[] = [
         description: '生鏽的手槍',
         icon: 'ammo_pip',
         behavior: 'PISTOL_SHOT',
+        visualCategory: 'PISTOL', // [V2] Data-driven weapon visual
         controlType: 'HYBRID',
         siegeBehavior: 'MOONWALK_LASER'
     },
@@ -40,6 +42,7 @@ export const T0_WEAPONS: ItemDef[] = [
         description: '老舊的無人機',
         icon: 'artifact_box',
         behavior: 'DRONE_BEAM',
+        visualCategory: 'DRONE', // [V2] Data-driven weapon visual
         controlType: 'AUTO',
         siegeBehavior: 'FOCUS_FIRE'
     }

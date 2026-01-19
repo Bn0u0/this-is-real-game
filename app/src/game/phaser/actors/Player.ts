@@ -181,9 +181,17 @@ export class Player extends Phaser.GameObjects.Container {
         body.setMaxVelocity(PHYSICS.maxVelocity);
         body.setCollideWorldBounds(true);
 
-        // Setup Melee Listener
-        EventBus.off('PLAYER_MELEE_ANIM');
-        EventBus.on('PLAYER_MELEE_ANIM', () => this.playMeleeAnimation());
+        // [V2] PLAYER_WEAPON_ANIM Listener (Data-Driven)
+        EventBus.off('PLAYER_WEAPON_ANIM');
+        EventBus.on('PLAYER_WEAPON_ANIM', (data: { type: string, weaponId: string }) => {
+            switch (data.type) {
+                case 'SWING': this.playSwingAnimation(); break;
+                case 'THRUST': this.playThrustAnimation(); break;
+                case 'SHOOT': this.playShootAnimation(); break;
+                case 'THROW': this.playThrowAnimation(); break;
+                case 'DRAWBOW': this.playDrawbowAnimation(); break;
+            }
+        });
     }
 
     public configure(config: ClassConfig, classId: string) {
@@ -241,8 +249,8 @@ export class Player extends Phaser.GameObjects.Container {
 
         this.drawGuardian(config.stats.markColor);
 
-        // Initial Weapon Draw
-        this.drawWeapon(def?.id || '');
+        // Initial Weapon Draw (V2: Pass full def for visualCategory)
+        this.drawWeapon(def?.id || '', def);
     }
 
     public equipWeapon(item: ItemDef | ItemInstance) {
@@ -280,32 +288,82 @@ export class Player extends Phaser.GameObjects.Container {
         this.coreShape.clear();
     }
 
-    private drawWeapon(defId: string) {
+    private drawWeapon(defId: string, def?: any) {
         const g = this.weaponSprite;
         g.clear();
 
         // Default: Hidden
         this.weaponContainer.setVisible(false);
 
-        if (defId.includes('crowbar')) {
-            this.weaponContainer.setVisible(true);
-            this.weaponContainer.setPosition(15, 10); // Hold at side
+        // [V2] Data-Driven visualCategory
+        const category = def?.visualCategory || 'OTHER';
 
-            // Crowbar Visual (L-Shape Pixel Art)
-            // Color: Rust Orange (#D35400) + Dark Grey (#444)
-            g.fillStyle(0x444444, 1);
-            g.fillRect(0, 0, 4, 20); // Handle
-
-            g.fillStyle(0xD35400, 1);
-            g.fillRect(0, -4, 4, 16); // Grip Area ?
-
-            g.fillStyle(0x888888, 1); // Head
-            g.fillRect(0, 20, 10, 4); // L-Hook
+        switch (category) {
+            case 'BLUNT':
+                // Crowbar / Hammer / Pipe
+                this.weaponContainer.setVisible(true);
+                this.weaponContainer.setPosition(15, 10);
+                g.fillStyle(0x444444, 1);
+                g.fillRect(0, 0, 4, 20); // Handle
+                g.fillStyle(0xD35400, 1);
+                g.fillRect(0, -4, 4, 16); // Grip
+                g.fillStyle(0x888888, 1);
+                g.fillRect(0, 20, 10, 4); // L-Hook
+                break;
+            case 'BLADE':
+                // Sword / Knife
+                this.weaponContainer.setVisible(true);
+                this.weaponContainer.setPosition(12, 8);
+                g.fillStyle(0xCCCCCC, 1);
+                g.fillRect(0, 0, 3, 28); // Blade
+                g.fillStyle(0x8B4513, 1);
+                g.fillRect(-1, 28, 5, 6); // Hilt
+                break;
+            case 'PISTOL':
+                // Handgun
+                this.weaponContainer.setVisible(true);
+                this.weaponContainer.setPosition(18, 5);
+                g.fillStyle(0x333333, 1);
+                g.fillRect(0, 0, 12, 6); // Barrel
+                g.fillRect(8, 6, 4, 8); // Grip
+                break;
+            case 'RIFLE':
+                // Long Gun
+                this.weaponContainer.setVisible(true);
+                this.weaponContainer.setPosition(20, 0);
+                g.fillStyle(0x333333, 1);
+                g.fillRect(0, 2, 24, 4); // Barrel
+                g.fillStyle(0x5D4037, 1);
+                g.fillRect(18, 6, 6, 10); // Stock
+                break;
+            case 'BOW':
+                // Bow
+                this.weaponContainer.setVisible(true);
+                this.weaponContainer.setPosition(15, 0);
+                g.lineStyle(2, 0x8B4513, 1);
+                g.beginPath();
+                g.arc(0, 15, 15, -Math.PI / 2, Math.PI / 2, false);
+                g.strokePath();
+                g.lineStyle(1, 0xCCCCCC, 1);
+                g.beginPath();
+                g.moveTo(0, 0);
+                g.lineTo(0, 30);
+                g.strokePath();
+                break;
+            case 'DRONE':
+            case 'OTHER':
+            default:
+                // No visible melee weapon (e.g., drones, beams)
+                break;
         }
     }
 
-    private playMeleeAnimation() {
-        if (!this.weaponContainer.visible) return;
+    // [V2] Animation Methods
+    private playSwingAnimation() {
+        if (!this.weaponContainer.visible) {
+            console.warn('[Player] playMeleeAnimation ABORTED: weaponContainer not visible!');
+            return;
+        }
 
         // 1. Visual Swing
         this.scene.tweens.add({
@@ -332,6 +390,59 @@ export class Player extends Phaser.GameObjects.Container {
 
         // 3. Screen Shake (Juice)
         this.scene.cameras.main.shake(50, 0.002);
+    }
+
+    private playThrustAnimation() {
+        if (!this.weaponContainer.visible) return;
+        this.scene.tweens.add({
+            targets: this.weaponContainer,
+            x: { from: 15, to: 35 },
+            duration: 80,
+            yoyo: true,
+            onStart: () => {
+                this.swingEffect.clear();
+                this.swingEffect.setVisible(true);
+                this.swingEffect.fillStyle(0xFFFFFF, 0.6);
+                this.swingEffect.fillRect(20, -5, 30, 10); // Thrust trail
+            },
+            onYoyo: () => this.swingEffect.setVisible(false),
+            onComplete: () => this.weaponContainer.x = 15
+        });
+        this.scene.cameras.main.shake(30, 0.001);
+    }
+
+    private playShootAnimation() {
+        // Shoot animation is handled by recoil system, just add muzzle flash
+        if (!this.weaponContainer.visible) return;
+        const flash = this.scene.add.circle(this.x + Math.cos(this.rotation - Math.PI / 2) * 30, this.y + Math.sin(this.rotation - Math.PI / 2) * 30, 8, 0xFFFF00);
+        flash.setBlendMode(Phaser.BlendModes.ADD);
+        this.scene.tweens.add({
+            targets: flash,
+            scale: 0,
+            alpha: 0,
+            duration: 60,
+            onComplete: () => flash.destroy()
+        });
+    }
+
+    private playThrowAnimation() {
+        if (!this.weaponContainer.visible) return;
+        this.scene.tweens.add({
+            targets: this.weaponContainer,
+            angle: { from: -30, to: 60 },
+            duration: 150,
+            yoyo: true
+        });
+    }
+
+    private playDrawbowAnimation() {
+        if (!this.weaponContainer.visible) return;
+        this.scene.tweens.add({
+            targets: this.weaponContainer,
+            scaleX: { from: 1, to: 0.8 },
+            duration: 200,
+            yoyo: true
+        });
     }
 
     /**
@@ -690,7 +801,7 @@ export class Player extends Phaser.GameObjects.Container {
     destroy(fromScene?: boolean) {
         this.emitter.destroy();
         EventBus.off('PLAYER_RECOIL');
-        EventBus.off('PLAYER_MELEE_ANIM'); // [FIX] Cleanup
+        EventBus.off('PLAYER_WEAPON_ANIM'); // [V2] Cleanup
         super.destroy(fromScene);
     }
 

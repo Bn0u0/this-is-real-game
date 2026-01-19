@@ -49,7 +49,13 @@ export interface ItemDef {
   slot: EquipmentSlot;      // 明確指定槽位
 
   // [NEW] Behavior for WeaponSystem
-  behavior?: 'MELEE_SWEEP' | 'HOMING_ORB' | 'SHOCKWAVE' | 'LASER' | 'BOOMERANG' | 'PISTOL_SHOT' | 'DRONE_BEAM';
+  behavior?: 'MELEE_SWEEP' | 'MELEE_THRUST' | 'PISTOL_SHOT' | 'RIFLE_BURST' | 'BOW_SHOT' | 'GRENADE_THROW' | 'DRONE_BEAM' | 'HOMING_ORB' | 'SHOCKWAVE' | 'LASER' | 'BOOMERANG';
+
+  // [NEW V2] Animation type (priority over behavior derivation)
+  animationType?: 'SWING' | 'THRUST' | 'SHOOT' | 'THROW' | 'DRAWBOW' | 'NONE';
+
+  // [NEW V2] Visual category for weapon rendering
+  visualCategory?: 'BLUNT' | 'BLADE' | 'PISTOL' | 'RIFLE' | 'BOW' | 'GRENADE' | 'DRONE' | 'OTHER';
 
   // [NEW] Siege Mode
   controlType?: 'AUTO' | 'HYBRID' | 'MANUAL';

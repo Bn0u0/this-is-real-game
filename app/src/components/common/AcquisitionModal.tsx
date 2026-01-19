@@ -29,11 +29,9 @@ export const AcquisitionModal: React.FC<Props> = ({ item, onAccept, title, subti
     const glowColor = (item.prefix?.visuals?.glowColor || getRarityColor()) as string;
     const borderColor = (item.prefix?.visuals?.textColor || '#555') as string;
 
-    // Image logic: specific icons or defaults
+    // Image logic: [REMOVED] hardcoded ID checks - replaced by data-driven visualCategory in V2
     const getIconPath = () => {
-        if (item.defId.includes('crowbar')) return ''; // Placeholder
-        if (item.defId.includes('pistol')) return ''; // Placeholder
-        if (item.defId.includes('drone')) return ''; // Placeholder
+        // TODO: V2 will use item.def.icon or visualCategory mapping
         return '';
     };
 

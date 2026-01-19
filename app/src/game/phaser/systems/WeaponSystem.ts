@@ -92,6 +92,30 @@ export class WeaponSystem {
         let projDamage = damage;
         let projDuration = duration;
 
+        // [V2] Behavior to Animation Mapping (Data-Driven)
+        const BEHAVIOR_TO_ANIMATION: Record<string, string> = {
+            'MELEE_SWEEP': 'SWING',
+            'MELEE_THRUST': 'THRUST',
+            'PISTOL_SHOT': 'SHOOT',
+            'RIFLE_BURST': 'SHOOT',
+            'BOW_SHOT': 'DRAWBOW',
+            'GRENADE_THROW': 'THROW',
+            'DRONE_BEAM': 'NONE',
+            'HOMING_ORB': 'NONE',
+            'SHOCKWAVE': 'NONE',
+            'LASER': 'SHOOT',
+            'BOOMERANG': 'THROW'
+        };
+
+        // Determine animation type (definition priority, fallback to mapping)
+        const animType = def.animationType || BEHAVIOR_TO_ANIMATION[def.behavior || ''] || 'NONE';
+
+        // [V2] Emit weapon animation event for Player (before switch for all behaviors)
+        if (!source.isEnemy && animType !== 'NONE') {
+            EventBus.emit('PLAYER_WEAPON_ANIM', { type: animType, weaponId: def.id });
+            EventBus.emit('PLAY_SFX', animType === 'SWING' ? 'SWING' : 'SHOOT');
+        }
+
         // [SAFETY] Prevent Default Bullet Firing if Behavior is improper
         let valid = false;
 
@@ -99,17 +123,11 @@ export class WeaponSystem {
             case 'MELEE_SWEEP':
                 // [MELEE 2.0] Static Hitbox + Visual Swing
                 textureId = 0; // Invisible (Logic Entity)
-                tint = 0xFFFFFF; // Invisible in game (handled by alpha or debug) - Actually let's make it faint white for debug or style
+                tint = 0xFFFFFF;
                 scale = 2.0; // Large Area
                 projSpeed = 0; // Static
                 projDamage = damage * 1.5;
                 projDuration = 100; // Short 100ms Box
-
-                // Trigger Visual Swing on Player
-                if (source.id === 'player') {
-                    EventBus.emit('PLAYER_MELEE_ANIM');
-                    EventBus.emit('PLAY_SFX', 'SWING');
-                }
                 valid = true;
                 break;
             case 'DRONE_BEAM':

@@ -59,8 +59,8 @@ class MetaGameService {
 
     // --- Game Logic Hooks ---
     public startMatch() {
-        // [DUAL-TRACK] Loadout Check
-        const mainWep = this.state.profile.loadout.mainWeapon;
+        // [DUAL-TRACK] Loadout Check (Force Fresh State)
+        const mainWep = inventoryService.getState().loadout.mainWeapon;
         if (!mainWep) {
             console.warn("[MetaGame] Warning: No weapon equipped!");
             // Allowed, poverty logic in MainScene will catch this

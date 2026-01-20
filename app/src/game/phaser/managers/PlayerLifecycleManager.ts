@@ -68,9 +68,9 @@ export class PlayerLifecycleManager {
         }
     }
 
-    public update() {
+    public update(time: number, delta: number) {
         if (this.commander && this.commander.active) {
-            this.commander.update();
+            this.commander.update(time, delta);
         }
     }
 }

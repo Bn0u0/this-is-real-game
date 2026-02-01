@@ -80,34 +80,36 @@ export const ArtLabOverlay: React.FC = () => {
                                         value={config.selectedWeaponId}
                                         onChange={(e) => handleUpdate('selectedWeaponId', e.target.value)}
                                     >
-                                        <optgroup label="T0: 初始">
-                                            <option value="w_fist_t0">拳頭</option>
-                                            <option value="weapon_crowbar_t0">生鏽撬棍</option>
-                                            <option value="weapon_pistol_t0">老夥計 (Pistol)</option>
-                                            <option value="weapon_drone_t0">無人機 Beta</option>
+                                        <optgroup label="T0: Glitch (最強)">
+                                            <option value="w_reality_slicer_t0">現實切割者</option>
+                                            <option value="w_glitch_storm_t0">溢位風暴</option>
                                         </optgroup>
-                                        <optgroup label="T1: 廢棄">
-                                            <option value="w_nailgun_t1">改造釘槍</option>
-                                            <option value="w_pipe_wrench_t1">重型管鉗</option>
-                                            <option value="w_scrap_shotgun_t1">土製噴子</option>
+                                        <optgroup label="T1: Hi-Tech">
+                                            <option value="w_railgun_t1">磁軌砲</option>
+                                            <option value="w_funnels_t1">浮游砲陣列</option>
+                                            <option value="weapon_drone_t1">浮游單元 Beta</option>
                                         </optgroup>
-                                        <optgroup label="T2: 工業">
-                                            <option value="w_assault_rifle_t2">制式步槍</option>
+                                        <optgroup label="T2: Tactical">
+                                            <option value="w_sniper_t2">維和者 (Sniper)</option>
+                                            <option value="w_katana_t2">熱能太刀</option>
+                                            <option value="w_vector_t2">死亡風暴 (SMG)</option>
                                             <option value="w_sledgehammer_t2">動力大錘</option>
                                             <option value="w_sawblade_t2">圓鋸發射器</option>
+                                            <option value="w_assault_rifle_t2">制式步槍</option>
                                         </optgroup>
-                                        <optgroup label="T3: 戰術">
-                                            <option value="w_sniper_t3">維和者 (Sniper)</option>
-                                            <option value="w_katana_t3">熱能太刀</option>
-                                            <option value="w_vector_t3">死亡風暴 (SMG)</option>
+                                        <optgroup label="T3: Industrial">
+                                            <option value="weapon_pistol_t3">老夥計 (Pistol)</option>
+                                            <option value="w_nailgun_t3">改造釘槍</option>
                                         </optgroup>
-                                        <optgroup label="T4: 傳說">
-                                            <option value="w_railgun_t4">磁軌砲</option>
-                                            <option value="w_funnels_t4">浮游砲陣列</option>
+                                        <optgroup label="T4: Scrap">
+                                            <option value="weapon_crowbar_t4">生鏽撬棍</option>
+                                            <option value="w_pipe_wrench_t4">重型管鉗</option>
+                                            <option value="w_scrap_shotgun_t4">土製噴子</option>
                                         </optgroup>
-                                        <optgroup label="T5: 亂碼 (Glitch)">
-                                            <option value="w_reality_slicer_t5">現實切割者</option>
-                                            <option value="w_glitch_storm_t5">溢位風暴</option>
+                                        <optgroup label="T5: Primitive (最弱)">
+                                            <option value="w_fist_t5">拳頭</option>
+                                            <option value="w_broken_bottle_t5">破瓶子</option>
+                                            <option value="w_rock_t5">石頭</option>
                                         </optgroup>
                                     </select>
                                 </div>

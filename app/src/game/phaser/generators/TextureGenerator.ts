@@ -367,5 +367,78 @@ export const generateWeaponIcons = (scene: Phaser.Scene) => {
         g.generateTexture('weapon_drone', 64, 64);
     }
 
+    // 18. Rock (weapon_rock) - T5 Primitive
+    {
+        const g = scene.make.graphics({ x: 0, y: 0 });
+        // Irregular rock shape with doodle style
+        g.fillStyle(0x8B7355); // Brown-grey stone color
+
+        // Main rock body (irregular polygon)
+        g.beginPath();
+        g.moveTo(32, 18);
+        g.lineTo(45, 24);
+        g.lineTo(46, 38);
+        g.lineTo(38, 46);
+        g.lineTo(22, 44);
+        g.lineTo(18, 32);
+        g.lineTo(24, 22);
+        g.closePath();
+        g.fillPath();
+
+        // Add texture with darker spots
+        g.fillStyle(0x6B5345);
+        g.fillCircle(28, 28, 4);
+        g.fillCircle(38, 32, 3);
+        g.fillCircle(32, 38, 2);
+
+        // Highlight (lighter edge)
+        g.fillStyle(0xA89080);
+        g.fillCircle(30, 24, 3);
+        g.fillCircle(40, 28, 2);
+
+        g.generateTexture('weapon_rock', 64, 64);
+    }
+
+    // 19. Broken Bottle (weapon_bottle) - T5 Primitive
+    {
+        const g = scene.make.graphics({ x: 0, y: 0 });
+
+        // Bottle neck (intact part)
+        g.fillStyle(0x2D5A3D); // Dark green glass
+        drawDoodleRect(g, 28, 12, 8, 16, 0x2D5A3D);
+
+        // Broken jagged edges
+        g.fillStyle(0x3D7A4D); // Lighter green for broken part
+        g.beginPath();
+        g.moveTo(26, 28);
+        g.lineTo(20, 35); // Jagged left
+        g.lineTo(24, 42);
+        g.lineTo(28, 38);
+        g.lineTo(32, 44); // Center spike
+        g.lineTo(36, 38);
+        g.lineTo(40, 42);
+        g.lineTo(44, 35); // Jagged right
+        g.lineTo(38, 28);
+        g.closePath();
+        g.fillPath();
+
+        // Sharp highlights on edges
+        g.lineStyle(2, 0x8FBC8F, 0.8);
+        g.beginPath();
+        g.moveTo(32, 44);
+        g.lineTo(32, 40);
+        g.moveTo(24, 42);
+        g.lineTo(26, 38);
+        g.moveTo(40, 42);
+        g.lineTo(38, 38);
+        g.strokePath();
+
+        // Dark shadow/dirt on neck
+        g.fillStyle(0x1A3A2A);
+        g.fillRect(29, 14, 6, 3);
+
+        g.generateTexture('weapon_bottle', 64, 64);
+    }
+
     console.log('[TextureGenerator] Weapon Icons Generated (Full Completeness).');
 };

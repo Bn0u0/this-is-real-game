@@ -1,20 +1,38 @@
 import { ItemDef } from '../../../../types';
-import { T0_WEAPONS } from './weapons/t0_backup';
-import { T1_WEAPONS } from './weapons/t1_scrap';
-import { T2_WEAPONS } from './weapons/t2_industrial';
-import { T3_WEAPONS } from './weapons/t3_tactical';
-import { T4_WEAPONS } from './weapons/t4_hitech';
-import { T5_WEAPONS } from './weapons/t5_glitch';
+import * as WEAPONS from './weapons/individual';
 import { ARMOR_COLLECTION } from './armor';
 
-// 1. Aggregate
+// 1. Aggregate all weapons
+const ALL_WEAPONS: ItemDef[] = [
+    // T0: Glitch
+    WEAPONS.REALITY_SLICER,
+    WEAPONS.GLITCH_STORM,
+    // T1: Hi-Tech
+    WEAPONS.RAILGUN,
+    WEAPONS.FUNNELS,
+    WEAPONS.DRONE,
+    // T2: Tactical
+    WEAPONS.SNIPER,
+    WEAPONS.KATANA,
+    WEAPONS.SMG,
+    WEAPONS.POWER_HAMMER,
+    WEAPONS.RIPPER,
+    WEAPONS.ASSAULT_RIFLE,
+    // T3: Industrial
+    WEAPONS.PISTOL,
+    WEAPONS.NAILGUN,
+    // T4: Scrap
+    WEAPONS.CROWBAR,
+    WEAPONS.PIPE_WRENCH,
+    WEAPONS.SCRAP_SHOTGUN,
+    // T5: Primitive
+    WEAPONS.FIST,
+    WEAPONS.BROKEN_BOTTLE,
+    WEAPONS.ROCK
+];
+
 const ALL_ITEMS: ItemDef[] = [
-    ...T0_WEAPONS,
-    ...T1_WEAPONS,
-    ...T2_WEAPONS,
-    ...T3_WEAPONS,
-    ...T4_WEAPONS,
-    ...T5_WEAPONS,
+    ...ALL_WEAPONS,
     ...ARMOR_COLLECTION
 ];
 
@@ -35,8 +53,8 @@ export const ItemLibrary = {
         if (pool.length > 0) {
             return pool[Math.floor(Math.random() * pool.length)];
         }
-        // Fallback to T0 Weapon to prevent crash
+        // Fallback to first weapon to prevent crash
         console.warn(`[ItemLibrary] No items found for Tier ${tier}. Falling back to default.`);
-        return T0_WEAPONS[0] || null;
+        return ALL_WEAPONS[0] || null;
     }
 };

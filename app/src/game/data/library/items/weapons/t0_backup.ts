@@ -1,70 +1,40 @@
 import { ItemDef } from '../../../../../types';
 
+/**
+ * T0: 傳說級 Glitch 武器 (最強)
+ * 概念: 超越物理法則的錯誤代碼武器
+ */
 export const T0_WEAPONS: ItemDef[] = [
     {
-        id: 'w_fist_t0',
-        name: '拳頭',
+        id: 'w_reality_slicer_t0',
+        name: '現實切割者 (Reality Slicer)',
         type: 'WEAPON',
         slot: 'mainWeapon',
         tier: 0,
-        rarity: 'COMMON',
-        baseStats: { damage: 10, range: 40, fireRate: 400, speed: 1.0, critChance: 0.1, defense: 0, hpMax: 0 },
-        description: '你的雙手。雖然原始但可靠。',
-        icon: 'weapon_fist',
-        behavior: 'MELEE_THRUST',
-        visualCategory: 'BLUNT',
-        controlType: 'MANUAL',
-        siegeBehavior: 'NONE'
-    },
-    {
-        id: 'weapon_crowbar_t0',
-        name: '幸運撬棍',
-        type: 'WEAPON',
-        slot: 'mainWeapon',
-        tier: 0,
-        rarity: 'COMMON',
-        baseStats: { damage: 25, range: 60, fireRate: 800, speed: 1.0, critChance: 0.05, defense: 0, hpMax: 0 },
-        description: '一把普通的撬棍',
-        icon: 'weapon_crowbar',
-        hitbox: {
-            shape: 'CIRCLE',
-            offset: 40,
-            width: 60,
-            duration: 150
-        },
+        rarity: 'GLITCH',
         behavior: 'MELEE_SWEEP',
-        visualCategory: 'BLUNT', // [V2] Data-driven weapon visual
-        controlType: 'HYBRID', // Exceptions handling: Melee Hybrid = Slow Forward
-        siegeBehavior: 'SLOW_CHARGE'
+        baseStats: { damage: 999, range: 300, fireRate: 1000, speed: 1.0, critChance: 1.0, defense: 0, hpMax: 0 },
+        description: 'ERROR: WEAPON_DATA_CORRUPTED. 切割空間本身的錯誤代碼。',
+        icon: 'weapon_glitch_sword',
+        controlType: 'MANUAL',
+        siegeBehavior: 'TIME_STOP_SLASH',
+        // [V4] Brotato-style orbit config
+        orbitConfig: { radius: 80, speed: 5.0 },
+        attackConfig: { duration: 200, hitboxWidth: 120, hitboxHeight: 60, hitboxOffset: { x: 0, y: 0 } }
     },
     {
-        id: 'weapon_pistol_t0',
-        name: '老夥計',
+        id: 'w_glitch_storm_t0',
+        name: '溢位風暴 (Overflow Storm)',
         type: 'WEAPON',
         slot: 'mainWeapon',
         tier: 0,
-        rarity: 'COMMON',
-        baseStats: { damage: 12, range: 400, fireRate: 600, speed: 1.0, critChance: 0.05, defense: 0, hpMax: 0 },
-        description: '生鏽的手槍',
-        icon: 'weapon_pistol',
-        behavior: 'PISTOL_SHOT',
-        visualCategory: 'PISTOL', // [V2] Data-driven weapon visual
-        controlType: 'HYBRID',
-        siegeBehavior: 'MOONWALK_LASER'
-    },
-    {
-        id: 'weapon_drone_t0',
-        name: '浮游單元 Beta',
-        type: 'WEAPON',
-        slot: 'mainWeapon',
-        tier: 0,
-        rarity: 'COMMON',
-        baseStats: { damage: 5, range: 300, fireRate: 200, speed: 1.0, critChance: 0.05, defense: 0, hpMax: 0 }, // 滋滋滋
-        description: '老舊的無人機',
-        icon: 'weapon_drone',
+        rarity: 'GLITCH',
         behavior: 'DRONE_BEAM',
-        visualCategory: 'DRONE', // [V2] Data-driven weapon visual
+        baseStats: { damage: 50, range: 1000, fireRate: 100, speed: 0, critChance: 0.1, defense: 0, hpMax: 0 },
+        description: '直接對視野內所有目標的內存地址進行寫入攻擊。',
+        icon: 'weapon_glitch_orb',
         controlType: 'AUTO',
-        siegeBehavior: 'FOCUS_FIRE'
+        siegeBehavior: 'AOE_DOT_FIELD',
+        orbitConfig: { radius: 100, speed: 2.0 }
     }
 ];

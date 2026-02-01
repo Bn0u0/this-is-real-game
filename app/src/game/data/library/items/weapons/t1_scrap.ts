@@ -1,47 +1,55 @@
 import { ItemDef } from '../../../../../types';
 
+/**
+ * T1: 傳說級高科技武器
+ * 概念: 尖端科技的極致兵器
+ */
 export const T1_WEAPONS: ItemDef[] = [
     {
-        id: 'w_nailgun_t1',
-        name: '改造釘槍 (Nailgun)',
+        id: 'w_railgun_t1',
+        name: '磁軌砲 (Railgun)',
         type: 'WEAPON',
         slot: 'mainWeapon',
         tier: 1,
-        rarity: 'COMMON',
-        behavior: 'PISTOL_SHOT',
-        baseStats: { damage: 8, range: 300, fireRate: 120, speed: 800, critChance: 0.05, defense: 0, hpMax: 0 },
-        description: '工業用的釘槍，現在用來釘頭骨。射速快但準度堪憂。',
-        icon: 'weapon_nailgun',
-        controlType: 'HYBRID',
-        siegeBehavior: 'RETICLE_FOCUS'
+        rarity: 'LEGENDARY',
+        behavior: 'LASER',
+        baseStats: { damage: 400, range: 1500, fireRate: 2500, speed: 9999, critChance: 0.5, defense: 0, hpMax: 0 },
+        description: '以電磁力加速彈丸至 8 馬赫。無視任何護甲。',
+        icon: 'weapon_railgun',
+        controlType: 'MANUAL',
+        siegeBehavior: 'PENETRATING_BEAM',
+        orbitConfig: { radius: 70, speed: 2.5 }
     },
     {
-        id: 'w_pipe_wrench_t1',
-        name: '重型管鉗 (Pipe Wrench)',
+        id: 'w_funnels_t1',
+        name: '浮游砲陣列 (Funnel System)',
         type: 'WEAPON',
         slot: 'mainWeapon',
         tier: 1,
-        rarity: 'COMMON',
-        behavior: 'MELEE_SWEEP',
-        baseStats: { damage: 35, range: 80, fireRate: 900, speed: 1.0, critChance: 0.05, defense: 0, hpMax: 0 },
-        description: '修水管的工具，或者修理不聽話的拾荒者。',
-        icon: 'weapon_wrench',
-        controlType: 'HYBRID', // Melee Hybrid = Slow Forward
-        siegeBehavior: 'SLOW_CHARGE'
-    },
-    {
-        id: 'w_scrap_shotgun_t1',
-        name: '土製噴子 (Scrap Shotgun)',
-        type: 'WEAPON',
-        slot: 'mainWeapon',
-        tier: 1,
-        rarity: 'COMMON',
-        behavior: 'PISTOL_SHOT',
-        baseStats: { damage: 6, range: 200, fireRate: 1200, speed: 600, critChance: 0.05, defense: 0, hpMax: 0 },
-        // 注意：WeaponSystem 需支援 projectileCount，此處為 5 發散彈
-        description: '一次發射一堆廢鐵片。近距離致命。',
-        icon: 'weapon_scrap_shotgun',
+        rarity: 'LEGENDARY',
+        behavior: 'HOMING_ORB',
+        baseStats: { damage: 60, range: 800, fireRate: 300, speed: 600, critChance: 0.1, defense: 0, hpMax: 0 },
+        affinity: { classes: ['WEAVER', 'ARCHITECT'], bonusStats: { fireRate: -50 } },
+        description: '精神感應控制的無人攻擊單元。自動索敵。',
+        icon: 'weapon_funnels',
         controlType: 'AUTO',
-        siegeBehavior: 'TIGHT_SPREAD'
+        siegeBehavior: 'ALL_RANGE_ATTACK',
+        orbitConfig: { radius: 90, speed: 3.5 }
+    },
+    {
+        id: 'weapon_drone_t1',
+        name: '浮游單元 Beta',
+        type: 'WEAPON',
+        slot: 'mainWeapon',
+        tier: 1,
+        rarity: 'LEGENDARY',
+        baseStats: { damage: 15, range: 500, fireRate: 150, speed: 1.0, critChance: 0.1, defense: 0, hpMax: 0 },
+        description: '高科技無人攻擊載具。自動追蹤目標發射光束。',
+        icon: 'weapon_drone',
+        behavior: 'DRONE_BEAM',
+        visualCategory: 'DRONE',
+        controlType: 'AUTO',
+        siegeBehavior: 'FOCUS_FIRE',
+        orbitConfig: { radius: 100, speed: 2.0 }
     }
 ];

@@ -28,6 +28,7 @@ import { createDeathSystem } from '../ecs/systems/DeathSystem';
 import { createPlayerCollisionSystem } from '../ecs/systems/PlayerCollisionSystem';
 import { createEnemyAttackSystem } from '../ecs/systems/EnemyAttackSystem';
 import { createVisualEffectSystem } from '../ecs/systems/VisualEffectSystem';
+import { createWeaponCollisionSystem } from '../ecs/systems/WeaponCollisionSystem'; // [V4] Brotato Style
 import { Transform, Velocity, SpriteConfig } from '../ecs/components';
 
 // [NEW MANAGERS]
@@ -325,6 +326,7 @@ export class MainScene extends Phaser.Scene {
             createPlayerCollisionSystem(this.world), // Loot & Projectiles
             createEnemyAttackSystem(this.world),
             createVisualEffectSystem(),             // [NEW] Manage Flash Timers
+            createWeaponCollisionSystem(this),       // [V4] Brotato Style Weapon Hitbox
             createCollisionSystem(this, this.world),
             createDeathSystem(this.world),
             createLifetimeSystem(this.world),

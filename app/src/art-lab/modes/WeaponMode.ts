@@ -45,11 +45,11 @@ export class WeaponMode {
             this.weaponSprite.y = 15;
 
             // Handle Specifics (Drone floats)
-            if (config.selectedWeaponId === 'weapon_drone_t0') {
+            if (config.selectedWeaponId === 'weapon_drone_t1') {
                 this.weaponSprite.y = -60; // Float above
                 this.weaponSprite.x = -40; // Behind
                 this.weaponSprite.setOrigin(0.5, 0.5);
-            } else if (config.selectedWeaponId === 'w_fist_t0') {
+            } else if (config.selectedWeaponId === 'w_fist_t5') {
                 this.weaponSprite.setOrigin(0.5, 0.5); // Fist is just a blob
             } else {
                 this.weaponSprite.setOrigin(0.2, 0.5); // Hold at handle/base

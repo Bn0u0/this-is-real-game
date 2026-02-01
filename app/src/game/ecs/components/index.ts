@@ -73,3 +73,31 @@ export const SpriteConfig = defineComponent({
     scale: Types.f32,
     alpha: Types.f32 // [NEW] Transparency
 });
+
+// --- [V4] Weapon Entity Components (Brotato Style) ---
+export const WeaponTag = defineComponent(); // Marks entity as a weapon
+
+export const OrbitConfig = defineComponent({
+    radius: Types.f32,       // Orbit radius in pixels
+    speed: Types.f32,        // Rotation speed in rad/s
+    angleOffset: Types.f32,  // Initial angle offset (for multi-weapon distribution)
+    currentAngle: Types.f32  // Runtime: current angle
+});
+
+export const AttackState = defineComponent({
+    isActive: Types.ui8,         // 1 = Attacking, 0 = Idle/Cooldown
+    cooldownRemaining: Types.f32,// Time until next attack
+    attackDuration: Types.f32,   // Total attack time (ms)
+    attackProgress: Types.f32    // 0.0 ~ 1.0
+});
+
+export const WeaponVisualLink = defineComponent({
+    spriteId: Types.ui16 // Link to Phaser Sprite (for sync with RenderSystem)
+});
+
+export const WeaponStats = defineComponent({
+    damage: Types.f32,
+    range: Types.f32,
+    attackSpeed: Types.f32 // Cooldown in ms
+});
+

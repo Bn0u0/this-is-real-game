@@ -71,6 +71,29 @@ export interface ItemDef {
   controlType?: 'AUTO' | 'HYBRID' | 'MANUAL';
   siegeBehavior?: string; // Optional description of siege effect
 
+  // [NEW V4] Brotato-Style Orbit Configuration
+  orbitConfig?: {
+    radius: number;     // Orbit radius in pixels (default: 60)
+    speed: number;      // Rotation speed in rad/s (default: 3.0)
+  };
+
+  // [NEW V4] Attack Configuration for Attached Hitbox
+  attackConfig?: {
+    duration: number;       // Attack animation duration in ms
+    hitboxWidth: number;    // Collision width
+    hitboxHeight: number;   // Collision height
+    hitboxOffset: { x: number; y: number }; // Offset from weapon center
+  };
+
+  // [NEW V4] Projectile Configuration (for ranged weapons)
+  projectileConfig?: {
+    speed: number;
+    lifetime: number;
+    textureId: number;
+    count?: number;       // Multi-shot
+    spread?: number;      // Spread angle in radians
+  };
+
   projectileId?: string;
 
   // 基礎數值

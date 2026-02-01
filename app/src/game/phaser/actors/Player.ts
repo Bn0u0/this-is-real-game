@@ -12,6 +12,7 @@ import { EventBus } from '../../../services/EventBus';
 
 import { ClassMechanic } from './mechanics/ClassMechanic';
 import { PlayerRig } from '../visuals/PlayerRig'; // [NEW V2]
+import { WeaponOrbitManager } from '../managers/WeaponOrbitManager'; // [V4] Brotato Style
 import { ScavengerLogic } from './mechanics/ScavengerLogic';
 import { SkirmisherLogic } from './mechanics/SkirmisherLogic';
 import { WeaverLogic } from './mechanics/WeaverLogic';
@@ -33,6 +34,10 @@ export class Player extends Phaser.GameObjects.Container {
     // Class Config
     public classConfig: ClassConfig | null = null;
     public equippedWeapon: ItemInstance | null = null;
+
+    // [V4] Multi-Weapon Support (Brotato Style)
+    public equippedWeapons: ItemInstance[] = [];
+    public readonly MAX_WEAPONS = 6;
 
     // Stats
     public stats = {
@@ -83,6 +88,10 @@ export class Player extends Phaser.GameObjects.Container {
     // [V2] Visual Puppet (The Rig)
     public rig: PlayerRig;
 
+    // [V4] Brotato-Style Weapon Orbit System
+    public weaponOrbitManager: WeaponOrbitManager;
+
+
     public level: number = 1; // [OPERATION ESCALATION] Step 3: Stat Scaling
 
     constructor(scene: Phaser.Scene, x: number, y: number, id: string, isLocal: boolean) {
@@ -92,6 +101,10 @@ export class Player extends Phaser.GameObjects.Container {
 
         // [V2] Initialize Rig
         this.rig = new PlayerRig(scene, 0, 0);
+
+        // [V4] Initialize Weapon Orbit Manager
+        this.weaponOrbitManager = new WeaponOrbitManager(scene);
+        this.weaponOrbitManager.bindToPlayer(this);
         this.add(this.rig);
 
         // [LEGACY CLEANUP] Manual graphics creation removed.
@@ -205,10 +218,58 @@ export class Player extends Phaser.GameObjects.Container {
             };
         }
 
-        // [V2] Sync with Rig
-        if (this.equippedWeapon.def && this.rig) {
-            this.rig.equipWeapon(this.equippedWeapon.def);
+        // [V4] Add weapon to Orbit Manager (Brotato Style)
+        if (this.equippedWeapon && this.weaponOrbitManager) {
+            // For initial equip (class selection), clear and add first weapon
+            this.weaponOrbitManager.clear();
+            this.equippedWeapons = [this.equippedWeapon];
+            this.weaponOrbitManager.addWeapon(this.equippedWeapon);
         }
+    }
+
+    /**
+     * [V4] Adds an additional weapon to the orbit system.
+     * Supports up to MAX_WEAPONS (6) simultaneous weapons.
+     */
+    public addWeapon(item: ItemDef | ItemInstance): boolean {
+        if (this.equippedWeapons.length >= this.MAX_WEAPONS) {
+            console.warn('[Player] Max weapons reached. Cannot add more.');
+            return false;
+        }
+
+        let instance: ItemInstance;
+
+        if ('uid' in item) {
+            instance = item as ItemInstance;
+        } else {
+            const def = item as ItemDef;
+            instance = {
+                uid: Phaser.Utils.String.UUID(),
+                defId: def.id,
+                def: def,
+                displayName: def.name,
+                name: def.name,
+                rarity: (def.rarity as ItemRarity) || ItemRarity.COMMON,
+                computedStats: {
+                    damage: def.baseStats.damage,
+                    range: def.baseStats.range,
+                    fireRate: def.baseStats.fireRate,
+                    critChance: def.baseStats.critChance || 0,
+                    speed: def.baseStats.speed || 0,
+                    defense: def.baseStats.defense || 0,
+                    hpMax: def.baseStats.hpMax || 0
+                }
+            };
+        }
+
+        this.equippedWeapons.push(instance);
+
+        if (this.weaponOrbitManager) {
+            this.weaponOrbitManager.addWeapon(instance);
+        }
+
+        console.log(`[Player] Added weapon: ${instance.name} (${this.equippedWeapons.length}/${this.MAX_WEAPONS})`);
+        return true;
     }
 
     // [V2] Animation Methods
@@ -291,6 +352,11 @@ export class Player extends Phaser.GameObjects.Container {
         if (this.rig) {
             this.rig.updateAnim(time, this.speedMultiplier, isMoving);
             this.rig.y = -this.z;
+        }
+
+        // [V4] Update Weapon Orbit System
+        if (this.weaponOrbitManager) {
+            this.weaponOrbitManager.update(time, delta);
         }
 
         // Z-height (Jump/Bob)

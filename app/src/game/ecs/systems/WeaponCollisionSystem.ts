@@ -23,14 +23,12 @@ import { MainScene } from '../../scenes/MainScene';
 // ECS Queries
 const enemyQuery = defineQuery([EnemyTag, Transform, Health]);
 
-// Track hit enemies this frame (prevent multi-hit per attack)
-const hitThisFrame: Set<number> = new Set();
+// Track hit enemies per attack instance (Brotato Plan A)
+// Key: attackInstanceId, Value: Set of enemy entity IDs hit by this attack
+const attackInstanceHits: Map<number, Set<number>> = new Map();
 
 export const createWeaponCollisionSystem = (scene: MainScene) => {
     return defineSystem((world) => {
-        // Clear hit tracking each frame
-        hitThisFrame.clear();
-
         // 1. Get attacking weapons from OOP manager
         const player = (scene as any).playerManager?.myUnit;
         if (!player || !player.weaponOrbitManager) return world;
@@ -43,6 +41,14 @@ export const createWeaponCollisionSystem = (scene: MainScene) => {
 
         // 3. For each attacking weapon, check collision with each enemy
         for (const weapon of attackingWeapons) {
+            const attackId = weapon.attackInstanceId;
+
+            // Initialize hit tracking for this attack instance if needed
+            if (!attackInstanceHits.has(attackId)) {
+                attackInstanceHits.set(attackId, new Set());
+            }
+            const hitEnemies = attackInstanceHits.get(attackId)!;
+
             // Weapon hitbox (circle approximation)
             const wX = weapon.x;
             const wY = weapon.y;
@@ -62,8 +68,8 @@ export const createWeaponCollisionSystem = (scene: MainScene) => {
             for (let i = 0; i < enemies.length; i++) {
                 const eid = enemies[i];
 
-                // Skip if already hit this frame
-                if (hitThisFrame.has(eid)) continue;
+                // Skip if already hit by THIS attack instance
+                if (hitEnemies.has(eid)) continue;
 
                 const eX = Transform.x[eid];
                 const eY = Transform.y[eid];
@@ -78,7 +84,7 @@ export const createWeaponCollisionSystem = (scene: MainScene) => {
                 if (distSq < combinedRadius * combinedRadius) {
                     // HIT!
                     Health.current[eid] -= finalDamage;
-                    hitThisFrame.add(eid);
+                    hitEnemies.add(eid); // Mark as hit by this attack instance
 
                     // Visual feedback: Flash white
                     if (VisualEffect) {
@@ -92,9 +98,16 @@ export const createWeaponCollisionSystem = (scene: MainScene) => {
                     // Impact.forceY[eid] = Math.sin(angle) * 5;
 
                     // Debug log
-                    // console.log(`[WeaponCollisionSystem] Hit! Weapon ${weapon.id} -> Enemy ${eid} for ${finalDamage} damage`);
+                    console.log(`[WeaponCollisionSystem] Hit! Attack ${attackId} -> Enemy ${eid} for ${finalDamage} damage`);
                 }
             }
+        }
+
+        // 4. Cleanup old attack instances (prevent memory leak)
+        // Keep only the last 100 attack instances
+        if (attackInstanceHits.size > 100) {
+            const keysToDelete = Array.from(attackInstanceHits.keys()).slice(0, attackInstanceHits.size - 100);
+            keysToDelete.forEach(key => attackInstanceHits.delete(key));
         }
 
         return world;

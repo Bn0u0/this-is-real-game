@@ -113,12 +113,18 @@ export const ArtLabOverlay: React.FC = () => {
                                         </optgroup>
                                     </select>
                                 </div>
-                                <div className="flex items-center space-x-4">
+                                <div className="flex items-center space-x-2">
                                     <button
                                         onClick={() => handleUpdate('simulatingAttack', !config.simulatingAttack)}
                                         className={`flex-1 px-3 py-1 border transition-colors ${config.simulatingAttack ? 'bg-red-600 text-white border-transparent' : 'border-red-600 text-red-600'}`}
                                     >
                                         {config.simulatingAttack ? '⏹ 停止攻擊' : '⚔️ 模擬攻擊'}
+                                    </button>
+                                    <button
+                                        onClick={() => handleUpdate('enableEnemyTest', !config.enableEnemyTest)}
+                                        className={`flex-1 px-3 py-1 border transition-colors ${config.enableEnemyTest ? 'bg-[#39ff14] text-black border-transparent' : 'border-[#39ff14] text-[#39ff14]'}`}
+                                    >
+                                        {config.enableEnemyTest ? '🎯 敵人測試中' : '🎯 敵人測試'}
                                     </button>
                                 </div>
                             </div>
@@ -146,6 +152,79 @@ export const ArtLabOverlay: React.FC = () => {
                                 </div>
                             </div>
                         </>
+                    )}
+
+                    {/* 2.5 ENEMY TEST MODE (When WEAPON mode is active) */}
+                    {config.activeMode === 'WEAPON' && config.enableEnemyTest && (
+                        <div className="col-span-2 border-t border-white/10 pt-3 mt-2 space-y-3">
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="space-y-2">
+                                    <div className="flex items-center space-x-2">
+                                        <span className="text-xs w-16">敵人數量</span>
+                                        <input
+                                            type="range" min="1" max="20" step="1"
+                                            value={config.enemyCount}
+                                            onChange={(e) => handleUpdate('enemyCount', parseInt(e.target.value))}
+                                            className="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer"
+                                        />
+                                        <span className="text-xs w-8">{config.enemyCount}</span>
+                                    </div>
+                                    <div className="flex items-center space-x-2">
+                                        <span className="text-xs w-16">敵人速度</span>
+                                        <input
+                                            type="range" min="0.1" max="3" step="0.1"
+                                            value={config.enemySpeed}
+                                            onChange={(e) => handleUpdate('enemySpeed', parseFloat(e.target.value))}
+                                            className="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer"
+                                        />
+                                        <span className="text-xs w-8">{config.enemySpeed}x</span>
+                                    </div>
+                                </div>
+                                <div className="space-y-2">
+                                    <div className="flex items-center space-x-2">
+                                        <span className="text-xs w-16">敵人血量</span>
+                                        <input
+                                            type="range" min="10" max="500" step="10"
+                                            value={config.enemyHealth}
+                                            onChange={(e) => handleUpdate('enemyHealth', parseInt(e.target.value))}
+                                            className="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer"
+                                        />
+                                        <span className="text-xs w-12">{config.enemyHealth}</span>
+                                    </div>
+                                    <div className="flex items-center space-x-4">
+                                        <label className="flex items-center space-x-2 cursor-pointer">
+                                            <input
+                                                type="radio"
+                                                name="spawnMode"
+                                                checked={config.enemySpawnMode === 'FIXED'}
+                                                onChange={() => handleUpdate('enemySpawnMode', 'FIXED')}
+                                                className="w-4 h-4"
+                                            />
+                                            <span className="text-xs">固定數量</span>
+                                        </label>
+                                        <label className="flex items-center space-x-2 cursor-pointer">
+                                            <input
+                                                type="radio"
+                                                name="spawnMode"
+                                                checked={config.enemySpawnMode === 'CONTINUOUS'}
+                                                onChange={() => handleUpdate('enemySpawnMode', 'CONTINUOUS')}
+                                                className="w-4 h-4"
+                                            />
+                                            <span className="text-xs">持續生成</span>
+                                        </label>
+                                        <label className="flex items-center space-x-2 cursor-pointer">
+                                            <input
+                                                type="checkbox"
+                                                checked={config.showHitboxes}
+                                                onChange={(e) => handleUpdate('showHitboxes', e.target.checked)}
+                                                className="w-4 h-4"
+                                            />
+                                            <span className="text-xs">碰撞框</span>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     )}
 
                     {/* 3. CAMERA (Always Visible) */}

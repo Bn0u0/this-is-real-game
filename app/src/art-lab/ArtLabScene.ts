@@ -4,6 +4,7 @@ import { ArtLabState, DEFAULT_LAB_CONFIG } from './ArtLabConfig';
 import { generateCharacterTextures, generateSpriteSheet, generateWeaponIcons } from '../game/phaser/generators/TextureGenerator';
 import { CharacterMode } from './modes/CharacterMode';
 import { WeaponMode } from './modes/WeaponMode';
+import { EnemyTestMode } from './modes/EnemyTestMode';
 
 export class ArtLabScene extends Phaser.Scene {
     private config: ArtLabState = DEFAULT_LAB_CONFIG;
@@ -12,11 +13,13 @@ export class ArtLabScene extends Phaser.Scene {
     // Modes
     private charMode: CharacterMode;
     private weaponMode: WeaponMode;
+    private enemyTestMode: EnemyTestMode;
 
     constructor() {
         super('ArtLabScene');
         this.charMode = new CharacterMode(this);
         this.weaponMode = new WeaponMode(this);
+        this.enemyTestMode = new EnemyTestMode(this);
     }
 
     // Debug
@@ -37,8 +40,17 @@ export class ArtLabScene extends Phaser.Scene {
         // 2. Initialize Modes
         this.charMode.create();
         this.weaponMode.create();
+        this.enemyTestMode.create();
+
+        // Bind enemy test mode to character position
+        const charSprite = (this.charMode as any).characterSprite;
+        if (charSprite) {
+            this.enemyTestMode.bindToPlayer(charSprite);
+        }
+
         this.charMode.updateConfig(this.config);
         this.weaponMode.updateConfig(this.config);
+        this.enemyTestMode.updateConfig(this.config);
 
         // 3. Listen for Config Updates
         const onUpdate = (newConfig: ArtLabState) => {
@@ -47,6 +59,7 @@ export class ArtLabScene extends Phaser.Scene {
             this.updateResolution();
             this.charMode.updateConfig(this.config);
             this.weaponMode.updateConfig(this.config);
+            this.enemyTestMode.updateConfig(this.config);
             this.updateDebugText();
         };
 
@@ -78,6 +91,11 @@ export class ArtLabScene extends Phaser.Scene {
             this.charMode.update(time, delta);
         } else if (this.config.activeMode === 'WEAPON') {
             this.weaponMode.update(time, delta);
+        }
+
+        // Always update enemy test mode if enabled
+        if (this.config.enableEnemyTest) {
+            this.enemyTestMode.update(time, delta);
         }
     }
 

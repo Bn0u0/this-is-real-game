@@ -11,11 +11,16 @@ export class CharacterMode {
         this.scene = scene;
     }
 
+    // Expose sprite for enemy test mode binding
+    public get characterSprite(): PlayerSprite | null {
+        return this.sprite;
+    }
+
     create() {
         // 1. Generate Textures (Force Refresh)
         generateSpriteSheet(this.scene);
 
-        // 2. Spawn Sprite (Centered)
+        // 2. Spawn Sprite (Centered at 0,0 - camera will center on this)
         this.sprite = new PlayerSprite(this.scene, 0, 0);
         this.scene.add.existing(this.sprite);
     }

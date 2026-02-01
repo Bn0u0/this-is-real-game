@@ -97,6 +97,11 @@ export class WeaponMode {
 
             this.weaponSprite.x = handX + recoil; // Shake relative to hand position
             this.weaponSprite.setRotation(Phaser.Math.DegToRad(this.config.weaponRotation) + rotationOffset);
+
+            // Collision detection with test enemies
+            if (this.config.enableEnemyTest) {
+                this.checkEnemyCollisions();
+            }
         } else {
             // Reset to neutral (Keep hand offset!)
             this.weaponSprite.x = handX;
@@ -104,9 +109,41 @@ export class WeaponMode {
 
             // Drone/Fist specific offsets are handled in updateConfig, 
             // but we ensure drones float even during update if needed.
-            if (this.config.selectedWeaponId === 'weapon_drone_t0') {
+            if (this.config.selectedWeaponId === 'weapon_drone_t1') {
                 this.weaponSprite.y = -60;
                 this.weaponSprite.x = -40;
+            }
+        }
+    }
+
+    private checkEnemyCollisions() {
+        if (!this.weaponSprite || !this.scene) return;
+
+        // Get enemy test mode from scene
+        const enemyTestMode = (this.scene as any).enemyTestMode;
+        if (!enemyTestMode) return;
+
+        const enemies = enemyTestMode.getEnemies();
+        if (!enemies || enemies.length === 0) return;
+
+        // Get weapon hitbox
+        const item = ItemLibrary.get(this.config!.selectedWeaponId);
+        if (!item) return;
+
+        const hitboxWidth = item.attackConfig?.hitboxWidth ?? (item.baseStats?.range ? item.baseStats.range * 0.5 : 40);
+        const hitboxRadius = hitboxWidth / 2;
+        const damage = item.baseStats?.damage ?? 10;
+
+        // Check collision with each enemy
+        for (const enemy of enemies) {
+            const dx = enemy.x - this.weaponSprite.x;
+            const dy = enemy.y - this.weaponSprite.y;
+            const distSq = dx * dx + dy * dy;
+            const combinedRadius = hitboxRadius + 16; // Enemy radius = 16
+
+            if (distSq < combinedRadius * combinedRadius) {
+                // Hit! Damage the enemy
+                enemyTestMode.damageEnemy(enemy.index, damage);
             }
         }
     }

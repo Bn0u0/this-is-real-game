@@ -27,6 +27,7 @@ interface OrbitingWeapon {
     cooldownRemaining: number;
     attackProgress: number;
     attackDuration: number;
+    attackInstanceId: number; // Unique ID for each attack cycle
 }
 
 export class WeaponOrbitManager {
@@ -37,6 +38,9 @@ export class WeaponOrbitManager {
     // Configuration
     private defaultRadius: number = 60;
     private defaultSpeed: number = 3.0; // rad/s
+
+    // Attack instance tracking (for hit prevention)
+    private attackInstanceCounter: number = 0;
 
     constructor(scene: Phaser.Scene) {
         this.scene = scene;
@@ -90,7 +94,8 @@ export class WeaponOrbitManager {
             isAttacking: false,
             cooldownRemaining: 0,
             attackProgress: 0,
-            attackDuration
+            attackDuration,
+            attackInstanceId: 0 // Will be set when attack starts
         };
 
         this.weapons.set(id, orbitingWeapon);
@@ -197,6 +202,8 @@ export class WeaponOrbitManager {
             if (w.cooldownRemaining <= 0) {
                 w.isAttacking = true;
                 w.attackProgress = 0;
+                // Generate new attack instance ID
+                w.attackInstanceId = ++this.attackInstanceCounter;
             }
         }
     }
@@ -204,8 +211,8 @@ export class WeaponOrbitManager {
     /**
      * Gets all weapons currently attacking (for collision system).
      */
-    public getAttackingWeapons(): { id: string; x: number; y: number; def: ItemDef; progress: number }[] {
-        const result: { id: string; x: number; y: number; def: ItemDef; progress: number }[] = [];
+    public getAttackingWeapons(): { id: string; x: number; y: number; def: ItemDef; progress: number; attackInstanceId: number }[] {
+        const result: { id: string; x: number; y: number; def: ItemDef; progress: number; attackInstanceId: number }[] = [];
 
         for (const w of this.weapons.values()) {
             if (w.isAttacking) {
@@ -214,7 +221,8 @@ export class WeaponOrbitManager {
                     x: w.sprite.x,
                     y: w.sprite.y,
                     def: w.def,
-                    progress: w.attackProgress
+                    progress: w.attackProgress,
+                    attackInstanceId: w.attackInstanceId
                 });
             }
         }

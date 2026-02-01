@@ -15,6 +15,13 @@ export interface ArtLabState {
     weaponScale: number;
     weaponRotation: number;
     simulatingAttack: boolean;
+    // Enemy Test Mode
+    enableEnemyTest: boolean;
+    enemyCount: number;
+    enemySpawnMode: 'FIXED' | 'CONTINUOUS';
+    enemySpeed: number;
+    enemyHealth: number;
+    showHitboxes: boolean;
 }
 
 export const DEFAULT_LAB_CONFIG: ArtLabState = {
@@ -24,8 +31,14 @@ export const DEFAULT_LAB_CONFIG: ArtLabState = {
     charScaleY: 1.0,
     cameraZoom: 1.0,
     simulatingMove: false,
-    selectedWeaponId: 'w_nailgun_t1',
+    selectedWeaponId: 'w_nailgun_t3',
     weaponScale: 1.0,
     weaponRotation: 0,
-    simulatingAttack: false
+    simulatingAttack: false,
+    enableEnemyTest: false,
+    enemyCount: 5,
+    enemySpawnMode: 'CONTINUOUS',
+    enemySpeed: 1.0,
+    enemyHealth: 100,
+    showHitboxes: false
 };

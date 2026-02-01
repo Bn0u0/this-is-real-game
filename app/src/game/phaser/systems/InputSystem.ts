@@ -132,9 +132,17 @@ export class InputSystem {
                 console.log(`?? [Physics] Accel: ${body.acceleration.x.toFixed(0)}, ${body.acceleration.y.toFixed(0)} | Vel: ${body.velocity.x.toFixed(0)}, ${body.velocity.y.toFixed(0)} | Drag: ${body.drag.x}`);
             }
 
+            // [FIX] UPRIGHT STAND: Do not rotate the whole character container
             // Rotation: Face Move Direction
-            const targetRotation = inputVector.angle() + Math.PI / 2;
-            player.setRotation(Phaser.Math.Angle.RotateTo(player.rotation, targetRotation, 0.15));
+            // const targetRotation = inputVector.angle() + Math.PI / 2;
+            // player.setRotation(Phaser.Math.Angle.RotateTo(player.rotation, targetRotation, 0.15));
+
+            // Horizontal Flip based on move direction
+            const rig = (player as any).rig;
+            if (rig) {
+                if (moveX > 0.1) rig.scaleX = 0.5; // Right (Standard scale)
+                else if (moveX < -0.1) rig.scaleX = -0.5; // Left (Flipped)
+            }
 
             player.isMoving = true;
             (player as any).isSiegeMode = isSiege;

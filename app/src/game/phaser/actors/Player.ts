@@ -407,9 +407,18 @@ export class Player extends Phaser.GameObjects.Container {
                 // console.log(`[Player] Target acquired at ${target.x}, ${target.y}`); // Commented out to reduce spam, uncomment if needed
 
                 const controlType = this.equippedWeapon?.def?.controlType || 'AUTO';
+                const angle = Phaser.Math.Angle.Between(this.x, this.y, target.x, target.y);
+                const fireAngle = angle; // Reference for firing
+
                 if (!isSiege || controlType === 'AUTO') {
-                    const angle = Phaser.Math.Angle.Between(this.x, this.y, target.x, target.y);
-                    this.rotation = Phaser.Math.Angle.RotateTo(this.rotation, angle + Math.PI / 2, 0.2);
+                    // [FIX] UPRIGHT STAND: No 360 rotation of player container
+                    // this.rotation = Phaser.Math.Angle.RotateTo(this.rotation, angle + Math.PI / 2, 0.2);
+
+                    // Aiming Flip: Face target if not moving significantly
+                    if (!this.isMoving && this.rig) {
+                        const targetOnRight = target.x > this.x;
+                        this.rig.scaleX = targetOnRight ? 0.5 : -0.5;
+                    }
                 }
 
                 // Fire Rate Logic
@@ -423,7 +432,9 @@ export class Player extends Phaser.GameObjects.Container {
                     const ws = (this.scene as any).weaponSystem as WeaponSystem;
                     if (ws && this.equippedWeapon) {
                         ws.fire(this.equippedWeapon, {
-                            x: this.x, y: this.y, rotation: this.rotation - Math.PI / 2, id: this.id,
+                            x: this.x, y: this.y,
+                            rotation: fireAngle, // [FIX] Use raw target angle
+                            id: this.id,
                             isSiege: isSiege
                         } as any, this.currentStats, target);
                         console.log(`[Player] Firing weapon!`);

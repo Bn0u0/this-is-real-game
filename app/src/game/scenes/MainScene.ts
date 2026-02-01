@@ -519,6 +519,7 @@ export class MainScene extends Phaser.Scene {
 
         // Managers that still need update (Logic only, no Heavy Loop)
         this.progression.update(delta);
+        this.playerManager.update(time, delta); // [FIX] Restore player animation updates
 
         const myUnit = this.playerManager.myUnit;
         if (myUnit) {

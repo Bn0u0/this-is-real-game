@@ -240,24 +240,47 @@ export interface PlayerProfile {
 // ----------------------
 // 5. Enemy System
 // ----------------------
-export type EnemyBehavior = 'CHASER' | 'SHOOTER' | 'TELEPORTER';
+export type EnemyBehaviorType = 'CHASE' | 'RANGED' | 'CHARGE' | 'SWARM';
 
 export interface EnemyDef {
   id: string;
   name: string;
-  faction: 'RUSTED' | 'OVERGROWN' | 'GLITCHED';
-  tier: 1 | 2 | 3; // 1=Grunt, 2=Elite, 3=Boss
+
+  // 1. Base Stats
   stats: {
     hp: number;
-    speed: number;
-    damage: number;
-    attackRange: number; // Trigger attack at this distance
+    speed: number;      // pixels per second
+    damage: number;     // collision damage
+    mass: number;       // resistance to knockback (default: 1.0)
+    exp: number;        // experience dropped
+    attackRange?: number;
   };
-  behavior: EnemyBehavior;
+
+  // 2. Visuals
   visuals: {
-    color: number; // 0xFF9900
+    texture: string;    // e.g. 'tex_enemy_basic'
+    color: number;      // e.g. 0xFF0000
     scale: number;
-    effect?: string; // 'GLITCH_TRAIL'
+    opacity?: number;
   };
-  // Drop rates could go here
+
+  // 3. AI / Behavior
+  ai: {
+    type: EnemyBehaviorType;
+    // Optional params specific to behavior
+    range?: number;        // for RANGED
+    cooldown?: number;     // attack interval
+    chargeSpeed?: number;  // for CHARGE
+  };
+
+  // 4. Spawning Rules
+  spawnRules: {
+    minWave: number;    // First wave this enemy can appear
+    cost: number;       // Spawn budget cost (e.g. 1 for Walker, 5 for Tank)
+    weight: number;     // Spawn probability weight
+  };
+
+  // Metadata
+  tier: 1 | 2 | 3;      // 1=Common, 2=Elite, 3=Boss
+  tags?: string[];      // e.g. ['BIOLOGICAL', 'MECHANICAL']
 }

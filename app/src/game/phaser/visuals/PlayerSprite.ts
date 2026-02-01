@@ -59,21 +59,35 @@ export class PlayerSprite extends Phaser.GameObjects.Sprite {
             this.setTexture(this.frameNames[this.currentFrameIndex]);
         }
 
-        // 2. Procedural Movement trot
+        // 2. Procedural Movement trot (Waddle/Hop)
+        // [FIX] Character is now UPRIGHT by default. Rotation only for small waddle tilt.
         if (this.isMoving) {
-            const moveFreq = 0.012; // Cycle speed of the hop
-            const bounce = Math.abs(Math.sin(time * moveFreq)) * 10; // 10px hop
-            const tilt = Math.sin(time * moveFreq * 0.5) * 0.1; // Slight waddle tilt
+            const moveFreq = 0.015; // Slightly faster frequency
+            const bounce = Math.abs(Math.sin(time * moveFreq)) * 12; // Increased to 12px hop
+            const tilt = Math.sin(time * moveFreq * 0.5) * 0.2; // Doubled the tilt (approx 11 degrees)
 
             this.y = this.baseY - bounce;
             this.setRotation(tilt);
+        } else {
+            this.setRotation(0);
+            this.y = this.baseY;
         }
 
-        // 3. Sync Hand Position (Always follows body center + jitter)
+        // 3. Sync Hand Position (Always follows world-space body)
         if (this.handSprite) {
-            this.handSprite.x = this.x + 60; // Default holding offset X
-            this.handSprite.y = this.y + 15; // Default holding offset Y
-            this.handSprite.setScale(this.scaleX, this.scaleY);
+            // Get world position of the character
+            const matrix = this.getWorldTransformMatrix();
+            const worldX = matrix.tx;
+            const worldY = matrix.ty;
+
+            // Flip offset based on the parent's scale (Rig's scaleX)
+            const parentScaleX = this.parentContainer ? this.parentContainer.scaleX : 1;
+            const direction = parentScaleX > 0 ? 1 : -1;
+
+            this.handSprite.x = worldX + (30 * direction); // Tighter offset for 0.5 scale
+            this.handSprite.y = worldY + 10;
+            this.handSprite.setScale(Math.abs(parentScaleX), Math.abs(this.scaleY));
+            this.handSprite.setAlpha(this.alpha);
         }
     }
 

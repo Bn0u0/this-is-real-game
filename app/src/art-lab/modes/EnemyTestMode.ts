@@ -164,14 +164,8 @@ export class EnemyTestMode {
             }
 
             // Update damage text
-            if (enemy.damageText) {
-                enemy.damageText.y -= 50 * dt; // Float upward
-                enemy.damageText.alpha -= 2 * dt; // Fade out
-                if (enemy.damageText.alpha <= 0) {
-                    enemy.damageText.destroy();
-                    enemy.damageText = null;
-                }
-            }
+            // [REMOVED] Handle by Tween in damageEnemy()
+            // if (enemy.damageText) { ... }
         }
 
         // Draw hitboxes if enabled
@@ -192,19 +186,28 @@ export class EnemyTestMode {
         g.clear();
 
         const barWidth = 40;
-        const barHeight = 4;
+        const barHeight = 6; // Slightly thicker
         const x = enemy.sprite.x - barWidth / 2;
-        const y = enemy.sprite.y - 30;
+        const y = enemy.sprite.y - 32;
 
-        // Background
-        g.fillStyle(0x000000, 0.5);
+        // V2 Style: Wasteland (No borders, High contrast)
+
+        // 1. Background (Void / Abyss)
+        g.fillStyle(0x1a1a1a, 0.8);
         g.fillRect(x, y, barWidth, barHeight);
 
-        // Health
+        // 2. Health Fill (Oxide Red)
+        // No green/yellow/red logic. Just Oxide.
+        // Unless critical (<20%), then maybe Toxic Green or just dark red?
+        // Let's stick to Oxide (#CD5C5C) as primary, maybe lighter if full?
+        // Guideline: "Solid colors".
+
         const healthPercent = enemy.health / enemy.maxHealth;
-        const color = healthPercent > 0.5 ? 0x00FF00 : healthPercent > 0.25 ? 0xFFFF00 : 0xFF0000;
-        g.fillStyle(color);
-        g.fillRect(x, y, barWidth * healthPercent, barHeight);
+        if (healthPercent > 0) {
+            // Oxide Red (#CD5C5C)
+            g.fillStyle(0xCD5C5C);
+            g.fillRect(x, y, barWidth * healthPercent, barHeight);
+        }
     }
 
     private onEnemyDeath(enemy: TestEnemy, index: number) {
@@ -231,24 +234,63 @@ export class EnemyTestMode {
         const enemy = this.enemies[enemyIndex];
         enemy.health -= damage;
 
-        // Flash effect
-        enemy.sprite.setTint(0xFFFFFF);
-        this.scene.time.delayedCall(100, () => {
+        // Flash effect (Bone White #E3DAC9)
+        enemy.sprite.setTint(0xE3DAC9);
+        this.scene.time.delayedCall(80, () => {
             if (enemy.sprite && enemy.sprite.active) {
-                enemy.sprite.clearTint(); // Reset to normal texture color
+                enemy.sprite.clearTint();
             }
         });
 
         // Damage number
         if (enemy.damageText) enemy.damageText.destroy();
+
+        // Random slight offset for "Jitter" feel
+        const jitterX = (Math.random() - 0.5) * 10;
+
+        // Color: Bone (#E3DAC9) for normal, Toxic (#39FF14) for high dmg
+        const isCrit = damage > 20;
+        const color = isCrit ? '#39FF14' : '#E3DAC9';
+        const fontSize = isCrit ? '20px' : '16px';
+        const fontStyle = 'bold'; // Monospace ideally, but bold works for now
+
         enemy.damageText = this.scene.add.text(
-            enemy.sprite.x,
-            enemy.sprite.y - 20,
-            `-${Math.floor(damage)}`,
-            { fontSize: '16px', color: '#FF0000', fontStyle: 'bold' }
+            enemy.sprite.x + jitterX,
+            enemy.sprite.y - 25,
+            `${Math.floor(damage)}`,
+            {
+                fontSize,
+                color,
+                fontStyle,
+                stroke: '#000000',
+                strokeThickness: 3
+            }
         );
         enemy.damageText.setOrigin(0.5);
         enemy.damageText.setDepth(20);
+
+        // Retro "Glitch" motion: Pop up, then hold, then disappear
+        // Instead of smooth float
+        this.scene.tweens.add({
+            targets: enemy.damageText,
+            y: enemy.damageText.y - 30,
+            duration: 150,
+            ease: 'Stepped', // Jerky motion
+            onComplete: () => {
+                this.scene.tweens.add({
+                    targets: enemy.damageText,
+                    alpha: 0,
+                    duration: 100,
+                    delay: 200, // Hold for a bit
+                    onComplete: () => {
+                        if (enemy.damageText && enemy.damageText.active) {
+                            enemy.damageText.destroy();
+                            enemy.damageText = null;
+                        }
+                    }
+                });
+            }
+        });
     }
 
     public getEnemies(): { x: number; y: number; index: number }[] {

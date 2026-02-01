@@ -21,9 +21,9 @@ export const COLORS = {
 };
 
 export const PHYSICS = {
-  drag: 3000, // High drag for precise stopping (Was 1200)
-  acceleration: 4000, // High acceleration for snappy response (Was 2200)
-  maxVelocity: 550,
+  drag: 1600, // Standard friction
+  acceleration: 2400, // Balanced acceleration
+  maxVelocity: 360, // Standard walking speed
   tetherDistance: 300,
   rotationLerp: 0.15, // Smooth turning speed
 };

@@ -18,7 +18,9 @@ export class PlayerSprite extends Phaser.GameObjects.Sprite {
         this.setOrigin(0.5, 0.5);
         this.setDepth(10); // Character body
 
-        // Add Hand Sprite
+        // Add Hand Sprite (Visual Only)
+        // Note: The Rig might manage a separate Weapon Hand, 
+        // but this "Hand Sprite" is the "Floating Ball Hand" of the character itself.
         this.handSprite = scene.add.sprite(x, y, 'tex_char_hand');
         this.handSprite.setOrigin(0.5, 0.5);
         this.handSprite.setDepth(20); // Hand above body
@@ -26,7 +28,7 @@ export class PlayerSprite extends Phaser.GameObjects.Sprite {
     }
 
     public setHandVisible(visible: boolean) {
-        this.handSprite.setVisible(visible);
+        if (this.handSprite) this.handSprite.setVisible(visible);
     }
 
     public setIsMoving(moving: boolean) {

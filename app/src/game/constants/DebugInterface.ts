@@ -1,3 +1,5 @@
+import Phaser from 'phaser';
+
 export interface DebugGameInterface {
   game: Phaser.Game;
   eventBus: any; // Using any to avoid complex type dependencies in test scope

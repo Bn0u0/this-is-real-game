@@ -1,6 +1,6 @@
 ﻿import Phaser from 'phaser';
 import { Player } from '../phaser/actors/Player';
-import { generateCharacterTextures } from '../phaser/generators/TextureGenerator';
+import { generateCharacterTextures, generateSpriteSheet, generateWeaponIcons } from '../phaser/generators/TextureGenerator';
 // import { Enemy } from '../classes/Enemy'; // [REMOVED]
 import { COLORS, PHYSICS } from '../../constants';
 import { EventBus } from '../../services/EventBus';
@@ -252,6 +252,8 @@ export class MainScene extends Phaser.Scene {
 
         // [V2] Character Textures (Rig)
         generateCharacterTextures(this);
+        generateSpriteSheet(this); // [FIX] Generate Baba Frames
+        generateWeaponIcons(this); // [FIX] Generate Weapon Icons
 
         // [CRITICAL FIX] Initialize ECS World FIRST
         // This ensures all Managers/Systems that receive it in constructor have a valid reference.
@@ -537,6 +539,9 @@ export class MainScene extends Phaser.Scene {
         if (this.lootService && this.lootService.group && myUnit) {
             this.lootService.update(time, delta, myUnit);
             this.physics.overlap(myUnit, this.lootService.group, (p, l) => this.handleLootPickup(l));
+
+            // [FIX] Enable Wall Collision
+            this.physics.collide(myUnit, this.terrainManager.wallGroup);
         }
 
         // [FIX] Emit Stats Every Frame for Immediate UI Update

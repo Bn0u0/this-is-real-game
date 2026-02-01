@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { PlayerSprite } from './PlayerSprite';
+import { PlayerSprite } from '../../game/phaser/visuals/PlayerSprite';
 import { generateSpriteSheet } from '../../game/phaser/generators/TextureGenerator';
 import { ArtLabState } from '../ArtLabConfig';
 

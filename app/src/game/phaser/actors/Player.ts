@@ -337,8 +337,9 @@ export class Player extends Phaser.GameObjects.Container {
 
         if (canFire) {
             const target = this.scanForECSTarget(world);
-
             if (target) {
+                // console.log(`[Player] Target acquired at ${target.x}, ${target.y}`); // Commented out to reduce spam, uncomment if needed
+
                 const controlType = this.equippedWeapon?.def?.controlType || 'AUTO';
                 if (!isSiege || controlType === 'AUTO') {
                     const angle = Phaser.Math.Angle.Between(this.x, this.y, target.x, target.y);
@@ -359,6 +360,7 @@ export class Player extends Phaser.GameObjects.Container {
                             x: this.x, y: this.y, rotation: this.rotation - Math.PI / 2, id: this.id,
                             isSiege: isSiege
                         } as any, this.currentStats, target);
+                        console.log(`[Player] Firing weapon!`);
                     }
                     this.lastFireTime = time;
 

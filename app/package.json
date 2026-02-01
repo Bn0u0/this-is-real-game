@@ -11,7 +11,8 @@
     "sentinel": "npm run check:static && npm run check:architecture && npm run test && npm run check:boot",
     "check:static": "npx -y tsx scripts/sentinel/check_static.ts",
     "check:architecture": "npx -y tsx scripts/sentinel/check_architecture.ts",
-    "check:boot": "npx -y tsx scripts/sentinel/check_boot.ts"
+    "check:boot": "npx -y tsx scripts/sentinel/check_boot.ts",
+    "check:gameplay": "npx -y tsx scripts/sentinel/check_gameplay.ts"
   },
   "dependencies": {
     "appwrite": "^21.5.0",

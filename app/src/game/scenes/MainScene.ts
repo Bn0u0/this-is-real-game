@@ -237,6 +237,12 @@ export class MainScene extends Phaser.Scene {
         this.input.keyboard?.on('keydown-K', () => {
             this.enemyGroup.clear(true, true);
         });
+
+        // [SENTINEL] Debug Spawn Listener
+        EventBus.on('DEBUG_SPAWN_ENEMY', (pos: { x: number, y: number }) => {
+            console.log(`🛡️ [Sentinel] Force spawning enemy at ${pos.x}, ${pos.y}`);
+            this.waveManager.spawnEnemy(pos.x, pos.y);
+        });
     }
 
     // ... (Lines 60-118 skipped) ...

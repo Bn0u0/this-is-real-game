@@ -5,6 +5,7 @@ import { WorkbenchScene } from './scenes/WorkbenchScene';
 import { MainScene } from './scenes/MainScene';
 import { ArtLabScene } from '../art-lab/ArtLabScene';
 import { COLORS } from '../constants';
+import { EventBus } from '../services/EventBus';
 
 export const PhaserGame: React.FC = () => {
   const gameRef = useRef<Phaser.Game | null>(null);
@@ -42,6 +43,16 @@ export const PhaserGame: React.FC = () => {
     const game = new Phaser.Game(config);
     gameRef.current = game;
     (window as any).phaserGame = game;
+
+    // [SENTINEL] Expose Game Internal State for Autonomous Verification
+    if (import.meta.env.DEV) {
+      console.log("🛡️ [Sentinel] Hooking Game State...");
+      window.__GAME__ = {
+        game: game,
+        eventBus: EventBus,
+        world: (window as any).BitECS // Data layer might still be pending, but EventBus is critical for navigation
+      };
+    }
 
     // [FIX] Audio Context Unlocker
     const unlockAudio = () => {

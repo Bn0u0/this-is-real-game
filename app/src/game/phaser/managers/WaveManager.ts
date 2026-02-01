@@ -54,7 +54,7 @@ export class WaveManager {
         }
     }
 
-    private spawnEnemy() {
+    public spawnEnemy(forceX?: number, forceY?: number) {
         // Random Position around Camera Viewport
         const cam = this.scene.cameras.main;
         const pad = 100; // Spawn just outside view
@@ -66,34 +66,41 @@ export class WaveManager {
         // Use worldView to get current camera bounds
         const view = cam.worldView;
 
-        while (attempts < maxAttempts && !validSpawn) {
-            attempts++;
+        // [DEBUG] Forced Spawn
+        if (forceX !== undefined && forceY !== undefined) {
+            x = forceX;
+            y = forceY;
+            validSpawn = true;
+        } else {
+            while (attempts < maxAttempts && !validSpawn) {
+                attempts++;
 
-            // 0: Top, 1: Bottom, 2: Left, 3: Right
-            const side = Math.floor(Math.random() * 4);
+                // 0: Top, 1: Bottom, 2: Left, 3: Right
+                const side = Math.floor(Math.random() * 4);
 
-            switch (side) {
-                case 0: // Top
-                    x = view.x + Math.random() * view.width;
-                    y = view.y - pad;
-                    break;
-                case 1: // Bottom
-                    x = view.x + Math.random() * view.width;
-                    y = view.y + view.height + pad;
-                    break;
-                case 2: // Left
-                    x = view.x - pad;
-                    y = view.y + Math.random() * view.height;
-                    break;
-                case 3: // Right
-                    x = view.x + view.width + pad;
-                    y = view.y + Math.random() * view.height;
-                    break;
-            }
+                switch (side) {
+                    case 0: // Top
+                        x = view.x + Math.random() * view.width;
+                        y = view.y - pad;
+                        break;
+                    case 1: // Bottom
+                        x = view.x + Math.random() * view.width;
+                        y = view.y + view.height + pad;
+                        break;
+                    case 2: // Left
+                        x = view.x - pad;
+                        y = view.y + Math.random() * view.height;
+                        break;
+                    case 3: // Right
+                        x = view.x + view.width + pad;
+                        y = view.y + Math.random() * view.height;
+                        break;
+                }
 
-            // Check if valid ground
-            if (this.terrainManager.isGround(x, y)) {
-                validSpawn = true;
+                // Check if valid ground
+                if (this.terrainManager.isGround(x, y)) {
+                    validSpawn = true;
+                }
             }
         }
 

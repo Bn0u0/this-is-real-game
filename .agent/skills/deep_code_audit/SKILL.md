@@ -29,6 +29,7 @@ Mentally simulate the code execution line-by-line for the critical path.
 ## 4. Verify Against "SKILL: Delivery Sentinel"
 - Deep Code Audit finds *logic* errors.
 - Sentinel finds *syntax/runtime* errors.
+- **CRITICAL**: You MUST run `npm run check:gameplay` after any logic change to ensure the game still runs and plays correctly.
 - If you find a logic error here, consider suggesting a new *test case* for the Sentinel to prevent future regression.
 
 ## 5. Report Format
